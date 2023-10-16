@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "COVID19-KG-Integration",
-  "Description": "Integrates KG into ChatGPT's framework",
+  "description": "Integrates KG into ChatGPT's framework",
   "version": "1.0",
   "action": {
     "default_popup": "popup/popup.html"
