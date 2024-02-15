@@ -12,6 +12,13 @@
     "48": "images/icon-48.png",
     "128": "images/icon-128.png"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://*.chat.openai.com/*"],
+      "js": ["contentScript.ts"],
+      "run_at": "document_end"
+    }
+  ],
   "background": {
     "service_wonder": "background.ts",
     "type": "module"
