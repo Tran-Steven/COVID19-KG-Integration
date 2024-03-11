@@ -3,3 +3,6 @@ async function startObserver() {
     '[data-testid^="conversation-turn-"]:not([data-testid^="conversation-turn-2"])'
   );
 }
+(() => {
+  let responseNode, LLMQuery;
+})();

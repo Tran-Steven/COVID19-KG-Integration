@@ -1,0 +1,14 @@
+version: "3"
+services:
+  neo4j:
+    image: neo4j:latest
+    container_name: kg
+    ports:
+      - "7474:7474" # HTTP
+      - "7687:7687" # Bolt
+    volumes:
+      - ./neo4j/data:/data
+      - ./neo4j/logs:/logs
+      - ./resources:/var/lib/neo4j/resources
+    environment:
+      NEO4J_AUTH: neo4j/cvkgdemo
