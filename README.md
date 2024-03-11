@@ -1,14 +1,16 @@
-# Authors:
+# COVID19-KG-Integration
+
+### Authors
 
 Steven Tran, Khoa Le, Tushar Mishra, Owen Na
 
-## About
+### About
 
 Integrates a Knowledge Graph into ChatGPT's framework.
 
-## How To Run
+### How To Run
 
-### Requirements
+#### Requirements
 
 - Cypher-shell
 - Docker
