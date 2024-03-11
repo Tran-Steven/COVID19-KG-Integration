@@ -1,4 +1,6 @@
-# COVID19-KG-Integration
+
+
+# <img src="https://github.com/Tran-Steven/COVID19-KG-Integration/blob/main/images/icon-128.png" alt="logo" width="50" height="50"/> COVID19-KG-Integration                    
 
 ### About 
 
