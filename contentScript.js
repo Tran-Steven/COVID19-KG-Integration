@@ -1,19 +1,21 @@
-console.log('Script loaded');
-
+console.log("Script loaded");
+let currentTurn = 0;
 // Function to check if the turn is even based on the 'data-testid' attribute
 function isEvenTurn(dataTestId) {
-  var turnNumber = parseInt(dataTestId.replace('conversation-turn-', ''), 10);
+  let turnNumber = parseInt(dataTestId.replace("conversation-turn-", ""), 10);
   return turnNumber % 2 === 0;
 }
 
-// Function to find the largest even-numbered data-testid
 function findLargestEvenDiv(allDivs) {
-  var largestEvenDiv = null;
-  var maxEvenId = 0;
+  let largestEvenDiv = null;
+  let maxEvenId = 0;
   allDivs.forEach(function (div) {
-    var dataTestId = div.getAttribute('data-testid');
+    let dataTestId = div.getAttribute("data-testid");
     if (dataTestId && isEvenTurn(dataTestId)) {
-      var turnNumber = parseInt(dataTestId.replace('conversation-turn-', ''), 10);
+      let turnNumber = parseInt(
+        dataTestId.replace("conversation-turn-", ""),
+        10
+      );
       if (turnNumber > maxEvenId) {
         largestEvenDiv = div;
         maxEvenId = turnNumber;
@@ -23,40 +25,52 @@ function findLargestEvenDiv(allDivs) {
   return largestEvenDiv;
 }
 
-// Function to extract text from the latest even-numbered turn
 function extractLatestEvenTurnText() {
-  var allDivs = document.querySelectorAll('div[data-testid]');
-  var latestEvenDiv = findLargestEvenDiv(allDivs);
-  return latestEvenDiv && latestEvenDiv.textContent ? latestEvenDiv.textContent.trim() : '';
+  let allDivs = document.querySelectorAll("div[data-testid]");
+  let latestEvenDiv = findLargestEvenDiv(allDivs);
+  if (latestEvenDiv) {
+    let Query = latestEvenDiv.textContent.trim().replace(/^You/, "").trim();
+    return Query;
+  }
+  return "";
 }
-
-var handleChatUpdate = function () {
-  var latestEvenTurnText = extractLatestEvenTurnText();
-  console.log('Latest even turn text:', latestEvenTurnText);
-};
-
-// MutationObserver callback to handle mutations
-var mutationCallback = function (mutations) {
-  mutations.forEach(function (mutation) {
-    if (mutation.type === 'childList') {
-      handleChatUpdate();
+function handleChatUpdate() {
+  let latestEvenTurnText = extractLatestEvenTurnText();
+  if (
+    currentTurn !==
+    findLargestEvenDiv(document.querySelectorAll("div[data-testid]"))
+  ) {
+    async function fetchContext() {
+      //todo
+      const response = await fetch("localhost:7474");
+      console.log(response);
     }
+  }
+  console.log("Latest Query:", latestEvenTurnText);
+}
+function mutationCallback(mutations) {
+  mutations.forEach(function (mutation) {
+    console.log("Mutation observed:", mutation);
+    handleChatUpdate();
   });
-};
-
-// MutationObserver instance to observe for changes
-var observer = new MutationObserver(mutationCallback);
-
-// Configuration for the observer (which mutations to observe)
-var config = { childList: true, subtree: true };
-
-// Select the node that will be observed for mutations
-var targetNode = document.querySelector('div[role="presentation"][tabindex="0"].flex.h-full.flex-col');
-
-// Start observing the target node for configured mutations
-if (targetNode) {
-  observer.observe(targetNode, config);
-} else {
-  console.error('Chat container not found');
 }
 
+let observer = new MutationObserver(mutationCallback);
+let config = { childList: true, subtree: true };
+
+let targetNodeSelector = '[role="presentation"]';
+let observationAttempts = 0;
+let observationInterval = setInterval(function () {
+  let targetNode = document.querySelector(targetNodeSelector);
+  if (targetNode) {
+    console.log("Found target node, starting observation.");
+    observer.observe(targetNode, config);
+    clearInterval(observationInterval);
+  } else if (observationAttempts++ > 20) {
+    // Stop trying after 20 attempts
+    console.error("Failed to find the target node after multiple attempts.");
+    clearInterval(observationInterval);
+  } else {
+    console.log("Target node not found, trying again...");
+  }
+}, 1000); // Check Target Node Every Second
