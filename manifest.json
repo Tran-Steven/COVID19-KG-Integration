@@ -20,8 +20,9 @@
       "run_at": "document_idle"
     }
   ],
-  "background": {
+    "background": {
     "service_wonder": "background.ts",
+    "type": "module"
   },
   "permissions": ["storage", "activeTab", "tabs"]
 }

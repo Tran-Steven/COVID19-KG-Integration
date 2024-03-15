@@ -1,18 +1,17 @@
-console.log('Script loaded')
-// Function to check if the turn is even based on the 'data-testid' attribute
-function isEvenTurn(dataTestId: string): boolean {
+
+function isEvenTurn(dataTestId) {
   const turnNumber: number = parseInt(dataTestId.replace('conversation-turn-', ''), 10);
   return turnNumber % 2 === 0;
 }
 
 // Function to find the largest even-numbered data-testid
-function findLargestEvenDiv(allDivs: NodeList): Element | null {
-  let largestEvenDiv: Element | null = null;
+function findLargestEvenDiv(allDivs){
+  let largestEvenDiv: = null;
   let maxEvenId = 0;
   allDivs.forEach(div => {
-    const dataTestId: string | null = div.getAttribute('data-testid');
+    const dataTestId = div.getAttribute('data-testid');
     if (dataTestId && isEvenTurn(dataTestId)) {
-      const turnNumber: number = parseInt(dataTestId.replace('conversation-turn-', ''), 10);
+      const turnNumber = parseInt(dataTestId.replace('conversation-turn-', ''), 10);
       if (turnNumber > maxEvenId) {
         largestEvenDiv = div;
         maxEvenId = turnNumber;
@@ -23,19 +22,19 @@ function findLargestEvenDiv(allDivs: NodeList): Element | null {
 }
 
 // Function to extract text from the latest even-numbered turn
-function extractLatestEvenTurnText(): string {
-  const allDivs: NodeList = document.querySelectorAll('div[data-testid]');
-  const latestEvenDiv: Element | null = findLargestEvenDiv(allDivs);
+function extractLatestEvenTurnText(){
+  const allDivs = document.querySelectorAll('div[data-testid]');
+  const latestEvenDiv= findLargestEvenDiv(allDivs);
   return latestEvenDiv ? latestEvenDiv.textContent?.trim() || '' : '';
 }
 
-const handleChatUpdate = (): void => {
-  const latestEvenTurnText: string = extractLatestEvenTurnText();
+const handleChatUpdate = () => {
+  const latestEvenTurnText= extractLatestEvenTurnText();
   console.log('Latest even turn text:', latestEvenTurnText);
 };
 
 // MutationObserver callback to handle mutations
-const mutationCallback = (mutations: MutationRecord[]): void => {
+const mutationCallback = (mutations) => {
   for (const mutation of mutations) {
     if (mutation.type === 'childList') {
       handleChatUpdate();
@@ -47,10 +46,10 @@ const mutationCallback = (mutations: MutationRecord[]): void => {
 const observer = new MutationObserver(mutationCallback);
 
 // Configuration for the observer (which mutations to observe)
-const config: MutationObserverInit = { childList: true, subtree: true };
+const config= { childList: true, subtree: true };
 
 // Select the node that will be observed for mutations
-const targetNode: Element | null = document.querySelector('div[role="presentation"][tabindex="0"].flex.h-full.flex-col');
+const targetNode = document.querySelector('div[role="presentation"][tabindex="0"].flex.h-full.flex-col');
 
 // Start observing the target node for configured mutations
 if (targetNode) {
