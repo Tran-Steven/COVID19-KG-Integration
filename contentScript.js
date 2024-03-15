@@ -1,74 +1,76 @@
-// Log to indicate that the script has been loaded
-console.log('Script loaded');
-
+console.log("Script loaded");
+let currentTurn = 0;
 // Function to check if the turn is even based on the 'data-testid' attribute
 function isEvenTurn(dataTestId) {
-    var turnNumber = parseInt(dataTestId.replace('conversation-turn-', ''), 10);
-    return turnNumber % 2 === 0;
+  let turnNumber = parseInt(dataTestId.replace("conversation-turn-", ""), 10);
+  return turnNumber % 2 === 0;
 }
 
-// Function to find the largest even-numbered data-testid
 function findLargestEvenDiv(allDivs) {
-    var largestEvenDiv = null;
-    var maxEvenId = 0;
-    allDivs.forEach(function(div) {
-        var dataTestId = div.getAttribute('data-testid');
-        if (dataTestId && isEvenTurn(dataTestId)) {
-            var turnNumber = parseInt(dataTestId.replace('conversation-turn-', ''), 10);
-            if (turnNumber > maxEvenId) {
-                largestEvenDiv = div;
-                maxEvenId = turnNumber;
-            }
-        }
-    });
-    return largestEvenDiv;
+  let largestEvenDiv = null;
+  let maxEvenId = 0;
+  allDivs.forEach(function (div) {
+    let dataTestId = div.getAttribute("data-testid");
+    if (dataTestId && isEvenTurn(dataTestId)) {
+      let turnNumber = parseInt(
+        dataTestId.replace("conversation-turn-", ""),
+        10
+      );
+      if (turnNumber > maxEvenId) {
+        largestEvenDiv = div;
+        maxEvenId = turnNumber;
+      }
+    }
+  });
+  return largestEvenDiv;
 }
 
-// Function to extract text from the latest even-numbered turn
 function extractLatestEvenTurnText() {
-    var allDivs = document.querySelectorAll('div[data-testid]');
-    var latestEvenDiv = findLargestEvenDiv(allDivs);
-    return latestEvenDiv ? latestEvenDiv.textContent.trim() || '' : '';
+  let allDivs = document.querySelectorAll("div[data-testid]");
+  let latestEvenDiv = findLargestEvenDiv(allDivs);
+  if (latestEvenDiv) {
+    let Query = latestEvenDiv.textContent.trim().replace(/^You/, "").trim();
+    return Query;
+  }
+  return "";
 }
-
-// Handler function to log the latest even turn text
 function handleChatUpdate() {
-    var latestEvenTurnText = extractLatestEvenTurnText();
-    console.log('Latest even turn text:', latestEvenTurnText);
+  let latestEvenTurnText = extractLatestEvenTurnText();
+  if (
+    currentTurn !==
+    findLargestEvenDiv(document.querySelectorAll("div[data-testid]"))
+  ) {
+    async function fetchContext() {
+      //todo
+      const response = await fetch("localhost:7474");
+      console.log(response);
+    }
+  }
+  console.log("Latest Query:", latestEvenTurnText);
 }
-
-// Callback for the MutationObserver to handle mutations
 function mutationCallback(mutations) {
-    mutations.forEach(function(mutation) {
-        if (mutation.type === 'childlist') {
-      console.log("found subtree")
-            handleChatUpdate();
-        } else{
-      console.log("did not find update")
-    }
-    });
+  mutations.forEach(function (mutation) {
+    console.log("Mutation observed:", mutation);
+    handleChatUpdate();
+  });
 }
 
-// Create an instance of MutationObserver and pass the callback function
-var observer = new MutationObserver(mutationCallback);
+let observer = new MutationObserver(mutationCallback);
+let config = { childList: true, subtree: true };
 
-// Configuration for the observer (which mutations to observe)
-var config = { childList: true, subtree: true };
-
-// Select the node that will be observed for mutations
-const targetNode = document.querySelector('[role="presentation"]');
- 
-
-// Wait for the DOM to be fully loaded
-window.addEventListener('DOMContentLoaded', function() {
-    // Check if the target node is available in the DOM
-    if (targetNode) {
-        // Start observing the target node for configured mutations
-    console.log("Found node");
-        observer.observe(targetNode, config);
-    } else {
-        // Output an error if the target node is not found in the DOM
-        console.error('Chat container not found');
-    }
-});
-
+let targetNodeSelector = '[role="presentation"]';
+let observationAttempts = 0;
+let observationInterval = setInterval(function () {
+  let targetNode = document.querySelector(targetNodeSelector);
+  if (targetNode) {
+    console.log("Found target node, starting observation.");
+    observer.observe(targetNode, config);
+    clearInterval(observationInterval);
+  } else if (observationAttempts++ > 20) {
+    // Stop trying after 20 attempts
+    console.error("Failed to find the target node after multiple attempts.");
+    clearInterval(observationInterval);
+  } else {
+    console.log("Target node not found, trying again...");
+  }
+}, 1000); // Check Target Node Every Second
