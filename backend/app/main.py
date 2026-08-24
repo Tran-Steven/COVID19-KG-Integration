@@ -7,6 +7,7 @@ from app.database import Neo4jClient
 from app.models import (
     EntityLinkingResponse,
     EntityRequest,
+    GraphRetrievalResponse,
     NLPAnalysisResponse,
     NLPRequest,
     NLPResponse,
@@ -15,6 +16,8 @@ from app.models import (
 from app.nlp.entity_extractor import EntityExtractor
 from app.nlp.entity_linker import EntityLinker
 from app.nlp.relation_extractor import RelationExtractor
+from app.retrieval.graph_retriever import GraphRetriever
+from app.retrieval.relationship_resolver import RelationshipResolver
 
 
 nlp = spacy.load("en_core_web_sm")
@@ -23,6 +26,15 @@ neo4j_client = Neo4jClient()
 entity_extractor = EntityExtractor(nlp)
 entity_linker = EntityLinker(neo4j_client)
 relation_extractor = RelationExtractor(nlp)
+relationship_resolver = RelationshipResolver(
+    neo4j_client,
+    nlp,
+)
+graph_retriever = GraphRetriever(
+    neo4j_client,
+    entity_linker,
+    relationship_resolver,
+)
 
 
 @asynccontextmanager
@@ -115,4 +127,23 @@ def analyze_text(request: NLPRequest):
         "text": request.text,
         "entities": linked_entities,
         "relation": relation,
+    }
+
+
+@app.post("/kg/retrieve", response_model=GraphRetrievalResponse)
+def retrieve_graph_context(request: NLPRequest):
+    extracted_entities = entity_extractor.extract(request.text)
+    relation = relation_extractor.extract(request.text)
+
+    retrieval = graph_retriever.retrieve(
+        entities=extracted_entities,
+        relation=relation["text"],
+    )
+
+    return {
+        "text": request.text,
+        "entities": retrieval["entities"],
+        "relation": relation,
+        "relationships": retrieval["relationships"],
+        "facts": retrieval["facts"],
     }

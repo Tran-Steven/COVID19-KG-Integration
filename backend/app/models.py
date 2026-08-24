@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -57,3 +59,28 @@ class NLPAnalysisResponse(BaseModel):
     text: str
     entities: list[LinkedEntity]
     relation: ExtractedRelation
+
+
+class RelationshipCandidate(BaseModel):
+    relationship: str
+    normalized: str
+    score: float
+
+
+class GraphFact(BaseModel):
+    sourceId: str
+    sourceLabels: list[str]
+    source: str
+    relationship: str
+    targetId: str
+    targetLabels: list[str]
+    target: str
+    relationshipProperties: dict[str, Any]
+
+
+class GraphRetrievalResponse(BaseModel):
+    text: str
+    entities: list[LinkedEntity]
+    relation: ExtractedRelation
+    relationships: list[RelationshipCandidate]
+    facts: list[GraphFact]

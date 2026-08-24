@@ -70,3 +70,83 @@ class Neo4jClient:
                 limit=limit,
             )
             return [record.data() for record in result]
+
+    def get_relationship_types(self):
+        query = """
+        MATCH ()-[r]->()
+        RETURN DISTINCT type(r) AS relationship
+        ORDER BY relationship
+        """
+
+        with self.driver.session() as session:
+            result = session.run(query)
+            return [record["relationship"] for record in result]
+
+    def find_related_facts(
+        self,
+        graph_id: str,
+        relationship: str,
+        limit: int = 20,
+    ):
+        query = """
+        MATCH (source)-[r]-(target)
+        WHERE elementId(source) = $graphId
+          AND type(r) = $relationship
+
+        RETURN
+            elementId(source) AS sourceId,
+            labels(source) AS sourceLabels,
+            source.name AS source,
+            type(r) AS relationship,
+            elementId(target) AS targetId,
+            labels(target) AS targetLabels,
+            target.name AS target,
+            properties(r) AS relationshipProperties
+
+        LIMIT $limit
+        """
+
+        with self.driver.session() as session:
+            result = session.run(
+                query,
+                graphId=graph_id,
+                relationship=relationship,
+                limit=limit,
+            )
+            return [record.data() for record in result]
+
+    def find_relationship_between_entities(
+        self,
+        source_id: str,
+        target_id: str,
+        relationship: str,
+        limit: int = 20,
+    ):
+        query = """
+        MATCH (source)-[r]-(target)
+        WHERE elementId(source) = $sourceId
+          AND elementId(target) = $targetId
+          AND type(r) = $relationship
+
+        RETURN
+            elementId(source) AS sourceId,
+            labels(source) AS sourceLabels,
+            source.name AS source,
+            type(r) AS relationship,
+            elementId(target) AS targetId,
+            labels(target) AS targetLabels,
+            target.name AS target,
+            properties(r) AS relationshipProperties
+
+        LIMIT $limit
+        """
+
+        with self.driver.session() as session:
+            result = session.run(
+                query,
+                sourceId=source_id,
+                targetId=target_id,
+                relationship=relationship,
+                limit=limit,
+            )
+            return [record.data() for record in result]
