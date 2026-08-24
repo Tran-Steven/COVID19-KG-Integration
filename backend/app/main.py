@@ -3,10 +3,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.database import Neo4jClient
-from app.models import EntityRequest
+from app.models import EntityRequest, NLPRequest, NLPResponse
+from app.nlp.entity_extractor import EntityExtractor
 
 
 neo4j_client = Neo4jClient()
+entity_extractor = EntityExtractor()
 
 
 @asynccontextmanager
@@ -33,4 +35,14 @@ def entity_context(request: EntityRequest):
     return {
         "entity": request.entity,
         "context": context,
+    }
+
+
+@app.post("/nlp/entities", response_model=NLPResponse)
+def extract_entities(request: NLPRequest):
+    entities = entity_extractor.extract(request.text)
+
+    return {
+        "text": request.text,
+        "entities": entities,
     }
