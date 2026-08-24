@@ -3,12 +3,19 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.database import Neo4jClient
-from app.models import EntityRequest, NLPRequest, NLPResponse
+from app.models import (
+    EntityLinkingResponse,
+    EntityRequest,
+    NLPRequest,
+    NLPResponse,
+)
 from app.nlp.entity_extractor import EntityExtractor
+from app.nlp.entity_linker import EntityLinker
 
 
 neo4j_client = Neo4jClient()
 entity_extractor = EntityExtractor()
+entity_linker = EntityLinker(neo4j_client)
 
 
 @asynccontextmanager
@@ -45,4 +52,26 @@ def extract_entities(request: NLPRequest):
     return {
         "text": request.text,
         "entities": entities,
+    }
+
+
+@app.post("/nlp/link", response_model=EntityLinkingResponse)
+def link_entities(request: NLPRequest):
+    extracted_entities = entity_extractor.extract(request.text)
+
+    linked_entities = []
+
+    for entity in extracted_entities:
+        candidates = entity_linker.link(entity["text"])
+
+        linked_entities.append(
+            {
+                **entity,
+                "candidates": candidates,
+            }
+        )
+
+    return {
+        "text": request.text,
+        "entities": linked_entities,
     }

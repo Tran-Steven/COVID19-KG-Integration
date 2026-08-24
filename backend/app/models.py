@@ -19,3 +19,24 @@ class ExtractedEntity(BaseModel):
 class NLPResponse(BaseModel):
     text: str
     entities: list[ExtractedEntity]
+
+
+class GraphEntityCandidate(BaseModel):
+    graphId: str
+    labels: list[str]
+    name: str
+    aliases: list[str]
+    score: float
+
+
+class LinkedEntity(BaseModel):
+    text: str
+    type: str
+    start: int
+    end: int
+    candidates: list[GraphEntityCandidate]
+
+
+class EntityLinkingResponse(BaseModel):
+    text: str
+    entities: list[LinkedEntity]

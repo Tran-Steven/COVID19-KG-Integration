@@ -32,3 +32,41 @@ class Neo4jClient:
         with self.driver.session() as session:
             result = session.run(query, entity=entity)
             return [record.data() for record in result]
+
+    def find_entity_candidates(self, entity: str, limit: int = 5):
+        query = """
+        MATCH (n)
+        WHERE n.name IS NOT NULL
+
+        WITH n,
+            CASE
+                WHEN toLower(n.name) = toLower($entity) THEN 1.0
+                WHEN any(
+                    alias IN coalesce(n.aliases, [])
+                    WHERE toLower(alias) = toLower($entity)
+                ) THEN 0.95
+                WHEN toLower(n.name) CONTAINS toLower($entity) THEN 0.75
+                WHEN toLower($entity) CONTAINS toLower(n.name) THEN 0.70
+                ELSE 0.0
+            END AS score
+
+        WHERE score > 0
+
+        RETURN
+            elementId(n) AS graphId,
+            labels(n) AS labels,
+            n.name AS name,
+            coalesce(n.aliases, []) AS aliases,
+            score
+
+        ORDER BY score DESC
+        LIMIT $limit
+        """
+
+        with self.driver.session() as session:
+            result = session.run(
+                query,
+                entity=entity,
+                limit=limit,
+            )
+            return [record.data() for record in result]
