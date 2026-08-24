@@ -40,3 +40,20 @@ class LinkedEntity(BaseModel):
 class EntityLinkingResponse(BaseModel):
     text: str
     entities: list[LinkedEntity]
+
+
+class ExtractedRelation(BaseModel):
+    text: str | None
+    normalized: str | None
+    root: str | None
+
+
+class RelationResponse(BaseModel):
+    text: str
+    relation: ExtractedRelation
+
+
+class NLPAnalysisResponse(BaseModel):
+    text: str
+    entities: list[LinkedEntity]
+    relation: ExtractedRelation

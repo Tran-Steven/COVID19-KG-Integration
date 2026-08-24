@@ -1,9 +1,19 @@
-from app.database import Neo4jClient
+from spacy.language import Language
 
 
-class EntityLinker:
-    def __init__(self, database: Neo4jClient):
-        self.database = database
+class EntityExtractor:
+    def __init__(self, nlp: Language):
+        self.nlp = nlp
 
-    def link(self, entity: str, limit: int = 5):
-        return self.database.find_entity_candidates(entity, limit)
+    def extract(self, text: str):
+        doc = self.nlp(text)
+
+        return [
+            {
+                "text": entity.text,
+                "type": entity.label_,
+                "start": entity.start_char,
+                "end": entity.end_char,
+            }
+            for entity in doc.ents
+        ]
