@@ -24,7 +24,7 @@ class Neo4jClient:
         RETURN
             labels(n) AS entityLabels,
             n.name AS entity,
-            type(r) AS relationship,
+            coalesce(r.predicate, r.relation, type(r)) AS relationship,
             connected.name AS connectedEntity,
             labels(connected) AS connectedLabels
         """
@@ -41,6 +41,8 @@ class Neo4jClient:
         WITH n,
             CASE
                 WHEN toLower(n.name) = toLower($entity) THEN 1.0
+                WHEN n.id IS NOT NULL
+                    AND toLower(n.id) = toLower($entity) THEN 1.0
                 WHEN any(
                     alias IN coalesce(n.aliases, [])
                     WHERE toLower(alias) = toLower($entity)
@@ -74,7 +76,13 @@ class Neo4jClient:
     def get_relationship_types(self):
         query = """
         MATCH ()-[r]->()
-        RETURN DISTINCT type(r) AS relationship
+        WITH DISTINCT coalesce(
+            r.predicate,
+            r.relation,
+            type(r)
+        ) AS relationship
+        WHERE relationship IS NOT NULL
+        RETURN relationship
         ORDER BY relationship
         """
 
@@ -91,13 +99,21 @@ class Neo4jClient:
         query = """
         MATCH (source)-[r]-(target)
         WHERE elementId(source) = $graphId
-          AND type(r) = $relationship
+          AND (
+              type(r) = $relationship
+              OR r.predicate = $relationship
+              OR r.relation = $relationship
+          )
 
         RETURN
             elementId(source) AS sourceId,
             labels(source) AS sourceLabels,
             source.name AS source,
-            type(r) AS relationship,
+            coalesce(
+                r.predicate,
+                r.relation,
+                type(r)
+            ) AS relationship,
             elementId(target) AS targetId,
             labels(target) AS targetLabels,
             target.name AS target,
@@ -126,13 +142,21 @@ class Neo4jClient:
         MATCH (source)-[r]-(target)
         WHERE elementId(source) = $sourceId
           AND elementId(target) = $targetId
-          AND type(r) = $relationship
+          AND (
+              type(r) = $relationship
+              OR r.predicate = $relationship
+              OR r.relation = $relationship
+          )
 
         RETURN
             elementId(source) AS sourceId,
             labels(source) AS sourceLabels,
             source.name AS source,
-            type(r) AS relationship,
+            coalesce(
+                r.predicate,
+                r.relation,
+                type(r)
+            ) AS relationship,
             elementId(target) AS targetId,
             labels(target) AS targetLabels,
             target.name AS target,
@@ -150,3 +174,68 @@ class Neo4jClient:
                 limit=limit,
             )
             return [record.data() for record in result]
+
+    def clear_graph(self):
+        query = """
+        MATCH (n)
+        DETACH DELETE n
+        """
+
+        with self.driver.session() as session:
+            session.run(query).consume()
+
+    def ensure_kg_constraints(self):
+        query = """
+        CREATE CONSTRAINT kg_entity_id IF NOT EXISTS
+        FOR (n:KGEntity)
+        REQUIRE n.id IS UNIQUE
+        """
+
+        with self.driver.session() as session:
+            session.run(query).consume()
+
+    def upsert_kg_nodes(self, rows: list[dict]):
+        query = """
+        UNWIND $rows AS row
+
+        MERGE (n:KGEntity {id: row.id})
+
+        SET n.name = row.name,
+            n.categories = row.categories,
+            n.aliases = row.aliases,
+            n.providedBy = row.providedBy
+
+        SET n += row.properties
+
+        RETURN count(n) AS count
+        """
+
+        with self.driver.session() as session:
+            result = session.run(query, rows=rows)
+            record = result.single()
+            return record["count"] if record else 0
+
+    def upsert_kg_edges(self, rows: list[dict]):
+        query = """
+        UNWIND $rows AS row
+
+        MATCH (source:KGEntity {id: row.subject})
+        MATCH (target:KGEntity {id: row.object})
+
+        MERGE (source)-[r:KG_RELATION {
+            edgeKey: row.edgeKey
+        }]->(target)
+
+        SET r.predicate = row.predicate,
+            r.relation = row.relation,
+            r.providedBy = row.providedBy
+
+        SET r += row.properties
+
+        RETURN count(r) AS count
+        """
+
+        with self.driver.session() as session:
+            result = session.run(query, rows=rows)
+            record = result.single()
+            return record["count"] if record else 0

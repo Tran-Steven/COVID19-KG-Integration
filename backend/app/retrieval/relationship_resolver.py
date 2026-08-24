@@ -6,11 +6,19 @@ from app.database import Neo4jClient
 
 
 class RelationshipResolver:
-    def __init__(self, database: Neo4jClient, nlp: Language):
+    def __init__(
+        self,
+        database: Neo4jClient,
+        nlp: Language,
+    ):
         self.database = database
         self.nlp = nlp
 
-    def resolve(self, relation: str | None, limit: int = 5):
+    def resolve(
+        self,
+        relation: str | None,
+        limit: int = 5,
+    ):
         if not relation:
             return []
 
@@ -20,7 +28,9 @@ class RelationshipResolver:
         candidates = []
 
         for relationship_type in relationship_types:
-            normalized_relationship = self._normalize(relationship_type)
+            normalized_relationship = self._normalize(
+                relationship_type
+            )
 
             score = self._score(
                 query_relation,
@@ -44,9 +54,28 @@ class RelationshipResolver:
         return candidates[:limit]
 
     def _normalize(self, text: str):
-        text = re.sub(r"[_-]+", " ", text.lower())
-        text = re.sub(r"[^a-z0-9\s]+", " ", text)
-        text = re.sub(r"\s+", " ", text).strip()
+        text = text.strip()
+
+        if ":" in text and " " not in text:
+            text = text.split(":", 1)[1]
+
+        text = re.sub(
+            r"[_-]+",
+            " ",
+            text.lower(),
+        )
+
+        text = re.sub(
+            r"[^a-z0-9\s]+",
+            " ",
+            text,
+        )
+
+        text = re.sub(
+            r"\s+",
+            " ",
+            text,
+        ).strip()
 
         doc = self.nlp(text)
 
@@ -56,7 +85,11 @@ class RelationshipResolver:
             if not token.is_space
         )
 
-    def _score(self, query: str, candidate: str):
+    def _score(
+        self,
+        query: str,
+        candidate: str,
+    ):
         if query == candidate:
             return 1.0
 
@@ -72,6 +105,9 @@ class RelationshipResolver:
         token_score = len(intersection) / len(union)
 
         if query in candidate or candidate in query:
-            return max(token_score, 0.8)
+            return max(
+                token_score,
+                0.8,
+            )
 
         return token_score
