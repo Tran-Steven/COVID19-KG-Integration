@@ -9,7 +9,7 @@ Integrates a Knowledge Graph into ChatGPT's framework.
 
 ### Authors
 
-Steven Tran, Khoa Le, Tushar Mishra, Owen Na
+Steven Tran 
 
 
 ## How To Run
