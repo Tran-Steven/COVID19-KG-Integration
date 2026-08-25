@@ -151,6 +151,33 @@ class VerificationResolver:
                 facts=facts,
             )
 
+        if (
+            "global_public_health_risk_level"
+            in roles
+        ):
+            return self._risk_result(
+                text=text,
+                facts=facts,
+            )
+
+        if "causes" in roles:
+            return self._cause_result(
+                text=text,
+                facts=facts,
+            )
+
+        if "protects_against" in roles:
+            return self._vaccine_result(
+                text=text,
+                facts=facts,
+            )
+
+        if "transmitted_via" in roles:
+            return self._transmission_result(
+                text=text,
+                facts=facts,
+            )
+
         if self._has_explicit_contradiction(
             facts
         ):
@@ -197,6 +224,455 @@ class VerificationResolver:
             method="who_semantic",
         )
 
+    def _cause_result(
+        self,
+        text: str,
+        facts: list[dict],
+    ):
+        normalized = self._normalize(
+            text
+        )
+
+        if (
+            self._canonical_cause_reference(
+                normalized
+            )
+            and self._is_negated_claim(
+                text
+            )
+        ):
+            return self._result(
+                status=self.CONTRADICTED,
+                reason=(
+                    "WHO evidence identifies "
+                    "SARS-CoV-2 as the virus "
+                    "that causes COVID-19, while "
+                    "the claim negates that "
+                    "relationship."
+                ),
+                evidence_count=len(
+                    facts
+                ),
+                method="who_semantic",
+            )
+
+        if self._is_question(
+            text
+        ):
+            return self._result(
+                status=self.SUPPORTED,
+                reason=(
+                    "WHO evidence identifies "
+                    "SARS-CoV-2 as the virus "
+                    "that causes COVID-19."
+                ),
+                evidence_count=len(
+                    facts
+                ),
+                method="who_semantic",
+            )
+
+        claimed_cause = (
+            self._claimed_cause(
+                normalized
+            )
+        )
+
+        if claimed_cause:
+            if self._canonical_cause_reference(
+                claimed_cause
+            ):
+                return self._result(
+                    status=self.SUPPORTED,
+                    reason=(
+                        "The claimed cause "
+                        "matches WHO evidence "
+                        "identifying SARS-CoV-2 "
+                        "as the cause of COVID-19."
+                    ),
+                    evidence_count=len(
+                        facts
+                    ),
+                    method="who_semantic",
+                )
+
+            if self._generic_virus_reference(
+                claimed_cause
+            ):
+                return self._result(
+                    status=self.SUPPORTED,
+                    reason=(
+                        "The claim is compatible "
+                        "with WHO evidence "
+                        "identifying SARS-CoV-2 "
+                        "as the virus that causes "
+                        "COVID-19."
+                    ),
+                    evidence_count=len(
+                        facts
+                    ),
+                    method="who_semantic",
+                )
+
+            return self._result(
+                status=self.CONTRADICTED,
+                reason=(
+                    "The claim names a different "
+                    "cause, while WHO evidence "
+                    "identifies SARS-CoV-2 as "
+                    "the virus that causes "
+                    "COVID-19."
+                ),
+                evidence_count=len(
+                    facts
+                ),
+                method="who_semantic",
+            )
+
+        return self._result(
+            status=self.SUPPORTED,
+            reason=(
+                "Retrieved WHO evidence "
+                "supports the modeled causal "
+                "relationship."
+            ),
+            evidence_count=len(
+                facts
+            ),
+            method="who_semantic",
+        )
+
+    def _risk_result(
+        self,
+        text: str,
+        facts: list[dict],
+    ):
+        normalized = self._normalize(
+            text
+        )
+
+        claimed_level = (
+            self._risk_level(
+                normalized
+            )
+        )
+
+        evidence_text = " ".join(
+            self._fact_object_names(
+                facts
+            )
+        )
+
+        if claimed_level:
+            if (
+                claimed_level
+                in evidence_text
+            ):
+                if self._is_negated_claim(
+                    text
+                ):
+                    return self._result(
+                        status=self.CONTRADICTED,
+                        reason=(
+                            "The claim negates "
+                            f"the {claimed_level} "
+                            "risk level represented "
+                            "by the current WHO "
+                            "assessment."
+                        ),
+                        evidence_count=len(
+                            facts
+                        ),
+                        method="who_semantic",
+                    )
+
+                return self._result(
+                    status=self.SUPPORTED,
+                    reason=(
+                        "The claimed current "
+                        "risk level matches the "
+                        "WHO risk assessment "
+                        "represented in the "
+                        "knowledge graph."
+                    ),
+                    evidence_count=len(
+                        facts
+                    ),
+                    method="who_semantic",
+                )
+
+            return self._result(
+                status=self.CONTRADICTED,
+                reason=(
+                    "The claimed current risk "
+                    "level does not match the "
+                    "WHO risk level represented "
+                    "in the knowledge graph."
+                ),
+                evidence_count=len(
+                    facts
+                ),
+                method="who_semantic",
+            )
+
+        return self._result(
+            status=self.SUPPORTED,
+            reason=(
+                "Current WHO global public "
+                "health risk evidence was "
+                "retrieved."
+            ),
+            evidence_count=len(
+                facts
+            ),
+            method="who_semantic",
+        )
+
+    def _vaccine_result(
+        self,
+        text: str,
+        facts: list[dict],
+    ):
+        normalized = self._normalize(
+            text
+        )
+
+        targets = (
+            self._vaccine_targets(
+                normalized
+            )
+        )
+
+        evidence_objects = (
+            self._fact_object_names(
+                facts
+            )
+        )
+
+        if (
+            self._absolute_positive_claim(
+                normalized
+            )
+            and targets
+        ):
+            return self._result(
+                status=(
+                    self.INSUFFICIENT_EVIDENCE
+                ),
+                reason=(
+                    "The claim makes an absolute "
+                    "vaccine-effect statement "
+                    "that is stronger than the "
+                    "protective relationships "
+                    "represented in the current "
+                    "WHO knowledge graph."
+                ),
+                evidence_count=len(
+                    facts
+                ),
+                method="who_semantic",
+            )
+
+        if targets:
+            matched_targets = [
+                target
+                for target
+                in targets
+                if self._target_in_objects(
+                    target,
+                    evidence_objects,
+                )
+            ]
+
+            if (
+                len(
+                    matched_targets
+                )
+                != len(
+                    targets
+                )
+            ):
+                return self._result(
+                    status=(
+                        self.INSUFFICIENT_EVIDENCE
+                    ),
+                    reason=(
+                        "WHO vaccine evidence was "
+                        "retrieved, but the "
+                        "specific claimed outcome "
+                        "is not represented by "
+                        "the retrieved protection "
+                        "relationships."
+                    ),
+                    evidence_count=len(
+                        facts
+                    ),
+                    method="who_semantic",
+                )
+
+            if self._is_negated_claim(
+                text
+            ):
+                return self._result(
+                    status=self.CONTRADICTED,
+                    reason=(
+                        "The claim negates a "
+                        "vaccine-protection "
+                        "relationship directly "
+                        "represented by WHO "
+                        "evidence."
+                    ),
+                    evidence_count=len(
+                        facts
+                    ),
+                    method="who_semantic",
+                )
+
+            return self._result(
+                status=self.SUPPORTED,
+                reason=(
+                    "The claimed vaccine outcome "
+                    "matches a protection "
+                    "relationship represented by "
+                    "WHO evidence."
+                ),
+                evidence_count=len(
+                    facts
+                ),
+                method="who_semantic",
+            )
+
+        if self._is_negated_claim(
+            text
+        ):
+            return self._result(
+                status=self.CONTRADICTED,
+                reason=(
+                    "The claim negates retrieved "
+                    "WHO vaccine-protection "
+                    "evidence."
+                ),
+                evidence_count=len(
+                    facts
+                ),
+                method="who_semantic",
+            )
+
+        return self._result(
+            status=self.SUPPORTED,
+            reason=(
+                "Retrieved WHO evidence "
+                "supports the requested vaccine "
+                "protection relationship."
+            ),
+            evidence_count=len(
+                facts
+            ),
+            method="who_semantic",
+        )
+
+    def _transmission_result(
+        self,
+        text: str,
+        facts: list[dict],
+    ):
+        normalized = self._normalize(
+            text
+        )
+
+        if self._exclusive_claim(
+            normalized
+        ):
+            transmitted_objects = {
+                self._normalize(
+                    fact.get(
+                        "object",
+                        {},
+                    ).get(
+                        "name",
+                        "",
+                    )
+                )
+                for fact in facts
+                if (
+                    fact.get(
+                        "predicate"
+                    )
+                    == "transmitted_via"
+                )
+                and fact.get(
+                    "object",
+                    {},
+                ).get(
+                    "name"
+                )
+            }
+
+            if len(
+                transmitted_objects
+            ) > 1:
+                return self._result(
+                    status=self.CONTRADICTED,
+                    reason=(
+                        "The claim says the "
+                        "transmission route is "
+                        "exclusive, but WHO "
+                        "evidence in the graph "
+                        "represents multiple "
+                        "transmission routes."
+                    ),
+                    evidence_count=len(
+                        facts
+                    ),
+                    method="who_semantic",
+                )
+
+            return self._result(
+                status=(
+                    self.INSUFFICIENT_EVIDENCE
+                ),
+                reason=(
+                    "The retrieved evidence "
+                    "supports a transmission "
+                    "route but does not establish "
+                    "the claim's exclusivity."
+                ),
+                evidence_count=len(
+                    facts
+                ),
+                method="who_semantic",
+            )
+
+        if self._is_negated_claim(
+            text
+        ):
+            return self._result(
+                status=self.CONTRADICTED,
+                reason=(
+                    "The claim negates a "
+                    "transmission relationship "
+                    "directly represented by "
+                    "WHO evidence."
+                ),
+                evidence_count=len(
+                    facts
+                ),
+                method="who_semantic",
+            )
+
+        return self._result(
+            status=self.SUPPORTED,
+            reason=(
+                "The requested transmission "
+                "relationship is represented "
+                "by WHO evidence."
+            ),
+            evidence_count=len(
+                facts
+            ),
+            method="who_semantic",
+        )
+
     def _origin_result(
         self,
         text: str,
@@ -216,6 +692,29 @@ class VerificationResolver:
             )
         }
 
+        if self._inconclusive_origin_claim(
+            normalized
+        ):
+            if (
+                "inconclusive_pending_additional_"
+                "information_or_scientific_data"
+                in assessments
+            ):
+                return self._result(
+                    status=self.SUPPORTED,
+                    reason=(
+                        "The claim matches WHO "
+                        "SAGO's overall assessment "
+                        "that the origin remains "
+                        "inconclusive pending "
+                        "additional information."
+                    ),
+                    evidence_count=len(
+                        facts
+                    ),
+                    method="who_semantic",
+                )
+
         if self._deliberate_origin_query(
             normalized
         ):
@@ -224,6 +723,24 @@ class VerificationResolver:
                 "supporting_over_natural_processes"
                 in assessments
             ):
+                if self._positive_support_claim(
+                    normalized
+                ):
+                    return self._result(
+                        status=self.CONTRADICTED,
+                        reason=(
+                            "WHO SAGO reports no "
+                            "scientific evidence "
+                            "supporting deliberate "
+                            "laboratory manipulation "
+                            "over natural processes."
+                        ),
+                        evidence_count=len(
+                            facts
+                        ),
+                        method="who_semantic",
+                    )
+
                 return self._result(
                     status=(
                         self.INSUFFICIENT_EVIDENCE
@@ -252,6 +769,46 @@ class VerificationResolver:
                 "information"
                 in assessments
             ):
+                if self._cannot_rule_out_claim(
+                    normalized
+                ):
+                    return self._result(
+                        status=self.SUPPORTED,
+                        reason=(
+                            "The claim matches WHO "
+                            "SAGO's assessment that "
+                            "a laboratory-related "
+                            "event cannot currently "
+                            "be ruled out or proven "
+                            "with available "
+                            "information."
+                        ),
+                        evidence_count=len(
+                            facts
+                        ),
+                        method="who_semantic",
+                    )
+
+                if self._ruled_out_claim(
+                    normalized
+                ):
+                    return self._result(
+                        status=self.CONTRADICTED,
+                        reason=(
+                            "The claim says a "
+                            "laboratory-related "
+                            "origin has been ruled "
+                            "out, while WHO SAGO "
+                            "states that it cannot "
+                            "currently be ruled out "
+                            "or proven."
+                        ),
+                        evidence_count=len(
+                            facts
+                        ),
+                        method="who_semantic",
+                    )
+
                 return self._result(
                     status=(
                         self.INSUFFICIENT_EVIDENCE
@@ -277,6 +834,25 @@ class VerificationResolver:
                 "supporting"
                 in assessments
             ):
+                if self._positive_support_claim(
+                    normalized
+                ):
+                    return self._result(
+                        status=self.CONTRADICTED,
+                        reason=(
+                            "The claim asserts "
+                            "support for the "
+                            "cold-chain hypothesis, "
+                            "while WHO SAGO reports "
+                            "no additional evidence "
+                            "supporting it."
+                        ),
+                        evidence_count=len(
+                            facts
+                        ),
+                        method="who_semantic",
+                    )
+
                 return self._result(
                     status=(
                         self.INSUFFICIENT_EVIDENCE
@@ -301,6 +877,28 @@ class VerificationResolver:
                 "scientific_data"
                 in assessments
             ):
+                if self._certainty_overclaim(
+                    normalized
+                ):
+                    return self._result(
+                        status=(
+                            self.INSUFFICIENT_EVIDENCE
+                        ),
+                        reason=(
+                            "WHO SAGO identifies "
+                            "zoonotic spillover as "
+                            "the best-supported "
+                            "hypothesis, but does "
+                            "not establish it as a "
+                            "conclusively proven "
+                            "origin."
+                        ),
+                        evidence_count=len(
+                            facts
+                        ),
+                        method="who_semantic",
+                    )
+
                 return self._result(
                     status=self.SUPPORTED,
                     reason=(
@@ -323,6 +921,24 @@ class VerificationResolver:
             "information_or_scientific_data"
             in assessments
         ):
+            if self._broad_origin_certainty_claim(
+                normalized
+            ):
+                return self._result(
+                    status=self.CONTRADICTED,
+                    reason=(
+                        "The claim presents the "
+                        "origin as conclusively "
+                        "known, while WHO SAGO's "
+                        "overall assessment "
+                        "remains inconclusive."
+                    ),
+                    evidence_count=len(
+                        facts
+                    ),
+                    method="who_semantic",
+                )
+
             return self._result(
                 status=(
                     self.INSUFFICIENT_EVIDENCE
@@ -449,6 +1065,377 @@ class VerificationResolver:
             method="relationship",
         )
 
+    def _claimed_cause(
+        self,
+        text: str,
+    ):
+        patterns = (
+            (
+                r"\bcovid(?: 19)? "
+                r"(?:is )?caused by "
+                r"(.+)$"
+            ),
+            (
+                r"\bcovid(?: 19)? "
+                r"results? from infection with "
+                r"(.+)$"
+            ),
+            (
+                r"\bcovid(?: 19)? "
+                r"is due to infection with "
+                r"(.+)$"
+            ),
+            (
+                r"^(.+?) "
+                r"(?:does not )?"
+                r"causes? "
+                r"covid(?: 19)?\b"
+            ),
+        )
+
+        for pattern in patterns:
+            match = re.search(
+                pattern,
+                text,
+            )
+
+            if match:
+                return (
+                    match.group(1)
+                    .strip()
+                )
+
+        return None
+
+    def _canonical_cause_reference(
+        self,
+        text: str,
+    ):
+        return any(
+            value in text
+            for value in (
+                "sars cov 2",
+                (
+                    "severe acute respiratory "
+                    "syndrome coronavirus 2"
+                ),
+            )
+        )
+
+    def _generic_virus_reference(
+        self,
+        text: str,
+    ):
+        normalized = text.strip()
+
+        return normalized in {
+            "virus",
+            "a virus",
+            "coronavirus",
+            "a coronavirus",
+            "the coronavirus",
+        }
+
+    def _risk_level(
+        self,
+        text: str,
+    ):
+        levels = (
+            "very high",
+            "high",
+            "moderate",
+            "low",
+        )
+
+        for level in levels:
+            if re.search(
+                (
+                    r"\b"
+                    + re.escape(
+                        level
+                    )
+                    + r"\b"
+                ),
+                text,
+            ):
+                return level
+
+        return None
+
+    def _vaccine_targets(
+        self,
+        text: str,
+    ):
+        targets = []
+
+        if "severe" in text:
+            targets.append(
+                "severe disease"
+            )
+
+        if "hospital" in text:
+            targets.append(
+                "hospitalization"
+            )
+
+        if any(
+            value in text
+            for value in (
+                "death",
+                "deaths",
+                "die",
+                "mortality",
+            )
+        ):
+            targets.append(
+                "death"
+            )
+
+        if any(
+            value in text
+            for value in (
+                "infection",
+                "infections",
+                "infected",
+            )
+        ):
+            targets.append(
+                "infection"
+            )
+
+        if any(
+            value in text
+            for value in (
+                "transmission",
+                "spread",
+            )
+        ):
+            targets.append(
+                "transmission"
+            )
+
+        return targets
+
+    def _target_in_objects(
+        self,
+        target: str,
+        objects: list[str],
+    ):
+        if target == "severe disease":
+            return any(
+                "severe disease"
+                in value
+                for value in objects
+            )
+
+        if target == "hospitalization":
+            return any(
+                "hospital"
+                in value
+                for value in objects
+            )
+
+        if target == "death":
+            return any(
+                value == "death"
+                or "death" in value
+                for value in objects
+            )
+
+        return any(
+            target in value
+            for value in objects
+        )
+
+    def _fact_object_names(
+        self,
+        facts: list[dict],
+    ):
+        return [
+            self._normalize(
+                fact.get(
+                    "object",
+                    {},
+                ).get(
+                    "name",
+                    "",
+                )
+            )
+            for fact in facts
+            if fact.get(
+                "object",
+                {},
+            ).get(
+                "name"
+            )
+        ]
+
+    def _absolute_positive_claim(
+        self,
+        text: str,
+    ):
+        if self._is_negated_claim(
+            text
+        ):
+            return False
+
+        return any(
+            value in text
+            for value in (
+                "completely",
+                "always",
+                "guarantees",
+                "guarantee",
+                "100 percent",
+                "fully prevent",
+                "entirely prevent",
+                "eliminates",
+                "eliminate",
+            )
+        )
+
+    def _exclusive_claim(
+        self,
+        text: str,
+    ):
+        return any(
+            re.search(
+                (
+                    r"\b"
+                    + re.escape(
+                        value
+                    )
+                    + r"\b"
+                ),
+                text,
+            )
+            is not None
+            for value in (
+                "only",
+                "solely",
+                "exclusively",
+            )
+        )
+
+    def _inconclusive_origin_claim(
+        self,
+        text: str,
+    ):
+        return any(
+            value in text
+            for value in (
+                "remains inconclusive",
+                "remain inconclusive",
+                "is inconclusive",
+                "still inconclusive",
+                "origin is unknown",
+                "origin remains unknown",
+            )
+        )
+
+    def _cannot_rule_out_claim(
+        self,
+        text: str,
+    ):
+        cannot = (
+            "cannot" in text
+            or "can not" in text
+        )
+
+        ruled_out = (
+            "ruled out" in text
+        )
+
+        proven = (
+            "proven" in text
+            or "proved" in text
+        )
+
+        return (
+            cannot
+            and ruled_out
+            and proven
+        )
+
+    def _ruled_out_claim(
+        self,
+        text: str,
+    ):
+        if (
+            "cannot" in text
+            or "can not" in text
+        ):
+            return False
+
+        return any(
+            value in text
+            for value in (
+                "ruled out",
+                "excluded as an origin",
+                "excluded as the origin",
+                "impossible",
+            )
+        )
+
+    def _positive_support_claim(
+        self,
+        text: str,
+    ):
+        return any(
+            value in text
+            for value in (
+                "better supported",
+                "more strongly supported",
+                "most strongly supported",
+                "strongly supported",
+                "well supported",
+                "evidence supports",
+                "evidence strongly supports",
+                "supported than natural",
+                "new evidence supports",
+            )
+        )
+
+    def _certainty_overclaim(
+        self,
+        text: str,
+    ):
+        return any(
+            value in text
+            for value in (
+                "conclusively proven",
+                "conclusively proved",
+                "definitively proven",
+                "definitively proved",
+                "definite origin",
+                "certain origin",
+                "proven origin",
+                "proved origin",
+            )
+        )
+
+    def _broad_origin_certainty_claim(
+        self,
+        text: str,
+    ):
+        return (
+            self._certainty_overclaim(
+                text
+            )
+            or any(
+                value in text
+                for value in (
+                    "know exactly how",
+                    "knows exactly how",
+                    "origin is known exactly",
+                    "origin is conclusively known",
+                    "origin has been conclusively proven",
+                    "origin has been definitively proven",
+                    "origin has been proven",
+                )
+            )
+        )
+
     def _has_explicit_contradiction(
         self,
         facts: list[dict],
@@ -466,7 +1453,7 @@ class VerificationResolver:
             attributes = (
                 fact.get(
                     "evidence",
-                    {}
+                    {},
                 )
                 .get(
                     "attributes",
@@ -508,7 +1495,7 @@ class VerificationResolver:
         return (
             fact.get(
                 "evidence",
-                {}
+                {},
             )
             .get(
                 "attributes",
@@ -537,6 +1524,45 @@ class VerificationResolver:
             )
         )
 
+    def _is_question(
+        self,
+        text: str,
+    ):
+        stripped = text.strip()
+
+        if stripped.endswith(
+            "?"
+        ):
+            return True
+
+        normalized = self._normalize(
+            stripped
+        )
+
+        return any(
+            normalized.startswith(
+                value
+            )
+            for value in (
+                "what ",
+                "which ",
+                "who ",
+                "when ",
+                "where ",
+                "why ",
+                "how ",
+                "can ",
+                "could ",
+                "does ",
+                "do ",
+                "did ",
+                "is ",
+                "are ",
+                "was ",
+                "were ",
+            )
+        )
+
     def _deliberate_origin_query(
         self,
         text: str,
@@ -550,6 +1576,9 @@ class VerificationResolver:
                 "deliberate",
                 "artificial",
                 "created in a lab",
+                "laboratory manipulation",
+                "lab manipulation",
+                "biosafety breach",
             )
         )
 
@@ -564,6 +1593,8 @@ class VerificationResolver:
                 "laboratory",
                 "lab origin",
                 "from a lab",
+                "laboratory related",
+                "lab related",
             )
         )
 
@@ -587,6 +1618,8 @@ class VerificationResolver:
                 "animal origin",
                 "from animals",
                 "natural origin",
+                "natural spillover",
+                "zoonotic spillover",
             )
         )
 
@@ -629,6 +1662,12 @@ class VerificationResolver:
         text: str,
     ):
         text = text.lower()
+
+        text = re.sub(
+            r"[_/\-]+",
+            " ",
+            text,
+        )
 
         text = re.sub(
             r"[^a-z0-9\s]+",

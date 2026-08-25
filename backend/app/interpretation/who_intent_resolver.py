@@ -185,34 +185,49 @@ class WhoIntentResolver:
 
             object_ids = []
 
-            if any(
-                phrase in normalized
-                for phrase in (
-                    "airborne",
-                    "through the air",
-                    "respiratory particles",
-                    "respiratory particle",
-                    "aerosol",
-                    "aerosols",
+            exclusive = any(
+                value in normalized
+                for value in (
+                    "only",
+                    "solely",
+                    "exclusively",
+                )
+            )
+
+            if (
+                not exclusive
+                and any(
+                    phrase in normalized
+                    for phrase in (
+                        "airborne",
+                        "through the air",
+                        "respiratory particles",
+                        "respiratory particle",
+                        "aerosol",
+                        "aerosols",
+                    )
                 )
             ):
                 object_ids = [
                     self.AIRBORNE_ID
                 ]
 
-            elif any(
-                phrase in normalized
-                for phrase in (
-                    "surface",
-                    "surfaces",
-                    "contaminated surface",
+            elif (
+                not exclusive
+                and any(
+                    phrase in normalized
+                    for phrase in (
+                        "surface",
+                        "surfaces",
+                        "contaminated surface",
+                    )
                 )
             ):
                 object_ids = [
                     self.SURFACE_ID
                 ]
 
-            else:
+            elif not exclusive:
                 roles.append(
                     (
                         "transmission_"
