@@ -125,7 +125,19 @@ class WhoIntentResolver:
                     self.VACCINATION_ID
                 ],
                 "objectIds": object_ids,
-                "matchedText": "vaccine",
+                "matchedText": (
+                    self._first_match(
+                        normalized,
+                        [
+                            "covid vaccine",
+                            "covid 19 vaccine",
+                            "covid vaccination",
+                            "covid 19 vaccination",
+                            "vaccination against covid",
+                            "vaccine against covid",
+                        ],
+                    )
+                ),
                 "method": "rule",
             }
 
@@ -149,7 +161,17 @@ class WhoIntentResolver:
                     self.LONG_COVID_ID
                 ],
                 "matchedText": (
-                    "long covid"
+                    self._first_match(
+                        normalized,
+                        [
+                            "long covid",
+                            "post covid condition",
+                            "post covid effects",
+                            "post covid effect",
+                            "post covid symptoms",
+                            "long term post covid",
+                        ],
+                    )
                 ),
                 "method": "rule",
             }
@@ -168,6 +190,10 @@ class WhoIntentResolver:
                 for phrase in (
                     "airborne",
                     "through the air",
+                    "respiratory particles",
+                    "respiratory particle",
+                    "aerosol",
+                    "aerosols",
                 )
             ):
                 object_ids = [
@@ -179,6 +205,7 @@ class WhoIntentResolver:
                 for phrase in (
                     "surface",
                     "surfaces",
+                    "contaminated surface",
                 )
             ):
                 object_ids = [
@@ -206,11 +233,16 @@ class WhoIntentResolver:
                         [
                             "airborne",
                             "through the air",
+                            "respiratory particles",
+                            "aerosol",
                             "surface",
                             "surfaces",
                             "spread",
                             "transmit",
                             "transmission",
+                            "catch",
+                            "close contact",
+                            "indoor",
                         ],
                     )
                 ),
@@ -237,6 +269,11 @@ class WhoIntentResolver:
                         [
                             "caused by",
                             "cause",
+                            "responsible for",
+                            "results from infection with",
+                            "result from infection with",
+                            "due to infection with",
+                            "infection with",
                         ],
                     )
                 ),
@@ -281,6 +318,9 @@ class WhoIntentResolver:
                 "deliberate",
                 "artificial",
                 "created in a lab",
+                "laboratory manipulation",
+                "lab manipulation",
+                "biosafety breach",
             )
         ):
             object_ids = [
@@ -295,6 +335,8 @@ class WhoIntentResolver:
                 "laboratory",
                 "lab origin",
                 "from a lab",
+                "laboratory related",
+                "lab related",
             )
         ):
             object_ids = [
@@ -309,6 +351,8 @@ class WhoIntentResolver:
                 "animal origin",
                 "from animals",
                 "natural origin",
+                "natural spillover",
+                "zoonotic spillover",
             )
         ):
             object_ids = [
@@ -346,7 +390,10 @@ class WhoIntentResolver:
                         "lab leak",
                         "laboratory",
                         "zoonotic",
+                        "natural spillover",
                         "cold chain",
+                        "laboratory manipulation",
+                        "biosafety breach",
                     ],
                 )
             ),
@@ -408,25 +455,38 @@ class WhoIntentResolver:
         self,
         text: str,
     ):
-        return (
-            any(
-                phrase in text
-                for phrase in (
-                    "origin",
-                    "man made",
-                    "manmade",
-                    "engineered",
-                    "created in a lab",
-                    "lab leak",
-                    "lab origin",
-                    "from a lab",
-                    "laboratory origin",
-                    "zoonotic",
-                    "animal origin",
-                    "natural origin",
-                    "cold chain",
-                )
+        origin_language = any(
+            phrase in text
+            for phrase in (
+                "origin",
+                "originate",
+                "originated",
+                "man made",
+                "manmade",
+                "engineered",
+                "created in a lab",
+                "lab leak",
+                "lab origin",
+                "from a lab",
+                "laboratory origin",
+                "laboratory related",
+                "lab related",
+                "laboratory manipulation",
+                "lab manipulation",
+                "deliberate laboratory",
+                "biosafety breach",
+                "zoonotic",
+                "animal origin",
+                "from animals",
+                "natural origin",
+                "natural spillover",
+                "zoonotic spillover",
+                "cold chain",
             )
+        )
+
+        return (
+            origin_language
             and self._covid_context(
                 text
             )
@@ -466,6 +526,8 @@ class WhoIntentResolver:
             for value in (
                 "protect",
                 "prevent",
+                "reduce",
+                "lower",
                 "severe",
                 "hospital",
                 "death",
@@ -477,6 +539,54 @@ class WhoIntentResolver:
         return (
             vaccine
             and outcome
+            and self._covid_vaccine_context(
+                text
+            )
+            and not self._non_covid_vaccine_context(
+                text
+            )
+        )
+
+    def _covid_vaccine_context(
+        self,
+        text: str,
+    ):
+        return any(
+            value in text
+            for value in (
+                "covid vaccine",
+                "covid 19 vaccine",
+                "covid vaccination",
+                "covid 19 vaccination",
+                "covid vaccinated",
+                "covid 19 vaccinated",
+                "vaccine against covid",
+                "vaccines against covid",
+                "vaccination against covid",
+                "vaccinated against covid",
+            )
+        )
+
+    def _non_covid_vaccine_context(
+        self,
+        text: str,
+    ):
+        return any(
+            value in text
+            for value in (
+                "flu vaccine",
+                "flu vaccines",
+                "flu vaccination",
+                "influenza vaccine",
+                "influenza vaccines",
+                "influenza vaccination",
+                "measles vaccine",
+                "measles vaccines",
+                "measles vaccination",
+                "polio vaccine",
+                "polio vaccines",
+                "polio vaccination",
+            )
         )
 
     def _long_covid_query(
@@ -488,8 +598,11 @@ class WhoIntentResolver:
             for value in (
                 "long covid",
                 "post covid condition",
-                "post-covid condition",
-                "post covid 19 condition",
+                "post covid effects",
+                "post covid effect",
+                "post covid symptoms",
+                "long term post covid",
+                "long term covid effects",
             )
         )
 
@@ -501,6 +614,9 @@ class WhoIntentResolver:
                 "result in",
                 "develop",
                 "get ",
+                "follow",
+                "following",
+                "after",
             )
         )
 
@@ -516,7 +632,12 @@ class WhoIntentResolver:
         self,
         text: str,
     ):
-        relation = any(
+        if not self._covid_context(
+            text
+        ):
+            return False
+
+        direct_relation = any(
             value in text
             for value in (
                 "spread",
@@ -524,48 +645,70 @@ class WhoIntentResolver:
                 "transmission",
                 "airborne",
                 "through the air",
+                "respiratory particle",
+                "aerosol",
                 "surface",
                 "surfaces",
             )
         )
 
-        return (
-            relation
-            and self._covid_context(
-                text
+        risk_context = (
+            "catch" in text
+            and any(
+                value in text
+                for value in (
+                    "indoor",
+                    "indoors",
+                    "shared space",
+                    "shared spaces",
+                    "close contact",
+                    "crowded",
+                    "ventilation",
+                )
             )
+        )
+
+        return (
+            direct_relation
+            or risk_context
         )
 
     def _cause_query(
         self,
         text: str,
     ):
-        cause = any(
+        if not self._covid_context(
+            text
+        ):
+            return False
+
+        causal_language = any(
             value in text
             for value in (
                 "cause",
                 "caused by",
+                "responsible for",
+                "results from infection with",
+                "result from infection with",
+                "due to infection with",
+                "caused by infection with",
             )
         )
 
-        if (
-            not cause
-            or not self._covid_context(
-                text
-            )
-        ):
-            return False
-
-        if any(
+        sars_reference = any(
             value in text
             for value in (
                 "sars cov 2",
-                "sars-cov-2",
                 (
                     "severe acute respiratory "
                     "syndrome coronavirus 2"
                 ),
             )
+        )
+
+        if (
+            causal_language
+            and sars_reference
         ):
             return True
 
@@ -582,13 +725,30 @@ class WhoIntentResolver:
             "what virus causes covid",
             "virus that causes covid",
             "cause of covid",
+            "which virus is responsible for covid",
+            "what virus is responsible for covid",
+            "virus responsible for covid",
         )
 
-        return any(
+        if any(
             pattern in text
             for pattern
             in generic_patterns
-        )
+        ):
+            return True
+
+        if any(
+            value in text
+            for value in (
+                "covid is caused by",
+                "covid 19 is caused by",
+                "covid caused by",
+                "covid 19 caused by",
+            )
+        ):
+            return True
+
+        return False
 
     def _current_risk_query(
         self,
@@ -624,7 +784,7 @@ class WhoIntentResolver:
                     "2019"
                 ),
                 "sars cov 2",
-                "sars-cov-2",
+                "chinese virus",
             )
         )
 
@@ -635,13 +795,13 @@ class WhoIntentResolver:
         text = text.lower()
 
         text = re.sub(
-            r"[_/]+",
+            r"[_/\-]+",
             " ",
             text,
         )
 
         text = re.sub(
-            r"[^a-z0-9\-\s]+",
+            r"[^a-z0-9\s]+",
             " ",
             text,
         )
