@@ -112,3 +112,20 @@ class AugmentedPromptResponse(
 ):
     hasEvidence: bool
     augmentedPrompt: str
+    
+class QueryAmbiguity(BaseModel):
+    term: str
+    type: str
+    possibleInterpretations: list[str]
+
+
+class QueryInterpretation(BaseModel):
+    ambiguous: bool
+    broadRelation: bool
+    ambiguities: list[QueryAmbiguity]
+
+
+class InterpretationResponse(BaseModel):
+    text: str
+    relation: ExtractedRelation
+    interpretation: QueryInterpretation
