@@ -29,10 +29,24 @@ class Neo4jClient:
         query = """
         MATCH (n:KGEntity)
 
+        WHERE NOT any(
+            category IN coalesce(
+                n.categories,
+                []
+            )
+            WHERE category IN [
+                "biolink:Event",
+                "biolink:InformationContentEntity"
+            ]
+        )
+
         RETURN
             n.id AS id,
             n.name AS name,
-            coalesce(n.aliases, []) AS aliases
+            coalesce(
+                n.aliases,
+                []
+            ) AS aliases
 
         ORDER BY n.id
         """
@@ -56,7 +70,8 @@ class Neo4jClient:
 
         WHERE toLower(n.name) = toLower($entity)
 
-        OPTIONAL MATCH (n)-[r:KG_RELATION]-(connected:KGEntity)
+        OPTIONAL MATCH
+            (n)-[r:KG_RELATION]-(connected:KGEntity)
 
         RETURN
             n.id AS entityId,
@@ -66,6 +81,7 @@ class Neo4jClient:
                 []
             ) AS entityCategories,
             coalesce(
+                r.semantic_role,
                 r.predicate,
                 r.relation
             ) AS relationship,
@@ -192,25 +208,39 @@ class Neo4jClient:
         MATCH (n:KGEntity)
 
         WHERE n.name IS NOT NULL
-          AND NOT (
-              "biolink:Event"
-              IN coalesce(
+          AND NOT any(
+              category IN coalesce(
                   n.categories,
                   []
               )
+              WHERE category IN [
+                  "biolink:Event",
+                  "biolink:InformationContentEntity"
+              ]
           )
 
         WITH n,
             CASE
-                WHEN toLower(n.name) = toLower($entity) THEN 1.0
+                WHEN toLower(n.name) = toLower($entity)
+                    THEN 1.0
                 WHEN n.id IS NOT NULL
-                    AND toLower(n.id) = toLower($entity) THEN 1.0
+                    AND toLower(n.id) = toLower($entity)
+                    THEN 1.0
                 WHEN any(
-                    alias IN coalesce(n.aliases, [])
-                    WHERE toLower(alias) = toLower($entity)
-                ) THEN 0.95
-                WHEN toLower(n.name) CONTAINS toLower($entity) THEN 0.75
-                WHEN toLower($entity) CONTAINS toLower(n.name) THEN 0.70
+                    alias IN coalesce(
+                        n.aliases,
+                        []
+                    )
+                    WHERE toLower(alias)
+                        = toLower($entity)
+                )
+                    THEN 0.95
+                WHEN toLower(n.name)
+                    CONTAINS toLower($entity)
+                    THEN 0.75
+                WHEN toLower($entity)
+                    CONTAINS toLower(n.name)
+                    THEN 0.70
                 ELSE 0.0
             END AS score
 
@@ -249,7 +279,8 @@ class Neo4jClient:
         query = """
         MATCH ()-[r:KG_RELATION]->()
 
-        WITH DISTINCT r.predicate AS relationship
+        WITH DISTINCT
+            r.predicate AS relationship
 
         WHERE relationship IS NOT NULL
 
@@ -263,7 +294,9 @@ class Neo4jClient:
             )
 
             return [
-                record["relationship"]
+                record[
+                    "relationship"
+                ]
                 for record in result
             ]
 
@@ -281,7 +314,10 @@ class Neo4jClient:
         CALL {
             WITH entity
 
-            MATCH (entity)-[r:KG_RELATION]->(target:KGEntity)
+            MATCH
+                (entity)
+                -[r:KG_RELATION]->
+                (target:KGEntity)
 
             WHERE r.predicate = $relationship
                OR r.relation = $relationship
@@ -295,7 +331,10 @@ class Neo4jClient:
 
             WITH entity
 
-            MATCH (subject:KGEntity)-[r:KG_RELATION]->(entity)
+            MATCH
+                (subject:KGEntity)
+                -[r:KG_RELATION]->
+                (entity)
 
             WHERE r.predicate = $relationship
                OR r.relation = $relationship
@@ -320,7 +359,8 @@ class Neo4jClient:
                 object.categories,
                 []
             ) AS objectCategories,
-            properties(r) AS relationshipProperties
+            properties(r)
+                AS relationshipProperties
 
         LIMIT $limit
         """
@@ -357,7 +397,10 @@ class Neo4jClient:
         CALL {
             WITH first, second
 
-            MATCH (first)-[r:KG_RELATION]->(second)
+            MATCH
+                (first)
+                -[r:KG_RELATION]->
+                (second)
 
             WHERE r.predicate = $relationship
                OR r.relation = $relationship
@@ -371,7 +414,10 @@ class Neo4jClient:
 
             WITH first, second
 
-            MATCH (second)-[r:KG_RELATION]->(first)
+            MATCH
+                (second)
+                -[r:KG_RELATION]->
+                (first)
 
             WHERE r.predicate = $relationship
                OR r.relation = $relationship
@@ -396,7 +442,8 @@ class Neo4jClient:
                 object.categories,
                 []
             ) AS objectCategories,
-            properties(r) AS relationshipProperties
+            properties(r)
+                AS relationshipProperties
 
         LIMIT $limit
         """
@@ -407,6 +454,79 @@ class Neo4jClient:
                 sourceId=source_id,
                 targetId=target_id,
                 relationship=relationship,
+                limit=limit,
+            )
+
+            return [
+                record.data()
+                for record in result
+            ]
+
+    def find_semantic_facts(
+        self,
+        semantic_roles: list[str],
+        subject_ids: list[str] | None = None,
+        object_ids: list[str] | None = None,
+        limit: int = 50,
+    ):
+        query = """
+        MATCH
+            (subject:KGEntity)
+            -[r:KG_RELATION]->
+            (object:KGEntity)
+
+        WHERE r.semantic_role IN $semanticRoles
+          AND (
+              size($subjectIds) = 0
+              OR subject.id IN $subjectIds
+          )
+          AND (
+              size($objectIds) = 0
+              OR object.id IN $objectIds
+          )
+
+        RETURN
+            subject.id AS subjectId,
+            subject.name AS subject,
+            coalesce(
+                subject.categories,
+                []
+            ) AS subjectCategories,
+            r.semantic_role AS predicate,
+            object.id AS objectId,
+            object.name AS object,
+            coalesce(
+                object.categories,
+                []
+            ) AS objectCategories,
+            properties(r)
+                AS relationshipProperties
+
+        ORDER BY
+            r.semantic_role,
+            coalesce(
+                r.source_date,
+                ""
+            ) DESC,
+            subject.id,
+            object.id,
+            r.id
+
+        LIMIT $limit
+        """
+
+        with self.driver.session() as session:
+            result = session.run(
+                query,
+                semanticRoles=semantic_roles,
+                subjectIds=(
+                    subject_ids
+                    or []
+                ),
+                objectIds=(
+                    object_ids
+                    or []
+                ),
                 limit=limit,
             )
 
@@ -428,8 +548,12 @@ class Neo4jClient:
 
     def ensure_kg_constraints(self):
         query = """
-        CREATE CONSTRAINT kg_entity_id IF NOT EXISTS
+        CREATE CONSTRAINT
+            kg_entity_id
+            IF NOT EXISTS
+
         FOR (n:KGEntity)
+
         REQUIRE n.id IS UNIQUE
         """
 
@@ -449,7 +573,8 @@ class Neo4jClient:
             id: row.id
         })
 
-        SET n.name = row.name,
+        SET
+            n.name = row.name,
             n.categories = row.categories,
             n.aliases = row.aliases,
             n.providedBy = row.providedBy
@@ -488,11 +613,15 @@ class Neo4jClient:
             id: row.object
         })
 
-        MERGE (source)-[r:KG_RELATION {
-            edgeKey: row.edgeKey
-        }]->(target)
+        MERGE
+            (source)
+            -[r:KG_RELATION {
+                edgeKey: row.edgeKey
+            }]->
+            (target)
 
-        SET r.id = row.id,
+        SET
+            r.id = row.id,
             r.predicate = row.predicate,
             r.relation = row.relation,
             r.providedBy = row.providedBy

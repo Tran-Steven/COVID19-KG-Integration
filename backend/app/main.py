@@ -3,15 +3,37 @@ from contextlib import asynccontextmanager
 import spacy
 from fastapi import FastAPI
 
-from app.augmentation.context_builder import GroundingContextBuilder
-from app.augmentation.prompt_augmenter import PromptAugmenter
+from app.augmentation.context_builder import (
+    GroundingContextBuilder,
+)
+from app.augmentation.prompt_augmenter import (
+    PromptAugmenter,
+)
+from app.augmentation.who_context_builder import (
+    WhoGroundingContextBuilder,
+)
 from app.database import Neo4jClient
-from app.interpretation.ambiguity_detector import AmbiguityDetector
-from app.interpretation.direction_resolver import DirectionResolver
-from app.interpretation.history_intent_resolver import HistoryIntentResolver
-from app.interpretation.outcome_resolver import OutcomeResolver
-from app.interpretation.relation_intent_resolver import RelationIntentResolver
-from app.interpretation.semantic_interpreter import SemanticInterpreter
+from app.interpretation.ambiguity_detector import (
+    AmbiguityDetector,
+)
+from app.interpretation.direction_resolver import (
+    DirectionResolver,
+)
+from app.interpretation.history_intent_resolver import (
+    HistoryIntentResolver,
+)
+from app.interpretation.outcome_resolver import (
+    OutcomeResolver,
+)
+from app.interpretation.relation_intent_resolver import (
+    RelationIntentResolver,
+)
+from app.interpretation.semantic_interpreter import (
+    SemanticInterpreter,
+)
+from app.interpretation.who_intent_resolver import (
+    WhoIntentResolver,
+)
 from app.models import (
     AugmentedPromptResponse,
     EntityLinkingResponse,
@@ -24,16 +46,35 @@ from app.models import (
     NLPResponse,
     RelationResponse,
 )
-from app.nlp.entity_extractor import EntityExtractor
-from app.nlp.entity_linker import EntityLinker
-from app.nlp.kg_entity_matcher import KGEntityMatcher
-from app.nlp.relation_extractor import RelationExtractor
-from app.retrieval.graph_retriever import GraphRetriever
-from app.retrieval.history_retriever import HistoryRetriever
-from app.retrieval.relationship_resolver import RelationshipResolver
+from app.nlp.entity_extractor import (
+    EntityExtractor,
+)
+from app.nlp.entity_linker import (
+    EntityLinker,
+)
+from app.nlp.kg_entity_matcher import (
+    KGEntityMatcher,
+)
+from app.nlp.relation_extractor import (
+    RelationExtractor,
+)
+from app.retrieval.graph_retriever import (
+    GraphRetriever,
+)
+from app.retrieval.history_retriever import (
+    HistoryRetriever,
+)
+from app.retrieval.relationship_resolver import (
+    RelationshipResolver,
+)
+from app.retrieval.who_retriever import (
+    WhoRetriever,
+)
 
 
-nlp = spacy.load("en_core_web_sm")
+nlp = spacy.load(
+    "en_core_web_sm"
+)
 
 neo4j_client = Neo4jClient()
 
@@ -55,12 +96,16 @@ relation_extractor = RelationExtractor(
     nlp
 )
 
-relationship_resolver = RelationshipResolver(
-    neo4j_client,
-    nlp,
+relationship_resolver = (
+    RelationshipResolver(
+        neo4j_client,
+        nlp,
+    )
 )
 
-outcome_resolver = OutcomeResolver()
+outcome_resolver = (
+    OutcomeResolver()
+)
 
 relation_intent_resolver = (
     RelationIntentResolver()
@@ -76,16 +121,24 @@ direction_resolver = (
     )
 )
 
-ambiguity_detector = AmbiguityDetector()
+ambiguity_detector = (
+    AmbiguityDetector()
+)
 
 history_intent_resolver = (
     HistoryIntentResolver()
 )
 
-graph_retriever = GraphRetriever(
-    neo4j_client,
-    entity_linker,
-    relationship_resolver,
+who_intent_resolver = (
+    WhoIntentResolver()
+)
+
+graph_retriever = (
+    GraphRetriever(
+        neo4j_client,
+        entity_linker,
+        relationship_resolver,
+    )
 )
 
 history_retriever = (
@@ -95,33 +148,56 @@ history_retriever = (
     )
 )
 
+who_retriever = (
+    WhoRetriever(
+        neo4j_client,
+        who_intent_resolver,
+    )
+)
+
 grounding_context_builder = (
     GroundingContextBuilder()
 )
 
-prompt_augmenter = PromptAugmenter()
+who_grounding_context_builder = (
+    WhoGroundingContextBuilder()
+)
+
+prompt_augmenter = (
+    PromptAugmenter()
+)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(
+    app: FastAPI,
+):
     yield
+
     neo4j_client.close()
 
 
 app = FastAPI(
-    title="COVID-19 KG Integration API",
+    title=(
+        "COVID-19 KG "
+        "Integration API"
+    ),
     lifespan=lifespan,
 )
 
 
-@app.get("/health")
+@app.get(
+    "/health"
+)
 def health():
     return {
         "status": "ok"
     }
 
 
-@app.post("/kg/entity")
+@app.post(
+    "/kg/entity"
+)
 def entity_context(
     request: EntityRequest,
 ):
@@ -138,6 +214,28 @@ def entity_context(
     }
 
 
+def link_extracted_entities(
+    entities: list[dict],
+):
+    linked_entities = []
+
+    for entity in entities:
+        candidates = (
+            entity_linker.link(
+                entity["text"]
+            )
+        )
+
+        linked_entities.append(
+            {
+                **entity,
+                "candidates": candidates,
+            }
+        )
+
+    return linked_entities
+
+
 @app.post(
     "/nlp/entities",
     response_model=NLPResponse,
@@ -145,8 +243,10 @@ def entity_context(
 def extract_entities(
     request: NLPRequest,
 ):
-    entities = entity_extractor.extract(
-        request.text
+    entities = (
+        entity_extractor.extract(
+            request.text
+        )
     )
 
     return {
@@ -157,7 +257,9 @@ def extract_entities(
 
 @app.post(
     "/nlp/link",
-    response_model=EntityLinkingResponse,
+    response_model=(
+        EntityLinkingResponse
+    ),
 )
 def link_entities(
     request: NLPRequest,
@@ -168,23 +270,13 @@ def link_entities(
         )
     )
 
-    linked_entities = []
-
-    for entity in extracted_entities:
-        candidates = entity_linker.link(
-            entity["text"]
-        )
-
-        linked_entities.append(
-            {
-                **entity,
-                "candidates": candidates,
-            }
-        )
-
     return {
         "text": request.text,
-        "entities": linked_entities,
+        "entities": (
+            link_extracted_entities(
+                extracted_entities
+            )
+        ),
     }
 
 
@@ -195,8 +287,10 @@ def link_entities(
 def extract_relation(
     request: NLPRequest,
 ):
-    relation = relation_extractor.extract(
-        request.text
+    relation = (
+        relation_extractor.extract(
+            request.text
+        )
     )
 
     return {
@@ -207,7 +301,9 @@ def extract_relation(
 
 @app.post(
     "/nlp/analyze",
-    response_model=NLPAnalysisResponse,
+    response_model=(
+        NLPAnalysisResponse
+    ),
 )
 def analyze_text(
     request: NLPRequest,
@@ -218,23 +314,17 @@ def analyze_text(
         )
     )
 
-    relation = relation_extractor.extract(
-        request.text
+    relation = (
+        relation_extractor.extract(
+            request.text
+        )
     )
 
-    linked_entities = []
-
-    for entity in extracted_entities:
-        candidates = entity_linker.link(
-            entity["text"]
+    linked_entities = (
+        link_extracted_entities(
+            extracted_entities
         )
-
-        linked_entities.append(
-            {
-                **entity,
-                "candidates": candidates,
-            }
-        )
+    )
 
     return {
         "text": request.text,
@@ -243,7 +333,9 @@ def analyze_text(
     }
 
 
-@app.post("/nlp/semantic")
+@app.post(
+    "/nlp/semantic"
+)
 def inspect_semantics(
     request: NLPRequest,
 ):
@@ -272,33 +364,44 @@ def inspect_semantics(
 
 @app.post(
     "/nlp/interpret",
-    response_model=InterpretationResponse,
+    response_model=(
+        InterpretationResponse
+    ),
 )
 def interpret_query(
     request: NLPRequest,
 ):
-    relation = relation_extractor.extract(
-        request.text
-    )
-
-    outcomes = outcome_resolver.resolve(
-        request.text
-    )
-
-    direction = direction_resolver.resolve(
-        request.text
-    )
-
-    rule_intent = (
-        relation_intent_resolver.resolve(
-            text=request.text,
-            extracted_relation=relation[
-                "text"
-            ],
+    relation = (
+        relation_extractor.extract(
+            request.text
         )
     )
 
-    relation_intent = rule_intent
+    outcomes = (
+        outcome_resolver.resolve(
+            request.text
+        )
+    )
+
+    direction = (
+        direction_resolver.resolve(
+            request.text
+        )
+    )
+
+    rule_intent = (
+        relation_intent_resolver
+        .resolve(
+            text=request.text,
+            extracted_relation=(
+                relation["text"]
+            ),
+        )
+    )
+
+    relation_intent = (
+        rule_intent
+    )
 
     if (
         not outcomes
@@ -337,7 +440,9 @@ def interpret_query(
         }
 
     if (
-        relation_intent["intent"]
+        relation_intent[
+            "intent"
+        ]
         == "unknown"
     ):
         semantic_intent = (
@@ -351,6 +456,7 @@ def interpret_query(
             relation_intent = (
                 semantic_intent
             )
+
         else:
             relation_intent = {
                 **relation_intent,
@@ -359,7 +465,9 @@ def interpret_query(
 
     if (
         not outcomes
-        and relation_intent["intent"]
+        and relation_intent[
+            "intent"
+        ]
         in {
             "risk_modifier",
             "association",
@@ -423,7 +531,9 @@ def interpret_query(
         }
 
     if (
-        relation_intent["intent"]
+        relation_intent[
+            "intent"
+        ]
         == "risk_modifier"
         and relation_intent[
             "direction"
@@ -437,11 +547,15 @@ def interpret_query(
     interpretation = (
         ambiguity_detector.detect(
             text=request.text,
-            relation=relation["text"],
-            outcomes=outcomes,
-            resolved_intent=relation_intent[
-                "intent"
+            relation=relation[
+                "text"
             ],
+            outcomes=outcomes,
+            resolved_intent=(
+                relation_intent[
+                    "intent"
+                ]
+            ),
         )
     )
 
@@ -460,28 +574,81 @@ def retrieve(
     text: str,
 ):
     history_interpretation = (
-        history_intent_resolver.resolve(
+        history_intent_resolver
+        .resolve(
             text
         )
     )
 
-    relation = relation_extractor.extract(
-        text
+    relation = (
+        relation_extractor.extract(
+            text
+        )
     )
 
-    if history_interpretation is not None:
-        history = history_retriever.retrieve(
-            text
+    if (
+        history_interpretation
+        is not None
+    ):
+        history = (
+            history_retriever.retrieve(
+                text
+            )
         )
 
         return {
             "text": text,
-            "verificationType": "history",
+            "verificationType": (
+                "history"
+            ),
             "entities": [],
             "relation": relation,
             "relationships": [],
             "facts": [],
             "history": history,
+        }
+
+    who_interpretation = (
+        who_intent_resolver.resolve(
+            text
+        )
+    )
+
+    if (
+        who_interpretation
+        is not None
+    ):
+        extracted_entities = (
+            entity_extractor.extract(
+                text
+            )
+        )
+
+        linked_entities = (
+            link_extracted_entities(
+                extracted_entities
+            )
+        )
+
+        who = (
+            who_retriever.retrieve(
+                text,
+                interpretation=(
+                    who_interpretation
+                ),
+            )
+        )
+
+        return {
+            "text": text,
+            "verificationType": "who",
+            "entities": linked_entities,
+            "relation": relation,
+            "relationships": (
+                who["relationships"]
+            ),
+            "facts": who["facts"],
+            "history": None,
         }
 
     extracted_entities = (
@@ -490,9 +657,15 @@ def retrieve(
         )
     )
 
-    retrieval = graph_retriever.retrieve(
-        entities=extracted_entities,
-        relation=relation["text"],
+    retrieval = (
+        graph_retriever.retrieve(
+            entities=(
+                extracted_entities
+            ),
+            relation=relation[
+                "text"
+            ],
+        )
     )
 
     return {
@@ -500,12 +673,16 @@ def retrieve(
         "verificationType": (
             "relationship"
         ),
-        "entities": retrieval["entities"],
+        "entities": retrieval[
+            "entities"
+        ],
         "relation": relation,
         "relationships": retrieval[
             "relationships"
         ],
-        "facts": retrieval["facts"],
+        "facts": retrieval[
+            "facts"
+        ],
         "history": None,
     }
 
@@ -526,26 +703,59 @@ def ground(
         context = (
             grounding_context_builder
             .build_history(
-                text=retrieval["text"],
+                text=retrieval[
+                    "text"
+                ],
                 history=retrieval[
                     "history"
                 ],
             )
         )
+
+    elif (
+        retrieval[
+            "verificationType"
+        ]
+        == "who"
+    ):
+        context = (
+            who_grounding_context_builder
+            .build(
+                text=retrieval[
+                    "text"
+                ],
+                entities=retrieval[
+                    "entities"
+                ],
+                relationships=(
+                    retrieval[
+                        "relationships"
+                    ]
+                ),
+                facts=retrieval[
+                    "facts"
+                ],
+            )
+        )
+
     else:
         context = (
             grounding_context_builder
             .build(
-                text=retrieval["text"],
+                text=retrieval[
+                    "text"
+                ],
                 entities=retrieval[
                     "entities"
                 ],
                 relation=retrieval[
                     "relation"
                 ],
-                relationships=retrieval[
-                    "relationships"
-                ],
+                relationships=(
+                    retrieval[
+                        "relationships"
+                    ]
+                ),
                 facts=retrieval[
                     "facts"
                 ],
@@ -560,7 +770,9 @@ def ground(
 
 @app.post(
     "/kg/retrieve",
-    response_model=GraphRetrievalResponse,
+    response_model=(
+        GraphRetrievalResponse
+    ),
 )
 def retrieve_graph_context(
     request: NLPRequest,
@@ -570,18 +782,24 @@ def retrieve_graph_context(
     )
 
 
-@app.post("/kg/history")
+@app.post(
+    "/kg/history"
+)
 def retrieve_history(
     request: NLPRequest,
 ):
-    return history_retriever.retrieve(
-        request.text
+    return (
+        history_retriever.retrieve(
+            request.text
+        )
     )
 
 
 @app.post(
     "/kg/context",
-    response_model=GroundingContextResponse,
+    response_model=(
+        GroundingContextResponse
+    ),
 )
 def build_grounding_context(
     request: NLPRequest,
@@ -593,7 +811,9 @@ def build_grounding_context(
 
 @app.post(
     "/kg/augment",
-    response_model=AugmentedPromptResponse,
+    response_model=(
+        AugmentedPromptResponse
+    ),
 )
 def augment_prompt(
     request: NLPRequest,
@@ -626,13 +846,17 @@ def augment_prompt(
             context=grounding[
                 "context"
             ],
-            has_evidence=has_evidence,
+            has_evidence=(
+                has_evidence
+            ),
         )
     )
 
     return {
         **grounding,
-        "hasEvidence": has_evidence,
+        "hasEvidence": (
+            has_evidence
+        ),
         "augmentedPrompt": (
             augmented_prompt
         ),
