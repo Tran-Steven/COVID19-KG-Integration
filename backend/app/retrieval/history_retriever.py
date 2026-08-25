@@ -1,4 +1,6 @@
 import json
+import re
+from datetime import datetime
 
 from app.database import Neo4jClient
 from app.interpretation.history_intent_resolver import (
@@ -30,6 +32,33 @@ class HistoryRetriever:
             "COVID-19 could be characterized as "
             "a pandemic."
         ),
+    }
+
+    MONTHS = {
+        "january": 1,
+        "february": 2,
+        "march": 3,
+        "april": 4,
+        "may": 5,
+        "june": 6,
+        "july": 7,
+        "august": 8,
+        "september": 9,
+        "october": 10,
+        "november": 11,
+        "december": 12,
+        "jan": 1,
+        "feb": 2,
+        "mar": 3,
+        "apr": 4,
+        "jun": 6,
+        "jul": 7,
+        "aug": 8,
+        "sep": 9,
+        "sept": 9,
+        "oct": 10,
+        "nov": 11,
+        "dec": 12,
     }
 
     def __init__(
@@ -125,15 +154,369 @@ class HistoryRetriever:
             for row in rows
         ]
 
+        status = self._resolve_status(
+            text=text,
+            interpretation=(
+                interpretation
+            ),
+            rows=rows,
+        )
+
         return {
             "text": text,
-            "status": "SUPPORTED",
+            "status": status,
             "interpretation": (
                 interpretation
             ),
             "answer": answer,
             "evidence": evidence,
         }
+
+    def _resolve_status(
+        self,
+        text: str,
+        interpretation: dict,
+        rows: list[dict],
+    ):
+        if self._is_question(
+            text
+        ):
+            return "SUPPORTED"
+
+        requested_field = (
+            interpretation[
+                "requestedField"
+            ]
+        )
+
+        if requested_field == "date":
+            claimed_date = (
+                self._extract_date_claim(
+                    text
+                )
+            )
+
+            if claimed_date is None:
+                return (
+                    "INSUFFICIENT_EVIDENCE"
+                )
+
+            evidence_dates = [
+                row.get(
+                    "dateStart"
+                )
+                for row in rows
+                if row.get(
+                    "dateStart"
+                )
+            ]
+
+            if not evidence_dates:
+                return (
+                    "INSUFFICIENT_EVIDENCE"
+                )
+
+            if any(
+                self._date_matches(
+                    claimed_date,
+                    evidence_date,
+                )
+                for evidence_date
+                in evidence_dates
+            ):
+                return "SUPPORTED"
+
+            return "CONTRADICTED"
+
+        if requested_field == "location":
+            evidence_locations = [
+                row.get(
+                    "relatedEntityName"
+                )
+                for row in rows
+                if row.get(
+                    "relatedEntityName"
+                )
+            ]
+
+            if not evidence_locations:
+                return (
+                    "INSUFFICIENT_EVIDENCE"
+                )
+
+            normalized_text = (
+                self._normalize(
+                    text
+                )
+            )
+
+            if any(
+                self._normalize(
+                    location
+                )
+                in normalized_text
+                for location
+                in evidence_locations
+            ):
+                return "SUPPORTED"
+
+            claimed_location = (
+                self._extract_location_claim(
+                    text
+                )
+            )
+
+            if claimed_location:
+                return "CONTRADICTED"
+
+            return (
+                "INSUFFICIENT_EVIDENCE"
+            )
+
+        return (
+            "INSUFFICIENT_EVIDENCE"
+        )
+
+    def _extract_date_claim(
+        self,
+        text: str,
+    ):
+        normalized = (
+            self._normalize(
+                text
+            )
+        )
+
+        month_names = (
+            "|".join(
+                sorted(
+                    self.MONTHS,
+                    key=len,
+                    reverse=True,
+                )
+            )
+        )
+
+        full_date_patterns = (
+            (
+                r"\b("
+                + month_names
+                + r")\s+"
+                r"(\d{1,2})\s+"
+                r"((?:19|20)\d{2})\b"
+            ),
+            (
+                r"\b(\d{1,2})\s+("
+                + month_names
+                + r")\s+"
+                r"((?:19|20)\d{2})\b"
+            ),
+        )
+
+        match = re.search(
+            full_date_patterns[0],
+            normalized,
+        )
+
+        if match:
+            return {
+                "precision": "day",
+                "year": int(
+                    match.group(3)
+                ),
+                "month": (
+                    self.MONTHS[
+                        match.group(1)
+                    ]
+                ),
+                "day": int(
+                    match.group(2)
+                ),
+            }
+
+        match = re.search(
+            full_date_patterns[1],
+            normalized,
+        )
+
+        if match:
+            return {
+                "precision": "day",
+                "year": int(
+                    match.group(3)
+                ),
+                "month": (
+                    self.MONTHS[
+                        match.group(2)
+                    ]
+                ),
+                "day": int(
+                    match.group(1)
+                ),
+            }
+
+        month_year = re.search(
+            (
+                r"\b("
+                + month_names
+                + r")\s+"
+                r"((?:19|20)\d{2})\b"
+            ),
+            normalized,
+        )
+
+        if month_year:
+            return {
+                "precision": "month",
+                "year": int(
+                    month_year.group(2)
+                ),
+                "month": (
+                    self.MONTHS[
+                        month_year.group(1)
+                    ]
+                ),
+                "day": None,
+            }
+
+        year = re.search(
+            r"\b((?:19|20)\d{2})\b",
+            normalized,
+        )
+
+        if year:
+            return {
+                "precision": "year",
+                "year": int(
+                    year.group(1)
+                ),
+                "month": None,
+                "day": None,
+            }
+
+        return None
+
+    def _date_matches(
+        self,
+        claimed: dict,
+        evidence_date: str,
+    ):
+        try:
+            parsed = datetime.strptime(
+                evidence_date[:10],
+                "%Y-%m-%d",
+            )
+        except (
+            ValueError,
+            TypeError,
+        ):
+            return False
+
+        if (
+            claimed[
+                "year"
+            ]
+            != parsed.year
+        ):
+            return False
+
+        if (
+            claimed[
+                "precision"
+            ]
+            == "year"
+        ):
+            return True
+
+        if (
+            claimed[
+                "month"
+            ]
+            != parsed.month
+        ):
+            return False
+
+        if (
+            claimed[
+                "precision"
+            ]
+            == "month"
+        ):
+            return True
+
+        return (
+            claimed[
+                "day"
+            ]
+            == parsed.day
+        )
+
+    def _extract_location_claim(
+        self,
+        text: str,
+    ):
+        normalized = (
+            self._normalize(
+                text
+            )
+        )
+
+        patterns = (
+            r"\bfirst reported in ([a-z][a-z\s-]*)$",
+            r"\bfirst found in ([a-z][a-z\s-]*)$",
+            r"\bfirst detected in ([a-z][a-z\s-]*)$",
+            r"\bfirst identified in ([a-z][a-z\s-]*)$",
+            r"\breported in ([a-z][a-z\s-]*)$",
+        )
+
+        for pattern in patterns:
+            match = re.search(
+                pattern,
+                normalized,
+            )
+
+            if match:
+                return (
+                    match.group(1)
+                    .strip()
+                )
+
+        return None
+
+    def _is_question(
+        self,
+        text: str,
+    ):
+        stripped = (
+            text.strip()
+        )
+
+        if stripped.endswith(
+            "?"
+        ):
+            return True
+
+        normalized = (
+            self._normalize(
+                stripped
+            )
+        )
+
+        return any(
+            normalized.startswith(
+                value
+            )
+            for value in (
+                "when ",
+                "where ",
+                "what date ",
+                "which date ",
+                "what city ",
+                "which city ",
+                "what location ",
+                "which location ",
+            )
+        )
 
     def _build_answer(
         self,
@@ -273,3 +656,29 @@ class HistoryRetriever:
         return [
             value
         ]
+
+    def _normalize(
+        self,
+        text: str,
+    ):
+        lowered = (
+            text.lower()
+        )
+
+        lowered = re.sub(
+            r"[_/]+",
+            " ",
+            lowered,
+        )
+
+        lowered = re.sub(
+            r"[^a-z0-9\s-]",
+            " ",
+            lowered,
+        )
+
+        return re.sub(
+            r"\s+",
+            " ",
+            lowered,
+        ).strip()
