@@ -53,6 +53,8 @@ from app.models import (
     NLPRequest,
     NLPResponse,
     RelationResponse,
+    ResponseVerificationRequest,
+    ResponseVerificationResponse,
 )
 from app.nlp.entity_extractor import (
     EntityExtractor,
@@ -65,6 +67,9 @@ from app.nlp.kg_entity_matcher import (
 )
 from app.nlp.relation_extractor import (
     RelationExtractor,
+)
+from app.nlp.response_claim_extractor import (
+    ResponseClaimExtractor,
 )
 from app.retrieval.graph_retriever import (
     GraphRetriever,
@@ -108,6 +113,12 @@ entity_linker = (
 
 relation_extractor = (
     RelationExtractor(
+        nlp
+    )
+)
+
+response_claim_extractor = (
+    ResponseClaimExtractor(
         nlp
     )
 )
@@ -318,6 +329,53 @@ def finalize_retrieval(
     ] = verification
 
     return retrieval
+
+
+def has_covid_context(
+    text: str,
+):
+    normalized = (
+        text.lower()
+        .replace(
+            "_",
+            " ",
+        )
+    )
+
+    return any(
+        value in normalized
+        for value in (
+            "covid",
+            "sars-cov-2",
+            "sars cov 2",
+            (
+                "coronavirus "
+                "disease 2019"
+            ),
+        )
+    )
+
+
+def contextualize_claim(
+    text: str,
+    context_text: str | None,
+):
+    if not context_text:
+        return None
+
+    if has_covid_context(
+        text
+    ):
+        return None
+
+    if not has_covid_context(
+        context_text
+    ):
+        return None
+
+    return (
+        f"{text} COVID-19"
+    )
 
 
 @app.post(
@@ -664,7 +722,14 @@ def interpret_query(
 
 def retrieve(
     text: str,
+    context_text: str | None = None,
 ):
+    relation = (
+        relation_extractor.extract(
+            text
+        )
+    )
+
     history_interpretation = (
         history_intent_resolver
         .resolve(
@@ -672,11 +737,37 @@ def retrieve(
         )
     )
 
-    relation = (
-        relation_extractor.extract(
-            text
+    history_routing_text = (
+        text
+    )
+
+    contextual_text = (
+        contextualize_claim(
+            text,
+            context_text,
         )
     )
+
+    if (
+        history_interpretation
+        is None
+        and contextual_text
+    ):
+        contextual_history = (
+            history_intent_resolver
+            .resolve(
+                contextual_text
+            )
+        )
+
+        if contextual_history is not None:
+            history_interpretation = (
+                contextual_history
+            )
+
+            history_routing_text = (
+                contextual_text
+            )
 
     if (
         history_interpretation
@@ -684,7 +775,7 @@ def retrieve(
     ):
         history = (
             history_retriever.retrieve(
-                text
+                history_routing_text
             )
         )
 
@@ -707,6 +798,16 @@ def retrieve(
             text
         )
     )
+
+    if (
+        who_interpretation is None
+        and contextual_text
+    ):
+        who_interpretation = (
+            who_intent_resolver.resolve(
+                contextual_text
+            )
+        )
 
     if (
         who_interpretation
@@ -793,6 +894,79 @@ def retrieve(
             "history": None,
         }
     )
+
+
+def verify_response_claim(
+    question: str,
+    claim: dict,
+):
+    direct = retrieve(
+        claim[
+            "text"
+        ]
+    )
+
+    if (
+        direct[
+            "verification"
+        ][
+            "status"
+        ]
+        != (
+            "NOT_VERIFIABLE_"
+            "WITH_CURRENT_KG"
+        )
+    ):
+        return {
+            **claim,
+            "extractionMethod": (
+                claim[
+                    "method"
+                ]
+            ),
+            "usedQuestionContext": (
+                False
+            ),
+            "retrieval": direct,
+        }
+
+    contextual = retrieve(
+        claim[
+            "text"
+        ],
+        context_text=question,
+    )
+
+    use_contextual = (
+        contextual[
+            "verification"
+        ][
+            "status"
+        ]
+        != (
+            "NOT_VERIFIABLE_"
+            "WITH_CURRENT_KG"
+        )
+    )
+
+    retrieval = (
+        contextual
+        if use_contextual
+        else direct
+    )
+
+    return {
+        **claim,
+        "extractionMethod": (
+            claim[
+                "method"
+            ]
+        ),
+        "usedQuestionContext": (
+            use_contextual
+        ),
+        "retrieval": retrieval,
+    }
 
 
 def verification_context(
@@ -959,6 +1133,41 @@ def retrieve_graph_context(
     return retrieve(
         request.text
     )
+
+
+@app.post(
+    "/kg/verify-response",
+    response_model=(
+        ResponseVerificationResponse
+    ),
+)
+def verify_response(
+    request: ResponseVerificationRequest,
+):
+    extracted_claims = (
+        response_claim_extractor
+        .extract(
+            request.response
+        )
+    )
+
+    verified_claims = [
+        verify_response_claim(
+            request.question,
+            claim,
+        )
+        for claim
+        in extracted_claims
+    ]
+
+    return {
+        "question": request.question,
+        "response": request.response,
+        "claimCount": len(
+            verified_claims
+        ),
+        "claims": verified_claims,
+    }
 
 
 @app.post(

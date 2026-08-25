@@ -11,6 +11,13 @@ class NLPRequest(BaseModel):
     text: str
 
 
+class ResponseVerificationRequest(
+    BaseModel
+):
+    question: str
+    response: str
+
+
 class ExtractedEntity(BaseModel):
     text: str
     type: str
@@ -20,10 +27,15 @@ class ExtractedEntity(BaseModel):
 
 class NLPResponse(BaseModel):
     text: str
-    entities: list[ExtractedEntity]
+
+    entities: list[
+        ExtractedEntity
+    ]
 
 
-class GraphEntityCandidate(BaseModel):
+class GraphEntityCandidate(
+    BaseModel
+):
     id: str
     categories: list[str]
     name: str
@@ -262,6 +274,33 @@ class AugmentedPromptResponse(
 ):
     hasEvidence: bool
     augmentedPrompt: str
+
+
+class VerifiedResponseClaim(
+    BaseModel
+):
+    index: int
+    text: str
+    start: int
+    end: int
+    extractionMethod: str
+    usedQuestionContext: bool
+
+    retrieval: (
+        GraphRetrievalResponse
+    )
+
+
+class ResponseVerificationResponse(
+    BaseModel
+):
+    question: str
+    response: str
+    claimCount: int
+
+    claims: list[
+        VerifiedResponseClaim
+    ]
 
 
 class QueryAmbiguity(
