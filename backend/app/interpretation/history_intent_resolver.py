@@ -17,6 +17,7 @@ class HistoryIntentResolver:
         "initially found",
         "initially identified",
         "initially detected",
+        "initially discovered",
         "initially reported",
     ]
 
@@ -175,7 +176,7 @@ class HistoryIntentResolver:
                 )
             )
 
-        if self._has_wuhan_location_claim(
+        if self._has_initial_location_assertion(
             normalized
         ):
             return (
@@ -332,23 +333,32 @@ class HistoryIntentResolver:
             is not None
         )
 
-    def _has_wuhan_location_claim(
+    def _has_initial_location_assertion(
         self,
         text: str,
     ):
-        if "wuhan" not in text:
-            return False
+        patterns = (
+            (
+                r"\bfirst "
+                r"(?:reported|found|detected|"
+                r"identified|discovered) "
+                r"in [a-z][a-z\s-]*$"
+            ),
+            (
+                r"\binitially "
+                r"(?:reported|found|detected|"
+                r"identified|discovered) "
+                r"in [a-z][a-z\s-]*$"
+            ),
+        )
 
         return any(
-            phrase in text
-            for phrase in (
-                "reported in wuhan",
-                "found in wuhan",
-                "identified in wuhan",
-                "detected in wuhan",
-                "discovered in wuhan",
-                "cases in wuhan",
+            re.search(
+                pattern,
+                text,
             )
+            is not None
+            for pattern in patterns
         )
 
     def _find_phrase(

@@ -244,22 +244,6 @@ class HistoryRetriever:
                     "INSUFFICIENT_EVIDENCE"
                 )
 
-            normalized_text = (
-                self._normalize(
-                    text
-                )
-            )
-
-            if any(
-                self._normalize(
-                    location
-                )
-                in normalized_text
-                for location
-                in evidence_locations
-            ):
-                return "SUPPORTED"
-
             claimed_location = (
                 self._extract_location_claim(
                     text
@@ -267,7 +251,33 @@ class HistoryRetriever:
             )
 
             if claimed_location:
+                if any(
+                    self._location_matches(
+                        claimed_location,
+                        evidence_location,
+                    )
+                    for evidence_location
+                    in evidence_locations
+                ):
+                    return "SUPPORTED"
+
                 return "CONTRADICTED"
+
+            normalized_text = (
+                self._normalize(
+                    text
+                )
+            )
+
+            if any(
+                self._location_mentioned(
+                    normalized_text,
+                    evidence_location,
+                )
+                for evidence_location
+                in evidence_locations
+            ):
+                return "SUPPORTED"
 
             return (
                 "INSUFFICIENT_EVIDENCE"
@@ -482,6 +492,95 @@ class HistoryRetriever:
                 )
 
         return None
+
+    def _location_matches(
+        self,
+        claimed_location: str,
+        evidence_location: str,
+    ):
+        claimed = self._normalize(
+            claimed_location
+        )
+
+        evidence = self._normalize(
+            evidence_location
+        )
+
+        if not claimed or not evidence:
+            return False
+
+        if claimed == evidence:
+            return True
+
+        primary_location = (
+            evidence_location
+            .split(
+                ",",
+                1,
+            )[0]
+        )
+
+        primary = self._normalize(
+            primary_location
+        )
+
+        if (
+            primary
+            and claimed == primary
+        ):
+            return True
+
+        if evidence.startswith(
+            claimed + " "
+        ):
+            return True
+
+        return False
+
+    def _location_mentioned(
+        self,
+        normalized_text: str,
+        evidence_location: str,
+    ):
+        evidence = self._normalize(
+            evidence_location
+        )
+
+        if (
+            evidence
+            and evidence
+            in normalized_text
+        ):
+            return True
+
+        primary_location = (
+            evidence_location
+            .split(
+                ",",
+                1,
+            )[0]
+        )
+
+        primary = self._normalize(
+            primary_location
+        )
+
+        if not primary:
+            return False
+
+        return (
+            re.search(
+                (
+                    r"\b"
+                    + re.escape(
+                        primary
+                    )
+                    + r"\b"
+                ),
+                normalized_text,
+            )
+            is not None
+        )
 
     def _is_question(
         self,
