@@ -8,8 +8,19 @@ class ResponseClaimExtractor:
         "i think",
         "i believe",
         "i hope",
-        "i'm sorry",
+        "i m sorry",
         "i am sorry",
+        "i m not sure",
+        "i am not sure",
+        "not sure",
+        "i m unsure",
+        "i am unsure",
+        "i don t know",
+        "i do not know",
+        "i can t say",
+        "i cannot say",
+        "i don t have enough information",
+        "i do not have enough information",
         "let me know",
         "hope this helps",
         "thanks",
@@ -17,7 +28,34 @@ class ResponseClaimExtractor:
     )
 
     CLAUSE_SEPARATOR = re.compile(
-        r",\s+(?:and|but)\s+|;\s*",
+        (
+            r"(?:,\s*)?"
+            r"\b(?:and|but)\b\s+"
+            r"|;\s*"
+        ),
+        flags=re.IGNORECASE,
+    )
+
+    FACTUAL_PREDICATE_PATTERN = re.compile(
+        (
+            r"\b(?:"
+            r"cause(?:s|d)?"
+            r"|spread(?:s)?"
+            r"|transmit(?:s|ted)?"
+            r"|reduce(?:s|d)?"
+            r"|lower(?:s|ed)?"
+            r"|protect(?:s|ed)?"
+            r"|prevent(?:s|ed)?"
+            r"|treat(?:s|ed)?"
+            r"|cure(?:s|d)?"
+            r"|guarantee(?:s|d)?"
+            r"|stop(?:s|ped)?"
+            r"|remain(?:s|ed)?"
+            r"|support(?:s|ed)?"
+            r"|favor(?:s|ed)?"
+            r"|favour(?:s|ed)?"
+            r")\b"
+        ),
         flags=re.IGNORECASE,
     )
 
@@ -108,8 +146,7 @@ class ResponseClaimExtractor:
         )
 
         separators = list(
-            self.CLAUSE_SEPARATOR
-            .finditer(
+            self.CLAUSE_SEPARATOR.finditer(
                 raw_text
             )
         )
@@ -136,9 +173,7 @@ class ResponseClaimExtractor:
                 )
             )
 
-            cursor = (
-                separator.end()
-            )
+            cursor = separator.end()
 
         raw_segments.append(
             (
@@ -170,8 +205,7 @@ class ResponseClaimExtractor:
             not segment[
                 "text"
             ]
-            for segment
-            in segments
+            for segment in segments
         ):
             return [
                 unsplit
@@ -188,8 +222,7 @@ class ResponseClaimExtractor:
                     "text"
                 ],
             )
-            for segment
-            in segments
+            for segment in segments
         ):
             return [
                 unsplit
@@ -289,31 +322,53 @@ class ResponseClaimExtractor:
         ):
             return False
 
-        alpha_tokens = [
+        meaningful_tokens = [
             token
             for token in sentence
-            if token.is_alpha
+            if any(
+                character.isalpha()
+                for character
+                in token.text
+            )
         ]
 
         if len(
-            alpha_tokens
+            meaningful_tokens
         ) < 2:
             return False
 
-        has_predicate = any(
+        if self._has_predicate(
+            sentence,
+            normalized,
+        ):
+            return True
+
+        return False
+
+    def _has_predicate(
+        self,
+        sentence,
+        normalized: str,
+    ):
+        syntactic_predicate = any(
             token.pos_
             in {
                 "VERB",
                 "AUX",
             }
-            for token
-            in sentence
+            for token in sentence
         )
 
-        if not has_predicate:
-            return False
+        if syntactic_predicate:
+            return True
 
-        return True
+        return (
+            self.FACTUAL_PREDICATE_PATTERN
+            .search(
+                normalized
+            )
+            is not None
+        )
 
     def _normalize(
         self,
