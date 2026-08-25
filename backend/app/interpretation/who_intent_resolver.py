@@ -7,7 +7,8 @@ class WhoIntentResolver:
     LONG_COVID_ID = "MONDO:0100320"
 
     VACCINATION_ID = (
-        "covidkg:who:concept:covid-19-vaccination"
+        "covidkg:who:concept:"
+        "covid-19-vaccination"
     )
 
     AIRBORNE_ID = (
@@ -17,20 +18,24 @@ class WhoIntentResolver:
 
     SURFACE_ID = (
         "covidkg:who:transmission:"
-        "contaminated-surface-contact-followed-by-"
-        "touching-the-eyes-nose-or-mouth"
+        "contaminated-surface-contact-"
+        "followed-by-touching-the-eyes-"
+        "nose-or-mouth"
     )
 
     SEVERE_DISEASE_ID = (
-        "covidkg:who:vaccine-outcome:severe-disease"
+        "covidkg:who:vaccine-outcome:"
+        "severe-disease"
     )
 
     HOSPITALIZATION_ID = (
-        "covidkg:who:vaccine-outcome:hospitalization"
+        "covidkg:who:vaccine-outcome:"
+        "hospitalization"
     )
 
     DEATH_ID = (
-        "covidkg:who:vaccine-outcome:death"
+        "covidkg:who:vaccine-outcome:"
+        "death"
     )
 
     ORIGIN_STATUS_ID = (
@@ -50,7 +55,8 @@ class WhoIntentResolver:
 
     COLD_CHAIN_ID = (
         "covidkg:who:origin-hypothesis:"
-        "cold-chain-introduction-into-animal-markets"
+        "cold-chain-introduction-"
+        "into-animal-markets"
     )
 
     DELIBERATE_ID = (
@@ -109,7 +115,9 @@ class WhoIntentResolver:
                 )
 
             return {
-                "intent": "vaccine_protection",
+                "intent": (
+                    "vaccine_protection"
+                ),
                 "semanticRoles": [
                     "protects_against"
                 ],
@@ -125,9 +133,14 @@ class WhoIntentResolver:
             normalized
         ):
             return {
-                "intent": "long_covid_outcome",
+                "intent": (
+                    "long_covid_outcome"
+                ),
                 "semanticRoles": [
-                    "can_lead_to_post_covid_condition"
+                    (
+                        "can_lead_to_"
+                        "post_covid_condition"
+                    )
                 ],
                 "subjectIds": [
                     self.COVID_ID
@@ -135,7 +148,9 @@ class WhoIntentResolver:
                 "objectIds": [
                     self.LONG_COVID_ID
                 ],
-                "matchedText": "long covid",
+                "matchedText": (
+                    "long covid"
+                ),
                 "method": "rule",
             }
 
@@ -172,7 +187,10 @@ class WhoIntentResolver:
 
             else:
                 roles.append(
-                    "transmission_risk_context"
+                    (
+                        "transmission_"
+                        "risk_context"
+                    )
                 )
 
             return {
@@ -182,17 +200,19 @@ class WhoIntentResolver:
                     self.SARS_ID
                 ],
                 "objectIds": object_ids,
-                "matchedText": self._first_match(
-                    normalized,
-                    [
-                        "airborne",
-                        "through the air",
-                        "surface",
-                        "surfaces",
-                        "spread",
-                        "transmit",
-                        "transmission",
-                    ],
+                "matchedText": (
+                    self._first_match(
+                        normalized,
+                        [
+                            "airborne",
+                            "through the air",
+                            "surface",
+                            "surfaces",
+                            "spread",
+                            "transmit",
+                            "transmission",
+                        ],
+                    )
                 ),
                 "method": "rule",
             }
@@ -211,12 +231,14 @@ class WhoIntentResolver:
                 "objectIds": [
                     self.COVID_ID
                 ],
-                "matchedText": self._first_match(
-                    normalized,
-                    [
-                        "caused by",
-                        "cause",
-                    ],
+                "matchedText": (
+                    self._first_match(
+                        normalized,
+                        [
+                            "caused by",
+                            "cause",
+                        ],
+                    )
                 ),
                 "method": "rule",
             }
@@ -225,9 +247,14 @@ class WhoIntentResolver:
             normalized
         ):
             return {
-                "intent": "current_global_risk",
+                "intent": (
+                    "current_global_risk"
+                ),
                 "semanticRoles": [
-                    "global_public_health_risk_level"
+                    (
+                        "global_public_health_"
+                        "risk_level"
+                    )
                 ],
                 "subjectIds": [
                     self.COVID_ID
@@ -298,25 +325,30 @@ class WhoIntentResolver:
         return {
             "intent": "origin",
             "semanticRoles": [
-                "origin_hypothesis_assessment",
+                (
+                    "origin_hypothesis_"
+                    "assessment"
+                ),
                 "overall_origin_status",
             ],
             "subjectIds": [
                 self.SARS_ID
             ],
             "objectIds": object_ids,
-            "matchedText": self._first_match(
-                text,
-                [
-                    "origin",
-                    "man made",
-                    "manmade",
-                    "engineered",
-                    "lab leak",
-                    "laboratory",
-                    "zoonotic",
-                    "cold chain",
-                ],
+            "matchedText": (
+                self._first_match(
+                    text,
+                    [
+                        "origin",
+                        "man made",
+                        "manmade",
+                        "engineered",
+                        "lab leak",
+                        "laboratory",
+                        "zoonotic",
+                        "cold chain",
+                    ],
+                )
             ),
             "method": "rule",
         }
@@ -334,7 +366,10 @@ class WhoIntentResolver:
             )
         ):
             roles = [
-                "variant_under_monitoring"
+                (
+                    "variant_under_"
+                    "monitoring"
+                )
             ]
 
         elif any(
@@ -352,7 +387,10 @@ class WhoIntentResolver:
         else:
             roles = [
                 "variant_of_interest",
-                "variant_under_monitoring",
+                (
+                    "variant_under_"
+                    "monitoring"
+                ),
             ]
 
         return {
@@ -370,25 +408,28 @@ class WhoIntentResolver:
         self,
         text: str,
     ):
-        return any(
-            phrase in text
-            for phrase in (
-                "origin",
-                "man made",
-                "manmade",
-                "engineered",
-                "created in a lab",
-                "lab leak",
-                "lab origin",
-                "from a lab",
-                "laboratory origin",
-                "zoonotic",
-                "animal origin",
-                "natural origin",
-                "cold chain",
+        return (
+            any(
+                phrase in text
+                for phrase in (
+                    "origin",
+                    "man made",
+                    "manmade",
+                    "engineered",
+                    "created in a lab",
+                    "lab leak",
+                    "lab origin",
+                    "from a lab",
+                    "laboratory origin",
+                    "zoonotic",
+                    "animal origin",
+                    "natural origin",
+                    "cold chain",
+                )
             )
-        ) and self._covid_context(
-            text
+            and self._covid_context(
+                text
+            )
         )
 
     def _variant_query(
@@ -499,17 +540,54 @@ class WhoIntentResolver:
         self,
         text: str,
     ):
-        return (
-            any(
-                value in text
-                for value in (
-                    "cause",
-                    "caused by",
-                )
+        cause = any(
+            value in text
+            for value in (
+                "cause",
+                "caused by",
             )
-            and self._covid_context(
+        )
+
+        if (
+            not cause
+            or not self._covid_context(
                 text
             )
+        ):
+            return False
+
+        if any(
+            value in text
+            for value in (
+                "sars cov 2",
+                "sars-cov-2",
+                (
+                    "severe acute respiratory "
+                    "syndrome coronavirus 2"
+                ),
+            )
+        ):
+            return True
+
+        generic_patterns = (
+            "what causes covid",
+            "what cause covid",
+            "what is covid caused by",
+            "what causes coronavirus disease 2019",
+            (
+                "what is coronavirus disease "
+                "2019 caused by"
+            ),
+            "which virus causes covid",
+            "what virus causes covid",
+            "virus that causes covid",
+            "cause of covid",
+        )
+
+        return any(
+            pattern in text
+            for pattern
+            in generic_patterns
         )
 
     def _current_risk_query(
@@ -541,7 +619,10 @@ class WhoIntentResolver:
             value in text
             for value in (
                 "covid",
-                "coronavirus disease 2019",
+                (
+                    "coronavirus disease "
+                    "2019"
+                ),
                 "sars cov 2",
                 "sars-cov-2",
             )

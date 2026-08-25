@@ -1,4 +1,6 @@
-from contextlib import asynccontextmanager
+from contextlib import (
+    asynccontextmanager,
+)
 
 import spacy
 from fastapi import FastAPI
@@ -30,6 +32,9 @@ from app.interpretation.relation_intent_resolver import (
 )
 from app.interpretation.semantic_interpreter import (
     SemanticInterpreter,
+)
+from app.interpretation.verification_resolver import (
+    VerificationResolver,
 )
 from app.interpretation.who_intent_resolver import (
     WhoIntentResolver,
@@ -78,22 +83,30 @@ nlp = spacy.load(
 
 neo4j_client = Neo4jClient()
 
-kg_entity_matcher = KGEntityMatcher(
-    nlp,
-    neo4j_client,
+kg_entity_matcher = (
+    KGEntityMatcher(
+        nlp,
+        neo4j_client,
+    )
 )
 
-entity_extractor = EntityExtractor(
-    nlp,
-    kg_entity_matcher,
+entity_extractor = (
+    EntityExtractor(
+        nlp,
+        kg_entity_matcher,
+    )
 )
 
-entity_linker = EntityLinker(
-    neo4j_client
+entity_linker = (
+    EntityLinker(
+        neo4j_client
+    )
 )
 
-relation_extractor = RelationExtractor(
-    nlp
+relation_extractor = (
+    RelationExtractor(
+        nlp
+    )
 )
 
 relationship_resolver = (
@@ -131,6 +144,10 @@ history_intent_resolver = (
 
 who_intent_resolver = (
     WhoIntentResolver()
+)
+
+verification_resolver = (
+    VerificationResolver()
 )
 
 graph_retriever = (
@@ -234,6 +251,39 @@ def link_extracted_entities(
         )
 
     return linked_entities
+
+
+def finalize_retrieval(
+    retrieval: dict,
+):
+    retrieval[
+        "verification"
+    ] = (
+        verification_resolver.resolve(
+            text=retrieval[
+                "text"
+            ],
+            verification_type=(
+                retrieval[
+                    "verificationType"
+                ]
+            ),
+            entities=retrieval[
+                "entities"
+            ],
+            relationships=retrieval[
+                "relationships"
+            ],
+            facts=retrieval[
+                "facts"
+            ],
+            history=retrieval.get(
+                "history"
+            ),
+        )
+    )
+
+    return retrieval
 
 
 @app.post(
@@ -422,7 +472,9 @@ def interpret_query(
     if (
         direction is not None
         and outcomes
-        and rule_intent["intent"]
+        and rule_intent[
+            "intent"
+        ]
         in {
             "unknown",
             "treatment",
@@ -488,7 +540,9 @@ def interpret_query(
     if (
         direction is None
         and outcomes
-        and rule_intent["intent"]
+        and rule_intent[
+            "intent"
+        ]
         in {
             "unknown",
             "treatment",
@@ -513,7 +567,9 @@ def interpret_query(
     if (
         direction is not None
         and outcomes
-        and rule_intent["intent"]
+        and rule_intent[
+            "intent"
+        ]
         in {
             "unknown",
             "treatment",
@@ -566,7 +622,9 @@ def interpret_query(
     return {
         "text": request.text,
         "relation": relation,
-        "interpretation": interpretation,
+        "interpretation": (
+            interpretation
+        ),
     }
 
 
@@ -596,17 +654,19 @@ def retrieve(
             )
         )
 
-        return {
-            "text": text,
-            "verificationType": (
-                "history"
-            ),
-            "entities": [],
-            "relation": relation,
-            "relationships": [],
-            "facts": [],
-            "history": history,
-        }
+        return finalize_retrieval(
+            {
+                "text": text,
+                "verificationType": (
+                    "history"
+                ),
+                "entities": [],
+                "relation": relation,
+                "relationships": [],
+                "facts": [],
+                "history": history,
+            }
+        )
 
     who_interpretation = (
         who_intent_resolver.resolve(
@@ -639,17 +699,29 @@ def retrieve(
             )
         )
 
-        return {
-            "text": text,
-            "verificationType": "who",
-            "entities": linked_entities,
-            "relation": relation,
-            "relationships": (
-                who["relationships"]
-            ),
-            "facts": who["facts"],
-            "history": None,
-        }
+        return finalize_retrieval(
+            {
+                "text": text,
+                "verificationType": (
+                    "who"
+                ),
+                "entities": (
+                    linked_entities
+                ),
+                "relation": relation,
+                "relationships": (
+                    who[
+                        "relationships"
+                    ]
+                ),
+                "facts": (
+                    who[
+                        "facts"
+                    ]
+                ),
+                "history": None,
+            }
+        )
 
     extracted_entities = (
         entity_extractor.extract(
@@ -668,23 +740,51 @@ def retrieve(
         )
     )
 
-    return {
-        "text": text,
-        "verificationType": (
-            "relationship"
-        ),
-        "entities": retrieval[
-            "entities"
-        ],
-        "relation": relation,
-        "relationships": retrieval[
-            "relationships"
-        ],
-        "facts": retrieval[
-            "facts"
-        ],
-        "history": None,
-    }
+    return finalize_retrieval(
+        {
+            "text": text,
+            "verificationType": (
+                "relationship"
+            ),
+            "entities": retrieval[
+                "entities"
+            ],
+            "relation": relation,
+            "relationships": retrieval[
+                "relationships"
+            ],
+            "facts": retrieval[
+                "facts"
+            ],
+            "history": None,
+        }
+    )
+
+
+def verification_context(
+    verification: dict,
+):
+    return "\n".join(
+        [
+            "VERIFICATION RESULT",
+            (
+                "status="
+                f"{verification['status']}"
+            ),
+            (
+                "evidence_count="
+                f"{verification['evidenceCount']}"
+            ),
+            (
+                "method="
+                f"{verification['method']}"
+            ),
+            (
+                "reason="
+                f"{verification['reason']}"
+            ),
+        ]
+    )
 
 
 def ground(
@@ -762,6 +862,17 @@ def ground(
             )
         )
 
+    context = "\n\n".join(
+        [
+            verification_context(
+                retrieval[
+                    "verification"
+                ]
+            ),
+            context,
+        ]
+    )
+
     return {
         **retrieval,
         "context": context,
@@ -835,7 +946,9 @@ def augment_prompt(
 
     has_evidence = (
         bool(
-            grounding["facts"]
+            grounding[
+                "facts"
+            ]
         )
         or has_history_evidence
     )

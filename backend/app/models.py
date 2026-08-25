@@ -36,7 +36,9 @@ class LinkedEntity(BaseModel):
     type: str
     start: int
     end: int
-    candidates: list[GraphEntityCandidate]
+    candidates: list[
+        GraphEntityCandidate
+    ]
 
 
 class EntityLinkingResponse(BaseModel):
@@ -61,13 +63,17 @@ class NLPAnalysisResponse(BaseModel):
     relation: ExtractedRelation
 
 
-class RelationshipCandidate(BaseModel):
+class RelationshipCandidate(
+    BaseModel
+):
     relationship: str
     normalized: str
     score: float
 
 
-class KnowledgeGraphEntity(BaseModel):
+class KnowledgeGraphEntity(
+    BaseModel
+):
     id: str
     name: str
     categories: list[str]
@@ -75,12 +81,27 @@ class KnowledgeGraphEntity(BaseModel):
 
 class Evidence(BaseModel):
     edgeId: str | None
-    primaryKnowledgeSource: str | None
+
+    primaryKnowledgeSource: (
+        str | None
+    )
+
     providedBy: list[str]
-    sourceDataset: str | None
+
+    sourceDataset: (
+        str | None
+    )
+
     references: list[str]
-    maxPhaseForIndication: float | None
-    attributes: dict[str, Any]
+
+    maxPhaseForIndication: (
+        float | None
+    )
+
+    attributes: dict[
+        str,
+        Any,
+    ]
 
 
 class GraphFact(BaseModel):
@@ -90,7 +111,9 @@ class GraphFact(BaseModel):
     evidence: Evidence
 
 
-class HistoryInterpretation(BaseModel):
+class HistoryInterpretation(
+    BaseModel
+):
     intent: str
     canonicalSubject: str
     eventType: str
@@ -120,22 +143,67 @@ class HistoryEvidence(BaseModel):
     relatedEntityName: str | None
 
 
-class HistoryRetrievalResult(BaseModel):
+class HistoryRetrievalResult(
+    BaseModel
+):
     text: str
     status: str
-    interpretation: HistoryInterpretation | None
-    answer: HistoryAnswer | None
-    evidence: list[HistoryEvidence]
+
+    interpretation: (
+        HistoryInterpretation
+        | None
+    )
+
+    answer: (
+        HistoryAnswer
+        | None
+    )
+
+    evidence: list[
+        HistoryEvidence
+    ]
 
 
-class GraphRetrievalResponse(BaseModel):
+class VerificationResult(
+    BaseModel
+):
+    status: str
+    reason: str
+    evidenceCount: int
+    method: str
+
+
+class GraphRetrievalResponse(
+    BaseModel
+):
     text: str
-    verificationType: str = "relationship"
-    entities: list[LinkedEntity]
+
+    verificationType: str = (
+        "relationship"
+    )
+
+    verification: (
+        VerificationResult
+    )
+
+    entities: list[
+        LinkedEntity
+    ]
+
     relation: ExtractedRelation
-    relationships: list[RelationshipCandidate]
-    facts: list[GraphFact]
-    history: HistoryRetrievalResult | None = None
+
+    relationships: list[
+        RelationshipCandidate
+    ]
+
+    facts: list[
+        GraphFact
+    ]
+
+    history: (
+        HistoryRetrievalResult
+        | None
+    ) = None
 
 
 class GroundingContextResponse(
@@ -154,7 +222,10 @@ class AugmentedPromptResponse(
 class QueryAmbiguity(BaseModel):
     term: str
     type: str
-    possibleInterpretations: list[str]
+
+    possibleInterpretations: (
+        list[str]
+    )
 
 
 class ResolvedOutcome(BaseModel):
@@ -164,7 +235,9 @@ class ResolvedOutcome(BaseModel):
     score: float | None = None
 
 
-class ResolvedRelationIntent(BaseModel):
+class ResolvedRelationIntent(
+    BaseModel
+):
     intent: str
     direction: str | None
     matchedText: str | None
@@ -173,15 +246,31 @@ class ResolvedRelationIntent(BaseModel):
     score: float | None = None
 
 
-class QueryInterpretation(BaseModel):
+class QueryInterpretation(
+    BaseModel
+):
     ambiguous: bool
     broadRelation: bool
-    outcomes: list[ResolvedOutcome]
-    relationIntent: ResolvedRelationIntent
-    ambiguities: list[QueryAmbiguity]
+
+    outcomes: list[
+        ResolvedOutcome
+    ]
+
+    relationIntent: (
+        ResolvedRelationIntent
+    )
+
+    ambiguities: list[
+        QueryAmbiguity
+    ]
 
 
-class InterpretationResponse(BaseModel):
+class InterpretationResponse(
+    BaseModel
+):
     text: str
     relation: ExtractedRelation
-    interpretation: QueryInterpretation
+
+    interpretation: (
+        QueryInterpretation
+    )
