@@ -7,8 +7,10 @@ from app.augmentation.context_builder import GroundingContextBuilder
 from app.augmentation.prompt_augmenter import PromptAugmenter
 from app.database import Neo4jClient
 from app.interpretation.ambiguity_detector import AmbiguityDetector
+from app.interpretation.direction_resolver import DirectionResolver
 from app.interpretation.outcome_resolver import OutcomeResolver
 from app.interpretation.relation_intent_resolver import RelationIntentResolver
+from app.interpretation.semantic_interpreter import SemanticInterpreter
 from app.models import (
     AugmentedPromptResponse,
     EntityLinkingResponse,
@@ -29,7 +31,7 @@ from app.retrieval.graph_retriever import GraphRetriever
 from app.retrieval.relationship_resolver import RelationshipResolver
 
 
-nlp = spacy.load("en_core_web_sm")
+nlp = spacy.load("en_core_web_md")
 
 neo4j_client = Neo4jClient()
 
@@ -60,6 +62,18 @@ outcome_resolver = OutcomeResolver()
 
 relation_intent_resolver = (
     RelationIntentResolver()
+)
+
+semantic_interpreter = (
+    SemanticInterpreter(
+        nlp
+    )
+)
+
+direction_resolver = (
+    DirectionResolver(
+        nlp
+    )
 )
 
 ambiguity_detector = AmbiguityDetector()
@@ -241,6 +255,76 @@ def interpret_query(
             ],
         )
     )
+
+    if (
+        relation_intent["intent"]
+        == "unknown"
+    ):
+        semantic_intent = (
+            semantic_interpreter
+            .resolve_intent(
+                request.text
+            )
+        )
+
+        if semantic_intent:
+            relation_intent = (
+                semantic_intent
+            )
+        else:
+            relation_intent[
+                "method"
+            ] = "none"
+
+    initial_interpretation = (
+        ambiguity_detector.detect(
+            text=request.text,
+            relation=relation["text"],
+            outcomes=outcomes,
+        )
+    )
+
+    if (
+        not outcomes
+        and not initial_interpretation[
+            "ambiguous"
+        ]
+        and relation_intent["intent"]
+        in {
+            "risk_modifier",
+            "association",
+            "broad_effect",
+        }
+    ):
+        semantic_outcome = (
+            semantic_interpreter
+            .resolve_outcome(
+                request.text
+            )
+        )
+
+        if semantic_outcome:
+            outcomes = [
+                semantic_outcome
+            ]
+
+    if (
+        relation_intent["intent"]
+        == "risk_modifier"
+        and relation_intent[
+            "direction"
+        ] is None
+    ):
+        direction = (
+            direction_resolver.resolve(
+                request.text
+            )
+        )
+
+        if direction:
+            relation_intent[
+                "direction"
+            ] = direction
 
     interpretation = (
         ambiguity_detector.detect(

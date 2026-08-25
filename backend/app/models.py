@@ -122,7 +122,9 @@ class QueryAmbiguity(BaseModel):
 
 class ResolvedOutcome(BaseModel):
     outcome: str
-    matchedText: str
+    matchedText: str | None
+    method: str = "rule"
+    score: float | None = None
 
 
 class ResolvedRelationIntent(BaseModel):
@@ -130,6 +132,8 @@ class ResolvedRelationIntent(BaseModel):
     direction: str | None
     matchedText: str | None
     specific: bool
+    method: str = "rule"
+    score: float | None = None
 
 
 class QueryInterpretation(BaseModel):
