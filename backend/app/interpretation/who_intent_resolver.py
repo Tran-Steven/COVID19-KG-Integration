@@ -69,6 +69,8 @@ class WhoIntentResolver:
         self,
         text: str,
     ):
+        raw_text = text
+
         normalized = self._normalize(
             text
         )
@@ -81,7 +83,8 @@ class WhoIntentResolver:
             )
 
         if self._variant_query(
-            normalized
+            normalized,
+            raw_text,
         ):
             return self._resolve_variants(
                 normalized
@@ -284,10 +287,15 @@ class WhoIntentResolver:
                         [
                             "caused by",
                             "cause",
+                            "causative",
                             "responsible for",
-                            "results from infection with",
-                            "result from infection with",
+                            "results from",
+                            "result from",
+                            "develops after infection",
+                            "develop after infection",
+                            "after infection with",
                             "due to infection with",
+                            "attributable to",
                             "infection with",
                         ],
                     )
@@ -425,6 +433,7 @@ class WhoIntentResolver:
                 "monitor",
                 "monitoring",
                 "under monitoring",
+                "monitor list",
             )
         ):
             roles = [
@@ -462,7 +471,17 @@ class WhoIntentResolver:
                 self.SARS_ID
             ],
             "objectIds": [],
-            "matchedText": "variant",
+            "matchedText": (
+                self._first_match(
+                    text,
+                    [
+                        "variant",
+                        "monitor",
+                        "monitoring",
+                        "lineage",
+                    ],
+                )
+            ),
             "method": "rule",
         }
 
@@ -510,18 +529,82 @@ class WhoIntentResolver:
     def _variant_query(
         self,
         text: str,
+        raw_text: str,
     ):
-        return (
+        has_variant_word = (
             "variant" in text
+            or "lineage" in text
+        )
+
+        monitoring_language = any(
+            value in text
+            for value in (
+                "monitor",
+                "monitoring",
+                "monitored",
+                "monitor list",
+                "watch list",
+                "tracking",
+                "tracked",
+            )
+        )
+
+        interest_language = any(
+            value in text
+            for value in (
+                "variant of interest",
+                "variants of interest",
+                "voi",
+            )
+        )
+
+        identifier = (
+            self._has_variant_identifier(
+                raw_text
+            )
+        )
+
+        if (
+            has_variant_word
             and (
                 self._covid_context(
                     text
                 )
-                or "monitor" in text
-                or "interest" in text
+                or monitoring_language
+                or interest_language
                 or "current" in text
             )
-        )
+        ):
+            return True
+
+        if (
+            identifier
+            and monitoring_language
+        ):
+            return True
+
+        return False
+
+    def _has_variant_identifier(
+        self,
+        text: str,
+    ):
+        if re.search(
+            (
+                r"\b[A-Z]{1,3}"
+                r"(?:\.\d+){1,4}\b"
+            ),
+            text,
+        ):
+            return True
+
+        if re.search(
+            r"\bX[A-Z]{1,3}\b",
+            text,
+        ):
+            return True
+
+        return False
 
     def _vaccine_query(
         self,
@@ -548,6 +631,13 @@ class WhoIntentResolver:
                 "death",
                 "die",
                 "mortality",
+                "infection",
+                "infected",
+                "transmission",
+                "spread",
+                "stop",
+                "guarantee",
+                "eliminate",
             )
         )
 
@@ -702,15 +792,23 @@ class WhoIntentResolver:
             for value in (
                 "cause",
                 "caused by",
+                "causative",
                 "responsible for",
-                "results from infection with",
-                "result from infection with",
+                "results from",
+                "result from",
+                "develops after infection",
+                "develop after infection",
+                "after infection with",
                 "due to infection with",
                 "caused by infection with",
+                "attributable to",
             )
         )
 
-        sars_reference = any(
+        if not causal_language:
+            return False
+
+        canonical_reference = any(
             value in text
             for value in (
                 "sars cov 2",
@@ -721,49 +819,48 @@ class WhoIntentResolver:
             )
         )
 
-        if (
-            causal_language
-            and sars_reference
-        ):
-            return True
-
-        generic_patterns = (
-            "what causes covid",
-            "what cause covid",
-            "what is covid caused by",
-            "what causes coronavirus disease 2019",
-            (
-                "what is coronavirus disease "
-                "2019 caused by"
-            ),
-            "which virus causes covid",
-            "what virus causes covid",
-            "virus that causes covid",
-            "cause of covid",
-            "which virus is responsible for covid",
-            "what virus is responsible for covid",
-            "virus responsible for covid",
-        )
-
-        if any(
-            pattern in text
-            for pattern
-            in generic_patterns
-        ):
-            return True
-
-        if any(
+        biological_cause = any(
             value in text
             for value in (
-                "covid is caused by",
-                "covid 19 is caused by",
-                "covid caused by",
-                "covid 19 caused by",
+                "virus",
+                "viral",
+                "pathogen",
+                "coronavirus",
+                "bacterium",
+                "bacteria",
+                "infection",
+                "infected",
             )
-        ):
-            return True
+        )
 
-        return False
+        open_question = any(
+            pattern in text
+            for pattern in (
+                "what causes covid",
+                "what cause covid",
+                "what is covid caused by",
+                "what causes coronavirus disease 2019",
+                (
+                    "what is coronavirus disease "
+                    "2019 caused by"
+                ),
+                "which virus causes covid",
+                "what virus causes covid",
+                "which pathogen causes covid",
+                "what pathogen causes covid",
+                "which pathogen is responsible for covid",
+                "what pathogen is responsible for covid",
+                "which virus is responsible for covid",
+                "what virus is responsible for covid",
+                "cause of covid",
+            )
+        )
+
+        return (
+            canonical_reference
+            or biological_cause
+            or open_question
+        )
 
     def _current_risk_query(
         self,
