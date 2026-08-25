@@ -1,10 +1,17 @@
 import math
 
 from fastembed import TextEmbedding
+from fastembed.rerank.cross_encoder import (
+    TextCrossEncoder,
+)
 
 
 class SemanticInterpreter:
     MODEL_NAME = "BAAI/bge-small-en-v1.5"
+
+    RERANK_MODEL_NAME = (
+        "Xenova/ms-marco-MiniLM-L-6-v2"
+    )
 
     INTENT_PROTOTYPES = {
         "treatment": [
@@ -64,20 +71,91 @@ class SemanticInterpreter:
         ],
     }
 
+    INTENT_DESCRIPTIONS = {
+        "treatment": (
+            "Treatment intent: asking whether a drug, "
+            "therapy, or intervention can be used to "
+            "treat or help with a disease."
+        ),
+        "risk_modifier": (
+            "Risk modifier intent: asking whether a "
+            "factor increases or decreases the chance "
+            "or severity of a health outcome."
+        ),
+        "causation": (
+            "Causation intent: asking whether one "
+            "factor directly causes or leads to a "
+            "disease or health condition."
+        ),
+        "association": (
+            "Association intent: asking whether two "
+            "health concepts are related, linked, "
+            "correlated, or associated."
+        ),
+        "clinical_study": (
+            "Clinical study intent: asking whether a "
+            "drug or intervention has been studied, "
+            "tested, or investigated in clinical trials."
+        ),
+        "phenotype": (
+            "Phenotype intent: asking whether a symptom, "
+            "sign, or manifestation occurs as part of "
+            "a disease."
+        ),
+    }
+
+    OUTCOME_DESCRIPTIONS = {
+        "infection": (
+            "Infection outcome: becoming infected, "
+            "catching the disease, or contracting "
+            "the infection."
+        ),
+        "severity": (
+            "Severity outcome: the disease becoming "
+            "more serious, more severe, or worse."
+        ),
+        "hospitalization": (
+            "Hospitalization outcome: requiring hospital "
+            "care, being admitted to a hospital, or "
+            "ending up in the hospital."
+        ),
+        "mortality": (
+            "Mortality outcome: death, dying, fatality, "
+            "or the risk of dying from the disease."
+        ),
+    }
+
     def __init__(
         self,
         intent_threshold: float = 0.70,
         intent_margin: float = 0.035,
         outcome_threshold: float = 0.70,
         outcome_margin: float = 0.035,
+        intent_rerank_floor: float = 0.65,
+        outcome_rerank_floor: float = 0.65,
+        rerank_top_k: int = 3,
     ):
         self.intent_threshold = intent_threshold
         self.intent_margin = intent_margin
         self.outcome_threshold = outcome_threshold
         self.outcome_margin = outcome_margin
 
+        self.intent_rerank_floor = (
+            intent_rerank_floor
+        )
+
+        self.outcome_rerank_floor = (
+            outcome_rerank_floor
+        )
+
+        self.rerank_top_k = rerank_top_k
+
         self.model = TextEmbedding(
             model_name=self.MODEL_NAME
+        )
+
+        self.reranker = TextCrossEncoder(
+            model_name=self.RERANK_MODEL_NAME
         )
 
         self.intent_embeddings = (
@@ -106,16 +184,35 @@ class SemanticInterpreter:
             margin=self.intent_margin,
         )
 
-        if not match:
+        if match:
+            return {
+                "intent": match["label"],
+                "direction": None,
+                "matchedText": None,
+                "specific": True,
+                "method": "semantic",
+                "score": match["score"],
+            }
+
+        reranked = self._rerank(
+            text=text,
+            rankings=rankings,
+            descriptions=(
+                self.INTENT_DESCRIPTIONS
+            ),
+            floor=self.intent_rerank_floor,
+        )
+
+        if not reranked:
             return None
 
         return {
-            "intent": match["label"],
+            "intent": reranked["label"],
             "direction": None,
             "matchedText": None,
             "specific": True,
-            "method": "semantic",
-            "score": match["score"],
+            "method": "semantic_rerank",
+            "score": reranked["score"],
         }
 
     def resolve_outcome(
@@ -132,14 +229,31 @@ class SemanticInterpreter:
             margin=self.outcome_margin,
         )
 
-        if not match:
+        if match:
+            return {
+                "outcome": match["label"],
+                "matchedText": None,
+                "method": "semantic",
+                "score": match["score"],
+            }
+
+        reranked = self._rerank(
+            text=text,
+            rankings=rankings,
+            descriptions=(
+                self.OUTCOME_DESCRIPTIONS
+            ),
+            floor=self.outcome_rerank_floor,
+        )
+
+        if not reranked:
             return None
 
         return {
-            "outcome": match["label"],
+            "outcome": reranked["label"],
             "matchedText": None,
-            "method": "semantic",
-            "score": match["score"],
+            "method": "semantic_rerank",
+            "score": reranked["score"],
         }
 
     def rank_intents(
@@ -255,6 +369,65 @@ class SemanticInterpreter:
                 return None
 
         return best
+
+    def _rerank(
+        self,
+        text: str,
+        rankings: list[dict],
+        descriptions: dict[str, str],
+        floor: float,
+    ):
+        if not rankings:
+            return None
+
+        if rankings[0]["score"] < floor:
+            return None
+
+        candidates = rankings[
+            :self.rerank_top_k
+        ]
+
+        documents = [
+            descriptions[
+                candidate["label"]
+            ]
+            for candidate in candidates
+        ]
+
+        rerank_scores = list(
+            self.reranker.rerank(
+                text,
+                documents,
+            )
+        )
+
+        if not rerank_scores:
+            return None
+
+        reranked = []
+
+        for candidate, score in zip(
+            candidates,
+            rerank_scores,
+        ):
+            reranked.append(
+                {
+                    "label": candidate[
+                        "label"
+                    ],
+                    "score": round(
+                        float(score),
+                        4,
+                    ),
+                }
+            )
+
+        reranked.sort(
+            key=lambda item: item["score"],
+            reverse=True,
+        )
+
+        return reranked[0]
 
     def _cosine_similarity(
         self,

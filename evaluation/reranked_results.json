@@ -1,0 +1,515 @@
+{
+  "total": 20,
+  "passed": 19,
+  "accuracy": 0.95,
+  "fieldAccuracy": {
+    "intent": 0.95,
+    "direction": 0.95,
+    "outcomes": 0.95,
+    "ambiguous": 1.0
+  },
+  "results": [
+    {
+      "id": "treatment_direct",
+      "text": "Can remdesivir treat COVID-19?",
+      "expected": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "treatment_therapy",
+      "text": "Is remdesivir a therapy for COVID-19?",
+      "expected": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "treatment_help",
+      "text": "Can remdesivir help with COVID-19?",
+      "expected": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "treatment_useful",
+      "text": "Could remdesivir be useful against COVID-19?",
+      "expected": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "causation",
+      "text": "Does remdesivir cause COVID-19?",
+      "expected": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "association",
+      "text": "Is smoking associated with severe COVID-19?",
+      "expected": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "severity_direct",
+      "text": "Does being overweight make COVID-19 worse?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "severity_worsen",
+      "text": "Could obesity worsen COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "severity_casual",
+      "text": "Can diabetes make a case of COVID more serious?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": false,
+        "direction": false,
+        "outcomes": false,
+        "ambiguous": true
+      },
+      "passed": false
+    },
+    {
+      "id": "hospitalization_increase",
+      "text": "Does nicotine raise my risk of hospitalization with COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "hospitalization_decrease",
+      "text": "Does nicotine lower my risk of hospitalization with COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "hospitalization_casual",
+      "text": "Does smoking make me more likely to end up in the hospital from COVID?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "mortality_direct",
+      "text": "Does nicotine affect COVID-19 mortality?",
+      "expected": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "mortality_death",
+      "text": "Does tobacco use put you at greater risk of death from COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "infection_increase",
+      "text": "Does smoking make you more likely to catch COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "infection_decrease",
+      "text": "Could nicotine make you less likely to get COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "vague_chances",
+      "text": "Can nicotine affect my chances in the context of COVID-19?",
+      "expected": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "vague_effect",
+      "text": "Does nicotine affect COVID-19?",
+      "expected": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "phenotype",
+      "text": "Is fever a symptom of COVID-19?",
+      "expected": {
+        "intent": "phenotype",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "phenotype",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "clinical_trial",
+      "text": "Has remdesivir been studied in clinical trials for COVID-19?",
+      "expected": {
+        "intent": "clinical_study",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "clinical_study",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    }
+  ]
+}

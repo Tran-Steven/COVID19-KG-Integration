@@ -279,6 +279,33 @@ def interpret_query(
         )
     )
 
+    initial_interpretation = (
+        ambiguity_detector.detect(
+            text=request.text,
+            relation=relation["text"],
+            outcomes=outcomes,
+        )
+    )
+
+    if (
+        not outcomes
+        and direction is not None
+        and not initial_interpretation[
+            "ambiguous"
+        ]
+    ):
+        semantic_outcome = (
+            semantic_interpreter
+            .resolve_outcome(
+                request.text
+            )
+        )
+
+        if semantic_outcome:
+            outcomes = [
+                semantic_outcome
+            ]
+
     if (
         relation_intent["intent"]
         == "unknown"
@@ -314,7 +341,7 @@ def interpret_query(
                 "method"
             ] = "none"
 
-    initial_interpretation = (
+    interpretation_before_outcome = (
         ambiguity_detector.detect(
             text=request.text,
             relation=relation["text"],
@@ -324,7 +351,7 @@ def interpret_query(
 
     if (
         not outcomes
-        and not initial_interpretation[
+        and not interpretation_before_outcome[
             "ambiguous"
         ]
         and relation_intent["intent"]
