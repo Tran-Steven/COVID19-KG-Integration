@@ -30,6 +30,31 @@ class GroundingContextBuilder:
             if section
         )
 
+    def build_history(
+        self,
+        text: str,
+        history: dict,
+    ):
+        sections = [
+            self._query_section(text),
+            self._history_interpretation_section(
+                history
+            ),
+            self._history_answer_section(
+                history
+            ),
+            self._history_evidence_section(
+                history
+            ),
+            self._history_rules_section(),
+        ]
+
+        return "\n\n".join(
+            section
+            for section in sections
+            if section
+        )
+
     def _query_section(
         self,
         text: str,
@@ -242,6 +267,246 @@ class GroundingContextBuilder:
 
         return "\n".join(lines)
 
+    def _history_interpretation_section(
+        self,
+        history: dict,
+    ):
+        lines = [
+            "INTERPRETED HISTORY QUERY"
+        ]
+
+        interpretation = history.get(
+            "interpretation"
+        )
+
+        if not interpretation:
+            lines.append(
+                "No supported history intent was resolved."
+            )
+
+            return "\n".join(lines)
+
+        lines.append(
+            "intent="
+            f"{interpretation.get('intent')}"
+        )
+
+        lines.append(
+            "canonical_subject="
+            f"{interpretation.get('canonicalSubject')}"
+        )
+
+        lines.append(
+            "event_type="
+            f"{interpretation.get('eventType')}"
+        )
+
+        lines.append(
+            "requested_field="
+            f"{interpretation.get('requestedField')}"
+        )
+
+        semantic_role = (
+            interpretation.get(
+                "semanticRole"
+            )
+        )
+
+        if semantic_role:
+            lines.append(
+                "semantic_role="
+                f"{semantic_role}"
+            )
+
+        return "\n".join(lines)
+
+    def _history_answer_section(
+        self,
+        history: dict,
+    ):
+        lines = [
+            "RETRIEVED HISTORY RESULT"
+        ]
+
+        lines.append(
+            "status="
+            f"{history.get('status')}"
+        )
+
+        answer = history.get(
+            "answer"
+        )
+
+        if not answer:
+            lines.append(
+                "No source-backed history result was retrieved."
+            )
+
+            return "\n".join(lines)
+
+        lines.append(
+            f"{answer.get('field')}="
+            f"{answer.get('value')}"
+        )
+
+        qualification = (
+            answer.get(
+                "qualification"
+            )
+        )
+
+        if qualification:
+            lines.append(
+                "qualification="
+                f"{qualification}"
+            )
+
+        return "\n".join(lines)
+
+    def _history_evidence_section(
+        self,
+        history: dict,
+    ):
+        lines = [
+            "WHO HISTORY EVIDENCE"
+        ]
+
+        evidence = history.get(
+            "evidence",
+            [],
+        )
+
+        if not evidence:
+            lines.append(
+                "No matching WHO history evidence was retrieved."
+            )
+
+            return "\n".join(lines)
+
+        for index, item in enumerate(
+            evidence,
+            start=1,
+        ):
+            lines.append(
+                f"[{index}] "
+                f"{item.get('eventName')}"
+            )
+
+            event_id = item.get(
+                "eventId"
+            )
+
+            if event_id:
+                lines.append(
+                    f"event_id={event_id}"
+                )
+
+            event_type = item.get(
+                "eventType"
+            )
+
+            if event_type:
+                lines.append(
+                    f"event_type={event_type}"
+                )
+
+            date_start = item.get(
+                "dateStart"
+            )
+
+            date_end = item.get(
+                "dateEnd"
+            )
+
+            if date_start:
+                if (
+                    date_end
+                    and date_end
+                    != date_start
+                ):
+                    lines.append(
+                        "date="
+                        f"{date_start}..{date_end}"
+                    )
+                else:
+                    lines.append(
+                        f"date={date_start}"
+                    )
+
+            semantic_role = (
+                item.get(
+                    "semanticRole"
+                )
+            )
+
+            if semantic_role:
+                lines.append(
+                    "semantic_role="
+                    f"{semantic_role}"
+                )
+
+            related_name = (
+                item.get(
+                    "relatedEntityName"
+                )
+            )
+
+            related_id = (
+                item.get(
+                    "relatedEntityId"
+                )
+            )
+
+            if related_name:
+                if related_id:
+                    lines.append(
+                        "related_entity="
+                        f"{related_id} "
+                        f"{related_name}"
+                    )
+                else:
+                    lines.append(
+                        "related_entity="
+                        f"{related_name}"
+                    )
+
+            source_text = item.get(
+                "sourceText"
+            )
+
+            if source_text:
+                lines.append(
+                    f"source_text={source_text}"
+                )
+
+            source_url = item.get(
+                "sourceUrl"
+            )
+
+            if source_url:
+                lines.append(
+                    f"source={source_url}"
+                )
+
+            source_links = item.get(
+                "sourceLinks",
+                [],
+            )
+
+            if source_links:
+                selected = source_links[
+                    :self.reference_limit
+                ]
+
+                lines.append(
+                    "source_links="
+                    + ", ".join(
+                        selected
+                    )
+                )
+
+        return "\n".join(lines)
+
     def _rules_section(self):
         return "\n".join(
             [
@@ -252,5 +517,18 @@ class GroundingContextBuilder:
                 "Treat biolink:treats, biolink:in_clinical_trials_for, and biolink:studied_to_treat as different claims.",
                 "If no relevant evidence was retrieved, state that the knowledge graph provides insufficient evidence for the requested relation.",
                 "Preserve uncertainty and provenance when describing evidence.",
+            ]
+        )
+
+    def _history_rules_section(self):
+        return "\n".join(
+            [
+                "GROUNDING RULES",
+                "Use the retrieved WHO event as source-backed historical evidence.",
+                "Preserve the distinction between a reported outbreak event and biological identification of SARS-CoV-2.",
+                "Do not rewrite reported_case_location as a universal first_found_in assertion.",
+                "Do not strengthen the WHO source statement beyond what it explicitly says.",
+                "Preserve the qualification attached to the retrieved result.",
+                "Preserve source attribution when presenting the historical evidence.",
             ]
         )

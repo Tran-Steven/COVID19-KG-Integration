@@ -90,20 +90,57 @@ class GraphFact(BaseModel):
     evidence: Evidence
 
 
+class HistoryInterpretation(BaseModel):
+    intent: str
+    canonicalSubject: str
+    eventType: str
+    semanticRole: str | None
+    requestedField: str
+    matchedText: str | None
+    method: str
+
+
+class HistoryAnswer(BaseModel):
+    field: str
+    value: str
+    qualification: str | None
+
+
+class HistoryEvidence(BaseModel):
+    eventId: str | None
+    eventName: str | None
+    eventType: str | None
+    dateStart: str | None
+    dateEnd: str | None
+    sourceText: str | None
+    sourceUrl: str | None
+    sourceLinks: list[str]
+    semanticRole: str | None
+    relatedEntityId: str | None
+    relatedEntityName: str | None
+
+
+class HistoryRetrievalResult(BaseModel):
+    text: str
+    status: str
+    interpretation: HistoryInterpretation | None
+    answer: HistoryAnswer | None
+    evidence: list[HistoryEvidence]
+
+
 class GraphRetrievalResponse(BaseModel):
     text: str
+    verificationType: str = "relationship"
     entities: list[LinkedEntity]
     relation: ExtractedRelation
     relationships: list[RelationshipCandidate]
     facts: list[GraphFact]
+    history: HistoryRetrievalResult | None = None
 
 
-class GroundingContextResponse(BaseModel):
-    text: str
-    entities: list[LinkedEntity]
-    relation: ExtractedRelation
-    relationships: list[RelationshipCandidate]
-    facts: list[GraphFact]
+class GroundingContextResponse(
+    GraphRetrievalResponse
+):
     context: str
 
 

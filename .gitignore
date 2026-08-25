@@ -13,3 +13,9 @@ resources/chembl-covid/*
 
 resources/covid-kg/*
 !resources/covid-kg/.gitkeep
+
+resources/who-covid-timeline/*
+!resources/who-covid-timeline/.gitkeep
+
+resources/who-covid-history/*
+!resources/who-covid-history/.gitkeep

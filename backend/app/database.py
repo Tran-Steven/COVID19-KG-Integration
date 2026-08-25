@@ -88,6 +88,101 @@ class Neo4jClient:
                 for record in result
             ]
 
+    def find_history_events(
+        self,
+        event_type: str,
+        limit: int = 10,
+    ):
+        query = """
+        MATCH (event:KGEntity)
+
+        WHERE event.event_type = $eventType
+
+        RETURN
+            event.id AS eventId,
+            event.name AS eventName,
+            event.event_type AS eventType,
+            event.event_date_start AS dateStart,
+            event.event_date_end AS dateEnd,
+            event.source_text AS sourceText,
+            event.source_url AS sourceUrl,
+            event.source_links AS sourceLinks,
+            null AS semanticRole,
+            null AS relatedEntityId,
+            null AS relatedEntityName,
+            [] AS relatedEntityCategories
+
+        ORDER BY
+            event.event_date_start,
+            event.id
+
+        LIMIT $limit
+        """
+
+        with self.driver.session() as session:
+            result = session.run(
+                query,
+                eventType=event_type,
+                limit=limit,
+            )
+
+            return [
+                record.data()
+                for record in result
+            ]
+
+    def find_history_event_relations(
+        self,
+        event_type: str,
+        semantic_role: str,
+        limit: int = 10,
+    ):
+        query = """
+        MATCH (event:KGEntity)
+            -[r:KG_RELATION]->
+            (related:KGEntity)
+
+        WHERE event.event_type = $eventType
+          AND r.semantic_role = $semanticRole
+
+        RETURN
+            event.id AS eventId,
+            event.name AS eventName,
+            event.event_type AS eventType,
+            event.event_date_start AS dateStart,
+            event.event_date_end AS dateEnd,
+            event.source_text AS sourceText,
+            event.source_url AS sourceUrl,
+            event.source_links AS sourceLinks,
+            r.semantic_role AS semanticRole,
+            related.id AS relatedEntityId,
+            related.name AS relatedEntityName,
+            coalesce(
+                related.categories,
+                []
+            ) AS relatedEntityCategories
+
+        ORDER BY
+            event.event_date_start,
+            event.id,
+            related.id
+
+        LIMIT $limit
+        """
+
+        with self.driver.session() as session:
+            result = session.run(
+                query,
+                eventType=event_type,
+                semanticRole=semantic_role,
+                limit=limit,
+            )
+
+            return [
+                record.data()
+                for record in result
+            ]
+
     def find_entity_candidates(
         self,
         entity: str,
@@ -97,6 +192,13 @@ class Neo4jClient:
         MATCH (n:KGEntity)
 
         WHERE n.name IS NOT NULL
+          AND NOT (
+              "biolink:Event"
+              IN coalesce(
+                  n.categories,
+                  []
+              )
+          )
 
         WITH n,
             CASE

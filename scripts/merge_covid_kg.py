@@ -17,8 +17,8 @@ DEFAULT_CHEMBL = Path(
     "resources/chembl-covid"
 )
 
-DEFAULT_AUTHORITATIVE = Path(
-    "resources/authoritative-covid"
+DEFAULT_WHO_HISTORY = Path(
+    "resources/who-covid-history"
 )
 
 DEFAULT_OUTPUT = Path(
@@ -50,9 +50,9 @@ def parse_arguments():
     )
 
     parser.add_argument(
-        "--authoritative",
+        "--who-history",
         type=Path,
-        default=DEFAULT_AUTHORITATIVE,
+        default=DEFAULT_WHO_HISTORY,
     )
 
     parser.add_argument(
@@ -64,22 +64,30 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def sha256(path: Path):
+def sha256(
+    path: Path,
+):
     digest = hashlib.sha256()
 
-    with path.open("rb") as file:
+    with path.open(
+        "rb"
+    ) as file:
         for chunk in iter(
             lambda: file.read(
                 1024 * 1024
             ),
             b"",
         ):
-            digest.update(chunk)
+            digest.update(
+                chunk
+            )
 
     return digest.hexdigest()
 
 
-def load_json(path: Path):
+def load_json(
+    path: Path,
+):
     if not path.exists():
         return None
 
@@ -112,12 +120,20 @@ def parse_list(
 
             if isinstance(
                 parsed,
-                (list, tuple, set),
+                (
+                    list,
+                    tuple,
+                    set,
+                ),
             ):
                 return [
-                    str(item).strip()
+                    str(
+                        item
+                    ).strip()
                     for item in parsed
-                    if str(item).strip()
+                    if str(
+                        item
+                    ).strip()
                 ]
         except (
             ValueError,
@@ -130,11 +146,17 @@ def parse_list(
             if inner:
                 return [
                     item.strip()
-                    .strip("'\"")
+                    .strip(
+                        "'\""
+                    )
                     for item
-                    in inner.split(",")
+                    in inner.split(
+                        ","
+                    )
                     if item.strip()
-                    .strip("'\"")
+                    .strip(
+                        "'\""
+                    )
                 ]
 
             return []
@@ -143,7 +165,9 @@ def parse_list(
         return [
             item.strip()
             for item
-            in value.split("|")
+            in value.split(
+                "|"
+            )
             if item.strip()
         ]
 
@@ -151,11 +175,15 @@ def parse_list(
         return [
             item.strip()
             for item
-            in value.split(";")
+            in value.split(
+                ";"
+            )
             if item.strip()
         ]
 
-    return [value]
+    return [
+        value
+    ]
 
 
 def unique(
@@ -168,8 +196,13 @@ def unique(
         if value in seen:
             continue
 
-        seen.add(value)
-        result.append(value)
+        seen.add(
+            value
+        )
+
+        result.append(
+            value
+        )
 
     return result
 
@@ -179,11 +212,17 @@ def merge_list_values(
     second: str | None,
 ):
     values = unique(
-        parse_list(first)
-        + parse_list(second)
+        parse_list(
+            first
+        )
+        + parse_list(
+            second
+        )
     )
 
-    return "|".join(values)
+    return "|".join(
+        values
+    )
 
 
 def read_tsv(
@@ -205,12 +244,16 @@ def read_tsv(
             )
 
         rows = [
-            dict(row)
+            dict(
+                row
+            )
             for row in reader
         ]
 
         return (
-            list(reader.fieldnames),
+            list(
+                reader.fieldnames
+            ),
             rows,
         )
 
@@ -219,14 +262,21 @@ def normalize_node(
     row: dict,
     source: str,
 ):
-    normalized = dict(row)
+    normalized = dict(
+        row
+    )
 
     for field in NODE_LIST_FIELDS:
-        if field == "source_dataset":
+        if (
+            field
+            == "source_dataset"
+        ):
             continue
 
         if field in normalized:
-            normalized[field] = "|".join(
+            normalized[
+                field
+            ] = "|".join(
                 unique(
                     parse_list(
                         normalized.get(
@@ -247,38 +297,49 @@ def merge_node(
     existing: dict,
     incoming: dict,
 ):
-    result = dict(existing)
+    result = dict(
+        existing
+    )
 
     for key in (
-        set(existing)
-        | set(incoming)
+        set(
+            existing
+        )
+        | set(
+            incoming
+        )
     ):
-        existing_value = result.get(
-            key,
-            "",
+        existing_value = (
+            result.get(
+                key,
+                "",
+            )
         )
 
-        incoming_value = incoming.get(
-            key,
-            "",
+        incoming_value = (
+            incoming.get(
+                key,
+                "",
+            )
         )
 
         if key in NODE_LIST_FIELDS:
-            result[key] = (
-                merge_list_values(
-                    existing_value,
-                    incoming_value,
-                )
+            result[
+                key
+            ] = merge_list_values(
+                existing_value,
+                incoming_value,
             )
+
             continue
 
         if (
             not existing_value
             and incoming_value
         ):
-            result[key] = (
-                incoming_value
-            )
+            result[
+                key
+            ] = incoming_value
 
     return result
 
@@ -329,7 +390,9 @@ def load_edges(
         rows,
         start=1,
     ):
-        normalized = dict(row)
+        normalized = dict(
+            row
+        )
 
         normalized[
             "source_dataset"
@@ -355,7 +418,9 @@ def load_edges(
                         "object",
                         "",
                     ),
-                    str(index),
+                    str(
+                        index
+                    ),
                 ]
             )
 
@@ -385,15 +450,29 @@ def combine_headers(
     seen = set()
 
     for field in base:
-        if field not in seen:
-            seen.add(field)
-            result.append(field)
+        if field in seen:
+            continue
+
+        seen.add(
+            field
+        )
+
+        result.append(
+            field
+        )
 
     for header in headers:
         for field in header:
-            if field not in seen:
-                seen.add(field)
-                result.append(field)
+            if field in seen:
+                continue
+
+            seen.add(
+                field
+            )
+
+            result.append(
+                field
+            )
 
     if (
         "source_dataset"
@@ -443,14 +522,18 @@ def metadata_key(
     source: str,
     suffix: str,
 ):
-    parts = source.split("-")
+    parts = source.split(
+        "-"
+    )
 
     prefix = (
         parts[0]
         + "".join(
             part.capitalize()
             for part
-            in parts[1:]
+            in parts[
+                1:
+            ]
         )
     )
 
@@ -481,8 +564,8 @@ def main():
             args.chembl,
         ),
         (
-            "authoritative-covid",
-            args.authoritative,
+            "who-covid-history",
+            args.who_history,
         ),
     ]
 
@@ -513,19 +596,24 @@ def main():
                 continue
 
             if node_id in nodes:
-                nodes[node_id] = (
-                    merge_node(
-                        nodes[node_id],
-                        node,
-                    )
+                nodes[
+                    node_id
+                ] = merge_node(
+                    nodes[
+                        node_id
+                    ],
+                    node,
                 )
             else:
-                nodes[node_id] = (
-                    node
-                )
+                nodes[
+                    node_id
+                ] = node
 
     edges = {}
-    node_ids = set(nodes)
+
+    node_ids = set(
+        nodes
+    )
 
     for source, directory in datasets:
         (
@@ -575,37 +663,34 @@ def main():
                 edge_id
             ] = edge
 
-    node_headers = (
-        combine_headers(
-            [
-                "id",
-                "category",
-                "name",
-                "xref",
-                "synonym",
-                "provided_by",
-                "source_dataset",
-            ],
-            *all_node_headers,
-        )
+    node_headers = combine_headers(
+        [
+            "id",
+            "category",
+            "name",
+            "xref",
+            "synonym",
+            "provided_by",
+            "source_dataset",
+        ],
+        *all_node_headers,
     )
 
-    edge_headers = (
-        combine_headers(
-            [
-                "id",
-                "predicate",
-                "category",
-                "primary_knowledge_source",
-                "aggregator_knowledge_source",
-                "provided_by",
-                "publications",
-                "subject",
-                "object",
-                "source_dataset",
-            ],
-            *all_edge_headers,
-        )
+    edge_headers = combine_headers(
+        [
+            "id",
+            "predicate",
+            "relation",
+            "category",
+            "primary_knowledge_source",
+            "aggregator_knowledge_source",
+            "provided_by",
+            "publications",
+            "subject",
+            "object",
+            "source_dataset",
+        ],
+        *all_edge_headers,
     )
 
     nodes_path = (
@@ -653,15 +738,14 @@ def main():
     )
 
     sources = {}
-
     input_hashes = {}
 
     for source, directory in datasets:
-        sources[source] = (
-            load_json(
-                directory
-                / "source.json"
-            )
+        sources[
+            source
+        ] = load_json(
+            directory
+            / "source.json"
         )
 
         input_hashes[
@@ -688,11 +772,9 @@ def main():
         "name": (
             "COVID-19 Knowledge Graph"
         ),
-        "generatedAt": (
-            datetime.now(
-                timezone.utc
-            ).isoformat()
-        ),
+        "generatedAt": datetime.now(
+            timezone.utc
+        ).isoformat(),
         "nodeCount": len(
             nodes
         ),

@@ -8,6 +8,7 @@ from app.augmentation.prompt_augmenter import PromptAugmenter
 from app.database import Neo4jClient
 from app.interpretation.ambiguity_detector import AmbiguityDetector
 from app.interpretation.direction_resolver import DirectionResolver
+from app.interpretation.history_intent_resolver import HistoryIntentResolver
 from app.interpretation.outcome_resolver import OutcomeResolver
 from app.interpretation.relation_intent_resolver import RelationIntentResolver
 from app.interpretation.semantic_interpreter import SemanticInterpreter
@@ -28,6 +29,7 @@ from app.nlp.entity_linker import EntityLinker
 from app.nlp.kg_entity_matcher import KGEntityMatcher
 from app.nlp.relation_extractor import RelationExtractor
 from app.retrieval.graph_retriever import GraphRetriever
+from app.retrieval.history_retriever import HistoryRetriever
 from app.retrieval.relationship_resolver import RelationshipResolver
 
 
@@ -76,10 +78,21 @@ direction_resolver = (
 
 ambiguity_detector = AmbiguityDetector()
 
+history_intent_resolver = (
+    HistoryIntentResolver()
+)
+
 graph_retriever = GraphRetriever(
     neo4j_client,
     entity_linker,
     relationship_resolver,
+)
+
+history_retriever = (
+    HistoryRetriever(
+        neo4j_client,
+        history_intent_resolver,
+    )
 )
 
 grounding_context_builder = (
@@ -446,14 +459,35 @@ def interpret_query(
 def retrieve(
     text: str,
 ):
-    extracted_entities = (
-        entity_extractor.extract(
+    history_interpretation = (
+        history_intent_resolver.resolve(
             text
         )
     )
 
     relation = relation_extractor.extract(
         text
+    )
+
+    if history_interpretation is not None:
+        history = history_retriever.retrieve(
+            text
+        )
+
+        return {
+            "text": text,
+            "verificationType": "history",
+            "entities": [],
+            "relation": relation,
+            "relationships": [],
+            "facts": [],
+            "history": history,
+        }
+
+    extracted_entities = (
+        entity_extractor.extract(
+            text
+        )
     )
 
     retrieval = graph_retriever.retrieve(
@@ -463,12 +497,16 @@ def retrieve(
 
     return {
         "text": text,
+        "verificationType": (
+            "relationship"
+        ),
         "entities": retrieval["entities"],
         "relation": relation,
         "relationships": retrieval[
             "relationships"
         ],
         "facts": retrieval["facts"],
+        "history": None,
     }
 
 
@@ -479,15 +517,40 @@ def ground(
         text
     )
 
-    context = grounding_context_builder.build(
-        text=retrieval["text"],
-        entities=retrieval["entities"],
-        relation=retrieval["relation"],
-        relationships=retrieval[
-            "relationships"
-        ],
-        facts=retrieval["facts"],
-    )
+    if (
+        retrieval[
+            "verificationType"
+        ]
+        == "history"
+    ):
+        context = (
+            grounding_context_builder
+            .build_history(
+                text=retrieval["text"],
+                history=retrieval[
+                    "history"
+                ],
+            )
+        )
+    else:
+        context = (
+            grounding_context_builder
+            .build(
+                text=retrieval["text"],
+                entities=retrieval[
+                    "entities"
+                ],
+                relation=retrieval[
+                    "relation"
+                ],
+                relationships=retrieval[
+                    "relationships"
+                ],
+                facts=retrieval[
+                    "facts"
+                ],
+            )
+        )
 
     return {
         **retrieval,
@@ -503,6 +566,15 @@ def retrieve_graph_context(
     request: NLPRequest,
 ):
     return retrieve(
+        request.text
+    )
+
+
+@app.post("/kg/history")
+def retrieve_history(
+    request: NLPRequest,
+):
+    return history_retriever.retrieve(
         request.text
     )
 
@@ -530,8 +602,22 @@ def augment_prompt(
         request.text
     )
 
-    has_evidence = bool(
-        grounding["facts"]
+    history = grounding.get(
+        "history"
+    )
+
+    has_history_evidence = bool(
+        history
+        and history.get(
+            "evidence"
+        )
+    )
+
+    has_evidence = (
+        bool(
+            grounding["facts"]
+        )
+        or has_history_evidence
     )
 
     augmented_prompt = (
