@@ -105,3 +105,10 @@ class GroundingContextResponse(BaseModel):
     relationships: list[RelationshipCandidate]
     facts: list[GraphFact]
     context: str
+
+
+class AugmentedPromptResponse(
+    GroundingContextResponse
+):
+    hasEvidence: bool
+    augmentedPrompt: str

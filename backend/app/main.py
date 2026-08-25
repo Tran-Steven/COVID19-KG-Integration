@@ -4,8 +4,10 @@ import spacy
 from fastapi import FastAPI
 
 from app.augmentation.context_builder import GroundingContextBuilder
+from app.augmentation.prompt_augmenter import PromptAugmenter
 from app.database import Neo4jClient
 from app.models import (
+    AugmentedPromptResponse,
     EntityLinkingResponse,
     EntityRequest,
     GraphRetrievalResponse,
@@ -56,7 +58,11 @@ graph_retriever = GraphRetriever(
     relationship_resolver,
 )
 
-grounding_context_builder = GroundingContextBuilder()
+grounding_context_builder = (
+    GroundingContextBuilder()
+)
+
+prompt_augmenter = PromptAugmenter()
 
 
 @asynccontextmanager
@@ -229,6 +235,29 @@ def retrieve(
     }
 
 
+def ground(
+    text: str,
+):
+    retrieval = retrieve(
+        text
+    )
+
+    context = grounding_context_builder.build(
+        text=retrieval["text"],
+        entities=retrieval["entities"],
+        relation=retrieval["relation"],
+        relationships=retrieval[
+            "relationships"
+        ],
+        facts=retrieval["facts"],
+    )
+
+    return {
+        **retrieval,
+        "context": context,
+    }
+
+
 @app.post(
     "/kg/retrieve",
     response_model=GraphRetrievalResponse,
@@ -248,21 +277,40 @@ def retrieve_graph_context(
 def build_grounding_context(
     request: NLPRequest,
 ):
-    retrieval = retrieve(
+    return ground(
         request.text
     )
 
-    context = grounding_context_builder.build(
-        text=retrieval["text"],
-        entities=retrieval["entities"],
-        relation=retrieval["relation"],
-        relationships=retrieval[
-            "relationships"
-        ],
-        facts=retrieval["facts"],
+
+@app.post(
+    "/kg/augment",
+    response_model=AugmentedPromptResponse,
+)
+def augment_prompt(
+    request: NLPRequest,
+):
+    grounding = ground(
+        request.text
+    )
+
+    has_evidence = bool(
+        grounding["facts"]
+    )
+
+    augmented_prompt = (
+        prompt_augmenter.build(
+            text=request.text,
+            context=grounding[
+                "context"
+            ],
+            has_evidence=has_evidence,
+        )
     )
 
     return {
-        **retrieval,
-        "context": context,
+        **grounding,
+        "hasEvidence": has_evidence,
+        "augmentedPrompt": (
+            augmented_prompt
+        ),
     }

@@ -1,9 +1,14 @@
 {
   "manifest_version": 3,
   "name": "COVID19-KG-Integration",
-  "description": "Integrates KG into ChatGPT's framework",
-  "version": "1.0",
-  "host_permissions": ["https://*.chat.openai.com/*"],
+  "description": "Integrates COVID-19 knowledge graph evidence into ChatGPT",
+  "version": "1.1.0",
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "http://127.0.0.1:8000/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*"
+  ],
   "action": {
     "default_popup": "popup/popup.html"
   },
@@ -15,14 +20,22 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://chat.openai.com/c/*"],
-      "js": ["contentScript.js"],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "contentScript.js"
+      ],
       "run_at": "document_idle"
     }
   ],
-    "background": {
-    "service_wonder": "background.ts",
-    "type": "module"
+  "background": {
+    "service_worker": "background.js"
   },
-  "permissions": ["storage", "activeTab", "tabs"]
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+  ]
 }
