@@ -18,6 +18,9 @@ from app.database import Neo4jClient
 from app.interpretation.ambiguity_detector import (
     AmbiguityDetector,
 )
+from app.interpretation.confidence_scorer import (
+    ConfidenceScorer,
+)
 from app.interpretation.direction_resolver import (
     DirectionResolver,
 )
@@ -150,6 +153,10 @@ verification_resolver = (
     VerificationResolver()
 )
 
+confidence_scorer = (
+    ConfidenceScorer()
+)
+
 graph_retriever = (
     GraphRetriever(
         neo4j_client,
@@ -256,9 +263,7 @@ def link_extracted_entities(
 def finalize_retrieval(
     retrieval: dict,
 ):
-    retrieval[
-        "verification"
-    ] = (
+    verification = (
         verification_resolver.resolve(
             text=retrieval[
                 "text"
@@ -282,6 +287,35 @@ def finalize_retrieval(
             ),
         )
     )
+
+    verification[
+        "confidence"
+    ] = (
+        confidence_scorer.score(
+            verification_type=(
+                retrieval[
+                    "verificationType"
+                ]
+            ),
+            verification=verification,
+            entities=retrieval[
+                "entities"
+            ],
+            relationships=retrieval[
+                "relationships"
+            ],
+            facts=retrieval[
+                "facts"
+            ],
+            history=retrieval.get(
+                "history"
+            ),
+        )
+    )
+
+    retrieval[
+        "verification"
+    ] = verification
 
     return retrieval
 
@@ -764,26 +798,60 @@ def retrieve(
 def verification_context(
     verification: dict,
 ):
+    confidence = verification[
+        "confidence"
+    ]
+
+    lines = [
+        "VERIFICATION RESULT",
+        (
+            "status="
+            f"{verification['status']}"
+        ),
+        (
+            "evidence_count="
+            f"{verification['evidenceCount']}"
+        ),
+        (
+            "method="
+            f"{verification['method']}"
+        ),
+        (
+            "reason="
+            f"{verification['reason']}"
+        ),
+        (
+            "confidence_score="
+            f"{confidence['score']}"
+        ),
+        (
+            "confidence_level="
+            f"{confidence['level']}"
+        ),
+        (
+            "confidence_target="
+            f"{confidence['target']}"
+        ),
+        (
+            "confidence_calibrated="
+            f"{str(confidence['calibrated']).lower()}"
+        ),
+    ]
+
+    for name, value in (
+        confidence[
+            "components"
+        ].items()
+    ):
+        lines.append(
+            (
+                "confidence_component_"
+                f"{name}={value}"
+            )
+        )
+
     return "\n".join(
-        [
-            "VERIFICATION RESULT",
-            (
-                "status="
-                f"{verification['status']}"
-            ),
-            (
-                "evidence_count="
-                f"{verification['evidenceCount']}"
-            ),
-            (
-                "method="
-                f"{verification['method']}"
-            ),
-            (
-                "reason="
-                f"{verification['reason']}"
-            ),
-        ]
+        lines
     )
 
 

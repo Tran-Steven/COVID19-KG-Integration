@@ -36,30 +36,46 @@ class LinkedEntity(BaseModel):
     type: str
     start: int
     end: int
+
     candidates: list[
         GraphEntityCandidate
     ]
 
 
-class EntityLinkingResponse(BaseModel):
+class EntityLinkingResponse(
+    BaseModel
+):
     text: str
-    entities: list[LinkedEntity]
+
+    entities: list[
+        LinkedEntity
+    ]
 
 
-class ExtractedRelation(BaseModel):
+class ExtractedRelation(
+    BaseModel
+):
     text: str | None
     normalized: str | None
     root: str | None
 
 
-class RelationResponse(BaseModel):
+class RelationResponse(
+    BaseModel
+):
     text: str
     relation: ExtractedRelation
 
 
-class NLPAnalysisResponse(BaseModel):
+class NLPAnalysisResponse(
+    BaseModel
+):
     text: str
-    entities: list[LinkedEntity]
+
+    entities: list[
+        LinkedEntity
+    ]
+
     relation: ExtractedRelation
 
 
@@ -123,13 +139,17 @@ class HistoryInterpretation(
     method: str
 
 
-class HistoryAnswer(BaseModel):
+class HistoryAnswer(
+    BaseModel
+):
     field: str
     value: str
     qualification: str | None
 
 
-class HistoryEvidence(BaseModel):
+class HistoryEvidence(
+    BaseModel
+):
     eventId: str | None
     eventName: str | None
     eventType: str | None
@@ -164,6 +184,27 @@ class HistoryRetrievalResult(
     ]
 
 
+class VerificationConfidence(
+    BaseModel
+):
+    score: float
+    level: str
+    target: str
+    calibrated: bool
+
+    components: dict[
+        str,
+        float,
+    ]
+
+    weights: dict[
+        str,
+        float,
+    ]
+
+    explanation: str
+
+
 class VerificationResult(
     BaseModel
 ):
@@ -171,6 +212,10 @@ class VerificationResult(
     reason: str
     evidenceCount: int
     method: str
+
+    confidence: (
+        VerificationConfidence
+    )
 
 
 class GraphRetrievalResponse(
@@ -219,7 +264,9 @@ class AugmentedPromptResponse(
     augmentedPrompt: str
 
 
-class QueryAmbiguity(BaseModel):
+class QueryAmbiguity(
+    BaseModel
+):
     term: str
     type: str
 
@@ -228,7 +275,9 @@ class QueryAmbiguity(BaseModel):
     )
 
 
-class ResolvedOutcome(BaseModel):
+class ResolvedOutcome(
+    BaseModel
+):
     outcome: str
     matchedText: str | None
     method: str = "rule"
