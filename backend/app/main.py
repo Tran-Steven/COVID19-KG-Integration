@@ -6,12 +6,14 @@ from fastapi import FastAPI
 from app.augmentation.context_builder import GroundingContextBuilder
 from app.augmentation.prompt_augmenter import PromptAugmenter
 from app.database import Neo4jClient
+from app.interpretation.ambiguity_detector import AmbiguityDetector
 from app.models import (
     AugmentedPromptResponse,
     EntityLinkingResponse,
     EntityRequest,
     GraphRetrievalResponse,
     GroundingContextResponse,
+    InterpretationResponse,
     NLPAnalysisResponse,
     NLPRequest,
     NLPResponse,
@@ -51,6 +53,8 @@ relationship_resolver = RelationshipResolver(
     neo4j_client,
     nlp,
 )
+
+ambiguity_detector = AmbiguityDetector()
 
 graph_retriever = GraphRetriever(
     neo4j_client,
@@ -203,6 +207,29 @@ def analyze_text(
         "text": request.text,
         "entities": linked_entities,
         "relation": relation,
+    }
+
+
+@app.post(
+    "/nlp/interpret",
+    response_model=InterpretationResponse,
+)
+def interpret_query(
+    request: NLPRequest,
+):
+    relation = relation_extractor.extract(
+        request.text
+    )
+
+    interpretation = ambiguity_detector.detect(
+        text=request.text,
+        relation=relation["text"],
+    )
+
+    return {
+        "text": request.text,
+        "relation": relation,
+        "interpretation": interpretation,
     }
 
 
