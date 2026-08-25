@@ -19,3 +19,6 @@ resources/who-covid-timeline/*
 
 resources/who-covid-history/*
 !resources/who-covid-history/.gitkeep
+
+resources/who-covid-kg/*
+!resources/who-covid-kg/.gitkeep

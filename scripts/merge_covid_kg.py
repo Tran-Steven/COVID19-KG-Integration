@@ -17,8 +17,8 @@ DEFAULT_CHEMBL = Path(
     "resources/chembl-covid"
 )
 
-DEFAULT_WHO_HISTORY = Path(
-    "resources/who-covid-history"
+DEFAULT_WHO = Path(
+    "resources/who-covid-kg"
 )
 
 DEFAULT_OUTPUT = Path(
@@ -50,9 +50,9 @@ def parse_arguments():
     )
 
     parser.add_argument(
-        "--who-history",
+        "--who",
         type=Path,
-        default=DEFAULT_WHO_HISTORY,
+        default=DEFAULT_WHO,
     )
 
     parser.add_argument(
@@ -127,13 +127,9 @@ def parse_list(
                 ),
             ):
                 return [
-                    str(
-                        item
-                    ).strip()
+                    str(item).strip()
                     for item in parsed
-                    if str(
-                        item
-                    ).strip()
+                    if str(item).strip()
                 ]
         except (
             ValueError,
@@ -145,16 +141,12 @@ def parse_list(
 
             if inner:
                 return [
-                    item.strip()
-                    .strip(
+                    item.strip().strip(
                         "'\""
                     )
                     for item
-                    in inner.split(
-                        ","
-                    )
-                    if item.strip()
-                    .strip(
+                    in inner.split(",")
+                    if item.strip().strip(
                         "'\""
                     )
                 ]
@@ -165,9 +157,7 @@ def parse_list(
         return [
             item.strip()
             for item
-            in value.split(
-                "|"
-            )
+            in value.split("|")
             if item.strip()
         ]
 
@@ -175,9 +165,7 @@ def parse_list(
         return [
             item.strip()
             for item
-            in value.split(
-                ";"
-            )
+            in value.split(";")
             if item.strip()
         ]
 
@@ -244,9 +232,7 @@ def read_tsv(
             )
 
         rows = [
-            dict(
-                row
-            )
+            dict(row)
             for row in reader
         ]
 
@@ -293,6 +279,54 @@ def normalize_node(
     return normalized
 
 
+def normalize_edge(
+    row: dict,
+    source: str,
+    index: int,
+):
+    normalized = dict(
+        row
+    )
+
+    normalized[
+        "source_dataset"
+    ] = source
+
+    edge_id = normalized.get(
+        "id"
+    )
+
+    if not edge_id:
+        value = "|".join(
+            [
+                source,
+                normalized.get(
+                    "subject",
+                    "",
+                ),
+                normalized.get(
+                    "predicate",
+                    "",
+                ),
+                normalized.get(
+                    "object",
+                    "",
+                ),
+                str(index),
+            ]
+        )
+
+        normalized[
+            "id"
+        ] = hashlib.sha256(
+            value.encode(
+                "utf-8"
+            )
+        ).hexdigest()
+
+    return normalized
+
+
 def merge_node(
     existing: dict,
     incoming: dict,
@@ -302,25 +336,17 @@ def merge_node(
     )
 
     for key in (
-        set(
-            existing
-        )
-        | set(
-            incoming
-        )
+        set(existing)
+        | set(incoming)
     ):
-        existing_value = (
-            result.get(
-                key,
-                "",
-            )
+        existing_value = result.get(
+            key,
+            "",
         )
 
-        incoming_value = (
-            incoming.get(
-                key,
-                "",
-            )
+        incoming_value = incoming.get(
+            key,
+            "",
         )
 
         if key in NODE_LIST_FIELDS:
@@ -357,7 +383,7 @@ def load_nodes(
         path
     )
 
-    normalized_rows = [
+    normalized = [
         normalize_node(
             row,
             source,
@@ -367,7 +393,7 @@ def load_nodes(
 
     return (
         headers,
-        normalized_rows,
+        normalized,
     )
 
 
@@ -384,61 +410,22 @@ def load_edges(
         path
     )
 
-    normalized_rows = []
-
-    for index, row in enumerate(
-        rows,
-        start=1,
-    ):
-        normalized = dict(
-            row
+    normalized = [
+        normalize_edge(
+            row,
+            source,
+            index,
         )
-
-        normalized[
-            "source_dataset"
-        ] = source
-
-        edge_id = normalized.get(
-            "id"
+        for index, row
+        in enumerate(
+            rows,
+            start=1,
         )
-
-        if not edge_id:
-            value = "|".join(
-                [
-                    source,
-                    normalized.get(
-                        "subject",
-                        "",
-                    ),
-                    normalized.get(
-                        "predicate",
-                        "",
-                    ),
-                    normalized.get(
-                        "object",
-                        "",
-                    ),
-                    str(
-                        index
-                    ),
-                ]
-            )
-
-            normalized[
-                "id"
-            ] = hashlib.sha256(
-                value.encode(
-                    "utf-8"
-                )
-            ).hexdigest()
-
-        normalized_rows.append(
-            normalized
-        )
+    ]
 
     return (
         headers,
-        normalized_rows,
+        normalized,
     )
 
 
@@ -564,8 +551,8 @@ def main():
             args.chembl,
         ),
         (
-            "who-covid-history",
-            args.who_history,
+            "who",
+            args.who,
         ),
     ]
 
@@ -609,11 +596,11 @@ def main():
                     node_id
                 ] = node
 
-    edges = {}
-
     node_ids = set(
         nodes
     )
+
+    edges = {}
 
     for source, directory in datasets:
         (
@@ -686,6 +673,14 @@ def main():
             "aggregator_knowledge_source",
             "provided_by",
             "publications",
+            "semantic_role",
+            "evidence_statement_id",
+            "source_id",
+            "source_url",
+            "source_date",
+            "source_section",
+            "source_text",
+            "topic",
             "subject",
             "object",
             "source_dataset",
@@ -737,6 +732,18 @@ def main():
         in edges.values()
     )
 
+    semantic_role_counts = Counter(
+        edge.get(
+            "semantic_role",
+            "",
+        )
+        for edge
+        in edges.values()
+        if edge.get(
+            "semantic_role"
+        )
+    )
+
     sources = {}
     input_hashes = {}
 
@@ -782,9 +789,7 @@ def main():
             edges
         ),
         "sources": sources,
-        "inputHashes": (
-            input_hashes
-        ),
+        "inputHashes": input_hashes,
         "nodeCategoryCounts": dict(
             sorted(
                 category_counts.items()
@@ -793,6 +798,11 @@ def main():
         "predicateCounts": dict(
             sorted(
                 predicate_counts.items()
+            )
+        ),
+        "semanticRoleCounts": dict(
+            sorted(
+                semantic_role_counts.items()
             )
         ),
     }
