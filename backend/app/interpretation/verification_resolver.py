@@ -1,5 +1,9 @@
 import re
 
+from app.interpretation.origin_qualifier_resolver import (
+    OriginQualifierResolver,
+)
+
 
 class VerificationResolver:
     SUPPORTED = "SUPPORTED"
@@ -22,6 +26,13 @@ class VerificationResolver:
         INSUFFICIENT_EVIDENCE,
         NOT_VERIFIABLE,
     }
+
+    def __init__(
+        self,
+    ):
+        self.origin_qualifiers = (
+            OriginQualifierResolver()
+        )
 
     def resolve(
         self,
@@ -692,7 +703,7 @@ class VerificationResolver:
             )
         }
 
-        if self._inconclusive_origin_claim(
+        if self.origin_qualifiers.is_inconclusive(
             normalized
         ):
             if (
@@ -723,7 +734,24 @@ class VerificationResolver:
                 "supporting_over_natural_processes"
                 in assessments
             ):
-                if self._positive_support_claim(
+                if self.origin_qualifiers.is_negative_support_claim(
+                    normalized
+                ):
+                    return self._result(
+                        status=self.SUPPORTED,
+                        reason=(
+                            "The claim matches the "
+                            "absence of supporting "
+                            "evidence represented by "
+                            "WHO SAGO."
+                        ),
+                        evidence_count=len(
+                            facts
+                        ),
+                        method="who_semantic",
+                    )
+
+                if self.origin_qualifiers.is_positive_support_claim(
                     normalized
                 ):
                     return self._result(
@@ -769,7 +797,7 @@ class VerificationResolver:
                 "information"
                 in assessments
             ):
-                if self._cannot_rule_out_claim(
+                if self.origin_qualifiers.is_uncertain_lab_claim(
                     normalized
                 ):
                     return self._result(
@@ -789,7 +817,7 @@ class VerificationResolver:
                         method="who_semantic",
                     )
 
-                if self._ruled_out_claim(
+                if self.origin_qualifiers.is_ruled_out(
                     normalized
                 ):
                     return self._result(
@@ -834,7 +862,25 @@ class VerificationResolver:
                 "supporting"
                 in assessments
             ):
-                if self._positive_support_claim(
+                if self.origin_qualifiers.is_negative_support_claim(
+                    normalized
+                ):
+                    return self._result(
+                        status=self.SUPPORTED,
+                        reason=(
+                            "The claim matches WHO "
+                            "SAGO's assessment that "
+                            "no additional evidence "
+                            "supports the cold-chain "
+                            "hypothesis."
+                        ),
+                        evidence_count=len(
+                            facts
+                        ),
+                        method="who_semantic",
+                    )
+
+                if self.origin_qualifiers.is_positive_support_claim(
                     normalized
                 ):
                     return self._result(
@@ -877,7 +923,7 @@ class VerificationResolver:
                 "scientific_data"
                 in assessments
             ):
-                if self._certainty_overclaim(
+                if self.origin_qualifiers.is_certainty_overclaim(
                     normalized
                 ):
                     return self._result(
@@ -921,7 +967,7 @@ class VerificationResolver:
             "information_or_scientific_data"
             in assessments
         ):
-            if self._broad_origin_certainty_claim(
+            if self.origin_qualifiers.is_broad_certainty_claim(
                 normalized
             ):
                 return self._result(
