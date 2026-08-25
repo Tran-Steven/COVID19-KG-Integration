@@ -381,7 +381,9 @@ def contextualize_claim(
         return None
 
     return (
-        f"{text} COVID-19"
+        f"{text} "
+        f"Question context: "
+        f"{context_text}"
     )
 
 
@@ -913,17 +915,26 @@ def verify_response_claim(
         ]
     )
 
-    if (
+    direct_status = (
         direct[
             "verification"
         ][
             "status"
         ]
-        != (
-            "NOT_VERIFIABLE_"
-            "WITH_CURRENT_KG"
-        )
-    ):
+    )
+
+    retry_with_context = (
+        direct_status
+        in {
+            (
+                "NOT_VERIFIABLE_"
+                "WITH_CURRENT_KG"
+            ),
+            "INSUFFICIENT_EVIDENCE",
+        }
+    )
+
+    if not retry_with_context:
         return {
             **claim,
             "extractionMethod": (
@@ -944,15 +955,37 @@ def verify_response_claim(
         context_text=question,
     )
 
-    use_contextual = (
+    contextual_status = (
         contextual[
             "verification"
         ][
             "status"
         ]
+    )
+
+    contextual_route = (
+        contextual[
+            "verificationType"
+        ]
+    )
+
+    use_contextual = (
+        contextual_status
         != (
             "NOT_VERIFIABLE_"
             "WITH_CURRENT_KG"
+        )
+        and (
+            contextual_route
+            in {
+                "history",
+                "who",
+            }
+            or direct_status
+            == (
+                "NOT_VERIFIABLE_"
+                "WITH_CURRENT_KG"
+            )
         )
     )
 
