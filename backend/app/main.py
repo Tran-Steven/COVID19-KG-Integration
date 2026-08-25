@@ -230,6 +230,27 @@ def analyze_text(
     }
 
 
+@app.post("/nlp/semantic")
+def inspect_semantics(
+    request: NLPRequest,
+):
+    return {
+        "text": request.text,
+        "intentCandidates": (
+            semantic_interpreter
+            .rank_intents(
+                request.text
+            )
+        ),
+        "outcomeCandidates": (
+            semantic_interpreter
+            .rank_outcomes(
+                request.text
+            )
+        ),
+    }
+
+
 @app.post(
     "/nlp/interpret",
     response_model=InterpretationResponse,

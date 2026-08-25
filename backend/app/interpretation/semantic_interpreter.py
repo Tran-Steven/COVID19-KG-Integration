@@ -96,11 +96,12 @@ class SemanticInterpreter:
         self,
         text: str,
     ):
-        match = self._resolve(
-            text=text,
-            prototype_embeddings=(
-                self.intent_embeddings
-            ),
+        rankings = self.rank_intents(
+            text
+        )
+
+        match = self._select(
+            rankings=rankings,
             threshold=self.intent_threshold,
             margin=self.intent_margin,
         )
@@ -121,11 +122,12 @@ class SemanticInterpreter:
         self,
         text: str,
     ):
-        match = self._resolve(
-            text=text,
-            prototype_embeddings=(
-                self.outcome_embeddings
-            ),
+        rankings = self.rank_outcomes(
+            text
+        )
+
+        match = self._select(
+            rankings=rankings,
             threshold=self.outcome_threshold,
             margin=self.outcome_margin,
         )
@@ -139,6 +141,28 @@ class SemanticInterpreter:
             "method": "semantic",
             "score": match["score"],
         }
+
+    def rank_intents(
+        self,
+        text: str,
+    ):
+        return self._rank(
+            text=text,
+            prototype_embeddings=(
+                self.intent_embeddings
+            ),
+        )
+
+    def rank_outcomes(
+        self,
+        text: str,
+    ):
+        return self._rank(
+            text=text,
+            prototype_embeddings=(
+                self.outcome_embeddings
+            ),
+        )
 
     def _build_prototype_embeddings(
         self,
@@ -157,12 +181,10 @@ class SemanticInterpreter:
 
         return result
 
-    def _resolve(
+    def _rank(
         self,
         text: str,
         prototype_embeddings: dict,
-        threshold: float,
-        margin: float,
     ):
         query_vectors = list(
             self.model.embed(
@@ -171,7 +193,7 @@ class SemanticInterpreter:
         )
 
         if not query_vectors:
-            return None
+            return []
 
         query_vector = query_vectors[0]
 
@@ -194,27 +216,36 @@ class SemanticInterpreter:
             scores.append(
                 {
                     "label": label,
-                    "score": max(
-                        similarities
+                    "score": round(
+                        max(similarities),
+                        4,
                     ),
                 }
             )
-
-        if not scores:
-            return None
 
         scores.sort(
             key=lambda item: item["score"],
             reverse=True,
         )
 
-        best = scores[0]
+        return scores
+
+    def _select(
+        self,
+        rankings: list[dict],
+        threshold: float,
+        margin: float,
+    ):
+        if not rankings:
+            return None
+
+        best = rankings[0]
 
         if best["score"] < threshold:
             return None
 
-        if len(scores) > 1:
-            second = scores[1]
+        if len(rankings) > 1:
+            second = rankings[1]
 
             if (
                 best["score"]
@@ -223,13 +254,7 @@ class SemanticInterpreter:
             ):
                 return None
 
-        return {
-            "label": best["label"],
-            "score": round(
-                best["score"],
-                4,
-            ),
-        }
+        return best
 
     def _cosine_similarity(
         self,
