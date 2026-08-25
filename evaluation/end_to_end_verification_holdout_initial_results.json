@@ -1,0 +1,4096 @@
+{
+  "benchmark": "end_to_end_verification_holdout_v1",
+  "frozen": true,
+  "caseAccuracy": {
+    "passed": 25,
+    "total": 60,
+    "accuracy": 0.4166666666666667
+  },
+  "statusAccuracy": {
+    "passed": 31,
+    "total": 66,
+    "accuracy": 0.4696969696969697
+  },
+  "routeAccuracy": {
+    "passed": 43,
+    "total": 66,
+    "accuracy": 0.6515151515151515
+  },
+  "claimExtraction": {
+    "matched": 16,
+    "expected": 18,
+    "actual": 17,
+    "precision": 0.9411764705882353,
+    "recall": 0.8888888888888888,
+    "f1": 0.9142857142857143
+  },
+  "questionContextAccuracy": {
+    "passed": 12,
+    "total": 18,
+    "accuracy": 0.6666666666666666
+  },
+  "responseSummaryStatusAccuracy": {
+    "passed": 7,
+    "total": 12,
+    "accuracy": 0.5833333333333334
+  },
+  "responseGroundingScoreAccuracy": {
+    "passed": 7,
+    "total": 12,
+    "accuracy": 0.5833333333333334
+  },
+  "responseCoverageRatioAccuracy": {
+    "passed": 6,
+    "total": 12,
+    "accuracy": 0.5
+  },
+  "confidenceDiagnostics": {
+    "target": "verification_status_correctness",
+    "calibrated": false,
+    "meanConfidenceWhenCorrect": 0.8162580645161291,
+    "meanConfidenceWhenIncorrect": 0.48354545454545456,
+    "byLevel": {
+      "low": {
+        "count": 23,
+        "correct": 4,
+        "accuracy": 0.17391304347826086,
+        "meanScore": 0.16521739130434784
+      },
+      "medium": {
+        "count": 4,
+        "correct": 3,
+        "accuracy": 0.75,
+        "meanScore": 0.8099999999999999
+      },
+      "high": {
+        "count": 37,
+        "correct": 24,
+        "accuracy": 0.6486486486486487,
+        "meanScore": 0.924891891891892
+      }
+    }
+  },
+  "categoryAccuracy": {
+    "cause": {
+      "passed": 1,
+      "total": 4,
+      "accuracy": 0.25
+    },
+    "claim_extraction": {
+      "passed": 1,
+      "total": 1,
+      "accuracy": 1.0
+    },
+    "current_risk": {
+      "passed": 2,
+      "total": 3,
+      "accuracy": 0.6666666666666666
+    },
+    "history": {
+      "passed": 0,
+      "total": 7,
+      "accuracy": 0.0
+    },
+    "long_covid": {
+      "passed": 1,
+      "total": 3,
+      "accuracy": 0.3333333333333333
+    },
+    "multi_claim": {
+      "passed": 1,
+      "total": 1,
+      "accuracy": 1.0
+    },
+    "multi_clause": {
+      "passed": 0,
+      "total": 1,
+      "accuracy": 0.0
+    },
+    "multi_outcome": {
+      "passed": 1,
+      "total": 1,
+      "accuracy": 1.0
+    },
+    "origin": {
+      "passed": 1,
+      "total": 8,
+      "accuracy": 0.125
+    },
+    "origin_uncertainty": {
+      "passed": 0,
+      "total": 2,
+      "accuracy": 0.0
+    },
+    "question_context": {
+      "passed": 1,
+      "total": 3,
+      "accuracy": 0.3333333333333333
+    },
+    "scope": {
+      "passed": 2,
+      "total": 4,
+      "accuracy": 0.5
+    },
+    "time_sensitive": {
+      "passed": 0,
+      "total": 1,
+      "accuracy": 0.0
+    },
+    "transmission": {
+      "passed": 4,
+      "total": 6,
+      "accuracy": 0.6666666666666666
+    },
+    "treatment": {
+      "passed": 2,
+      "total": 6,
+      "accuracy": 0.3333333333333333
+    },
+    "vaccination": {
+      "passed": 4,
+      "total": 5,
+      "accuracy": 0.8
+    },
+    "variants": {
+      "passed": 4,
+      "total": 4,
+      "accuracy": 1.0
+    }
+  },
+  "results": [
+    {
+      "id": "holdout_cause_01",
+      "mode": "claim",
+      "category": "cause",
+      "labelBasis": "who",
+      "input": {
+        "text": "Which virus is responsible for COVID-19?"
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.828,
+          "level": "medium",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 0.2,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": true
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_cause_02",
+      "mode": "claim",
+      "category": "cause",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 results from infection with SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.836,
+          "level": "medium",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 0.833,
+            "relationCertainty": 0.25,
+            "entityLinkCertainty": 0.975,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.85,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": true
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_cause_03",
+      "mode": "claim",
+      "category": "cause",
+      "labelBasis": "who",
+      "input": {
+        "text": "The SARS-CoV-2 virus causes COVID-19 disease."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.924,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.975,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_cause_04",
+      "mode": "claim",
+      "category": "cause",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 is caused by influenza virus."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.2,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_transmission_01",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "People can catch COVID-19 more easily in shared indoor spaces."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.828,
+          "level": "medium",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 0.2,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": true
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_transmission_02",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 spreads through the air in infectious respiratory particles."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.927,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_transmission_03",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 cannot spread through the air."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "CONTRADICTED",
+        "confidence": {
+          "score": 0.927,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_transmission_04",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "Touching a contaminated surface and then your eyes can transmit COVID-19."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.927,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_transmission_05",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 spreads only through contaminated surfaces."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.927,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_transmission_06",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "Close contact with someone infected can increase the chance of COVID-19 transmission."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.948,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_vaccine_01",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID vaccination lowers the risk of severe disease."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.909,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.875,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_vaccine_02",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID vaccination helps protect people from hospitalization."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.909,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.875,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_vaccine_03",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID vaccines provide protection against death."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.927,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_vaccine_04",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID vaccination does not reduce the risk of hospitalization."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "CONTRADICTED",
+        "confidence": {
+          "score": 0.909,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.875,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_vaccine_05",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID vaccines completely prevent infection."
+      },
+      "expected": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.948,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_vaccine_06",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Flu vaccines protect against severe COVID-19."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.927,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_long_covid_01",
+      "mode": "claim",
+      "category": "long_covid",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 can result in post-COVID condition."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.897,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.75,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_long_covid_02",
+      "mode": "claim",
+      "category": "long_covid",
+      "labelBasis": "who",
+      "input": {
+        "text": "Long COVID can follow an acute COVID-19 infection."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.196,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 0.975,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_long_covid_03",
+      "mode": "claim",
+      "category": "long_covid",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 never causes long-term post-COVID effects."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.2,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_risk_01",
+      "mode": "claim",
+      "category": "current_risk",
+      "labelBasis": "who",
+      "input": {
+        "text": "WHO currently rates the global public health risk from COVID-19 as moderate."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.897,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.75,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_risk_02",
+      "mode": "claim",
+      "category": "current_risk",
+      "labelBasis": "who",
+      "input": {
+        "text": "WHO currently rates the global public health risk from COVID-19 as low."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.897,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.75,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_risk_03",
+      "mode": "claim",
+      "category": "current_risk",
+      "labelBasis": "who",
+      "input": {
+        "text": "The current COVID-19 global public-health risk assessment is moderate."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.897,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.75,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_variant_01",
+      "mode": "claim",
+      "category": "variants",
+      "labelBasis": "who",
+      "input": {
+        "text": "Which SARS-CoV-2 variants is WHO monitoring now?"
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.94,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.95,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_variant_02",
+      "mode": "claim",
+      "category": "variants",
+      "labelBasis": "who",
+      "input": {
+        "text": "BA.3.2 is a SARS-CoV-2 variant under monitoring by WHO."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.895,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.65,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_variant_03",
+      "mode": "claim",
+      "category": "variants",
+      "labelBasis": "who",
+      "input": {
+        "text": "NB.1.8.1 is a SARS-CoV-2 variant under monitoring."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.944,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.975,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_variant_04",
+      "mode": "claim",
+      "category": "variants",
+      "labelBasis": "who",
+      "input": {
+        "text": "XFG is not under monitoring as a SARS-CoV-2 variant."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "CONTRADICTED",
+        "confidence": {
+          "score": 0.944,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.975,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_origin_01",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "Available evidence most strongly supports zoonotic spillover for SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.92,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.95,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_origin_02",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "WHO has conclusively proven zoonotic spillover as the origin of SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.92,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.95,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_origin_03",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "A laboratory-related origin for SARS-CoV-2 has been definitively ruled out."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "confidence": {
+          "score": 0.92,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.95,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_origin_04",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "A laboratory-related origin of SARS-CoV-2 cannot currently be ruled out or proven."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "confidence": {
+          "score": 0.92,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.95,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_origin_05",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "Deliberate laboratory manipulation is better supported than natural processes for SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.193,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 0.95,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_origin_06",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "Cold-chain introduction of SARS-CoV-2 is strongly supported by new evidence."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.193,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 0.95,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_origin_07",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "The origin of SARS-CoV-2 remains inconclusive."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "confidence": {
+          "score": 0.94,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.95,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_origin_08",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "Scientists know exactly how SARS-CoV-2 originated."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "confidence": {
+          "score": 0.94,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.95,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_history_01",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "WHO characterized COVID-19 as a pandemic on March 11, 2020."
+      },
+      "expected": {
+        "route": "history",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.125,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 0.5,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_history_02",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "WHO characterized COVID-19 as a pandemic in February 2020."
+      },
+      "expected": {
+        "route": "history",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.748,
+          "level": "medium",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 1.0,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 0.167,
+            "entityLinkCertainty": 0.5,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_history_03",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "The Wuhan pneumonia report reached the WHO China Country Office on December 31, 2019."
+      },
+      "expected": {
+        "route": "history",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.098,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 0.317,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_history_04",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "The first WHO-linked Wuhan outbreak report was in January 2020."
+      },
+      "expected": {
+        "route": "history",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "confidence": {
+          "score": 0.128,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.2,
+            "entityLinkCertainty": 0.317,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_history_05",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "COVID-19 was first reported in Wuhan."
+      },
+      "expected": {
+        "route": "history",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "confidence": {
+          "score": 0.177,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.2,
+            "entityLinkCertainty": 0.65,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_treatment_01",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Remdesivir can be used to treat COVID-19."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.2,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_treatment_02",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Remdesivir has never been used to treat COVID-19."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.2,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_treatment_03",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Remdesivir is unrelated to treatment of COVID-19."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "confidence": {
+          "score": 0.32,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.8,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_treatment_04",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Remdesivir cures every case of COVID-19."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.2,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_treatment_05",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Remdesivir was only studied for COVID-19 and never used to treat it."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "CONTRADICTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "confidence": {
+          "score": 0.32,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.8,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_treatment_06",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Can remdesivir treat coronavirus disease 2019?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "SUPPORTED"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.924,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 0.975,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_scope_01",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Does Bluetooth cause COVID-19?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.2,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_scope_02",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Do influenza vaccines protect against severe disease?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      },
+      "actual": {
+        "route": "who",
+        "status": "SUPPORTED",
+        "confidence": {
+          "score": 0.927,
+          "level": "high",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.9,
+            "provenanceCompleteness": 1.0,
+            "relationCertainty": 1.0,
+            "entityLinkCertainty": 1.0,
+            "evidenceAgreement": 1.0,
+            "sourceDiversity": 0.65,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": false,
+        "status": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_scope_03",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "What causes migraines?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      },
+      "actual": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+        "confidence": {
+          "score": 0.05,
+          "level": "low",
+          "target": "verification_outcome",
+          "calibrated": false,
+          "components": {
+            "evidenceCoverage": 0.0,
+            "provenanceCompleteness": 0.0,
+            "relationCertainty": 0.0,
+            "entityLinkCertainty": 0.0,
+            "evidenceAgreement": 0.0,
+            "sourceDiversity": 0.0,
+            "recency": 1.0
+          },
+          "weights": {
+            "evidenceCoverage": 0.2,
+            "provenanceCompleteness": 0.15,
+            "relationCertainty": 0.15,
+            "entityLinkCertainty": 0.15,
+            "evidenceAgreement": 0.15,
+            "sourceDiversity": 0.15,
+            "recency": 0.05
+          },
+          "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+        }
+      },
+      "checks": {
+        "route": true,
+        "status": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_response_01",
+      "mode": "response",
+      "category": "multi_clause",
+      "labelBasis": "who",
+      "input": {
+        "question": "How does COVID spread and do COVID vaccines reduce severe disease?",
+        "response": "COVID spreads through the air, and vaccines reduce severe disease."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "COVID spreads through the air",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "vaccines reduce severe disease",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 2,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      },
+      "actual": {
+        "claimCount": 1,
+        "claimTexts": [
+          "COVID spreads through the air, and vaccines reduce severe disease."
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "claimCount": 1,
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "COVID spreads through the air",
+          "expected": {
+            "text": "COVID spreads through the air",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          "actual": null,
+          "checks": {
+            "status": false,
+            "route": false,
+            "usedQuestionContext": false
+          },
+          "passed": false
+        },
+        {
+          "text": "vaccines reduce severe disease",
+          "expected": {
+            "text": "vaccines reduce severe disease",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          },
+          "actual": null,
+          "checks": {
+            "status": false,
+            "route": false,
+            "usedQuestionContext": false
+          },
+          "passed": false
+        }
+      ],
+      "summaryChecks": {
+        "status": true,
+        "supportedCount": false,
+        "contradictedCount": true,
+        "insufficientEvidenceCount": true,
+        "notVerifiableCount": true,
+        "verifiableClaimCount": false,
+        "needsAttentionCount": true,
+        "supportedRatio": true,
+        "coverageRatio": true,
+        "groundingScore": true
+      },
+      "checks": {
+        "claimCount": false,
+        "claimTexts": false,
+        "claimVerification": false,
+        "summary": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_response_02",
+      "mode": "response",
+      "category": "question_context",
+      "labelBasis": "who",
+      "input": {
+        "question": "How does COVID-19 spread?",
+        "response": "It can spread through the air."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "It can spread through the air.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      },
+      "actual": {
+        "claimCount": 1,
+        "claimTexts": [
+          "It can spread through the air."
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "claimCount": 1,
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "It can spread through the air.",
+          "expected": {
+            "text": "It can spread through the air.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          },
+          "actual": {
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true,
+            "confidence": {
+              "score": 0.927,
+              "level": "high",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.9,
+                "provenanceCompleteness": 1.0,
+                "relationCertainty": 1.0,
+                "entityLinkCertainty": 1.0,
+                "evidenceAgreement": 1.0,
+                "sourceDiversity": 0.65,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": true,
+            "route": true,
+            "usedQuestionContext": true
+          },
+          "passed": true
+        }
+      ],
+      "summaryChecks": {
+        "status": true,
+        "supportedCount": true,
+        "contradictedCount": true,
+        "insufficientEvidenceCount": true,
+        "notVerifiableCount": true,
+        "verifiableClaimCount": true,
+        "needsAttentionCount": true,
+        "supportedRatio": true,
+        "coverageRatio": true,
+        "groundingScore": true
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": true,
+        "summary": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_response_03",
+      "mode": "response",
+      "category": "question_context",
+      "labelBasis": "who",
+      "input": {
+        "question": "Do COVID vaccines help prevent hospitalization?",
+        "response": "They reduce the risk of hospitalization."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "They reduce the risk of hospitalization.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      },
+      "actual": {
+        "claimCount": 1,
+        "claimTexts": [
+          "They reduce the risk of hospitalization."
+        ],
+        "summary": {
+          "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+          "claimCount": 1,
+          "supportedCount": 0,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 1,
+          "verifiableClaimCount": 0,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.0,
+          "coverageRatio": 0.0,
+          "groundingScore": 0.0,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "They reduce the risk of hospitalization.",
+          "expected": {
+            "text": "They reduce the risk of hospitalization.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          },
+          "actual": {
+            "route": "relationship",
+            "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.2,
+              "level": "low",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.0,
+                "provenanceCompleteness": 0.0,
+                "relationCertainty": 0.0,
+                "entityLinkCertainty": 1.0,
+                "evidenceAgreement": 0.0,
+                "sourceDiversity": 0.0,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": false,
+            "route": false,
+            "usedQuestionContext": false
+          },
+          "passed": false
+        }
+      ],
+      "summaryChecks": {
+        "status": false,
+        "supportedCount": false,
+        "contradictedCount": true,
+        "insufficientEvidenceCount": true,
+        "notVerifiableCount": false,
+        "verifiableClaimCount": false,
+        "needsAttentionCount": false,
+        "supportedRatio": false,
+        "coverageRatio": false,
+        "groundingScore": false
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": false,
+        "summary": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_response_04",
+      "mode": "response",
+      "category": "origin_uncertainty",
+      "labelBasis": "who_sago",
+      "input": {
+        "question": "What does WHO say about the origin of COVID-19?",
+        "response": "A laboratory-related event cannot currently be ruled out or proven. The overall origin remains inconclusive."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "A laboratory-related event cannot currently be ruled out or proven.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          },
+          {
+            "text": "The overall origin remains inconclusive.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 2,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      },
+      "actual": {
+        "claimCount": 2,
+        "claimTexts": [
+          "A laboratory-related event cannot currently be ruled out or proven.",
+          "The overall origin remains inconclusive."
+        ],
+        "summary": {
+          "status": "MIXED",
+          "claimCount": 2,
+          "supportedCount": 0,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 1,
+          "notVerifiableCount": 1,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 2,
+          "supportedRatio": 0.0,
+          "coverageRatio": 0.5,
+          "groundingScore": 0.0,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "A laboratory-related event cannot currently be ruled out or proven.",
+          "expected": {
+            "text": "A laboratory-related event cannot currently be ruled out or proven.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          },
+          "actual": {
+            "route": "relationship",
+            "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.05,
+              "level": "low",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.0,
+                "provenanceCompleteness": 0.0,
+                "relationCertainty": 0.0,
+                "entityLinkCertainty": 0.0,
+                "evidenceAgreement": 0.0,
+                "sourceDiversity": 0.0,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": false,
+            "route": false,
+            "usedQuestionContext": false
+          },
+          "passed": false
+        },
+        {
+          "text": "The overall origin remains inconclusive.",
+          "expected": {
+            "text": "The overall origin remains inconclusive.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          },
+          "actual": {
+            "route": "who",
+            "status": "INSUFFICIENT_EVIDENCE",
+            "usedQuestionContext": true,
+            "confidence": {
+              "score": 0.948,
+              "level": "high",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 1.0,
+                "provenanceCompleteness": 1.0,
+                "relationCertainty": 1.0,
+                "entityLinkCertainty": 1.0,
+                "evidenceAgreement": 1.0,
+                "sourceDiversity": 0.65,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": false,
+            "route": true,
+            "usedQuestionContext": true
+          },
+          "passed": false
+        }
+      ],
+      "summaryChecks": {
+        "status": false,
+        "supportedCount": false,
+        "contradictedCount": true,
+        "insufficientEvidenceCount": false,
+        "notVerifiableCount": false,
+        "verifiableClaimCount": false,
+        "needsAttentionCount": false,
+        "supportedRatio": false,
+        "coverageRatio": false,
+        "groundingScore": false
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": false,
+        "summary": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_response_05",
+      "mode": "response",
+      "category": "origin_uncertainty",
+      "labelBasis": "who_sago",
+      "input": {
+        "question": "What do we know about the origin of COVID-19?",
+        "response": "Natural spillover is the best-supported hypothesis. The origin has been conclusively proven."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "Natural spillover is the best-supported hypothesis.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          },
+          {
+            "text": "The origin has been conclusively proven.",
+            "route": "who",
+            "status": "CONTRADICTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "MIXED",
+          "supportedCount": 1,
+          "contradictedCount": 1,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.5,
+          "coverageRatio": 1.0,
+          "groundingScore": 0.5
+        }
+      },
+      "actual": {
+        "claimCount": 2,
+        "claimTexts": [
+          "Natural spillover is the best-supported hypothesis.",
+          "The origin has been conclusively proven."
+        ],
+        "summary": {
+          "status": "MIXED",
+          "claimCount": 2,
+          "supportedCount": 0,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 1,
+          "notVerifiableCount": 1,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 2,
+          "supportedRatio": 0.0,
+          "coverageRatio": 0.5,
+          "groundingScore": 0.0,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "Natural spillover is the best-supported hypothesis.",
+          "expected": {
+            "text": "Natural spillover is the best-supported hypothesis.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          },
+          "actual": {
+            "route": "relationship",
+            "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.05,
+              "level": "low",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.0,
+                "provenanceCompleteness": 0.0,
+                "relationCertainty": 0.0,
+                "entityLinkCertainty": 0.0,
+                "evidenceAgreement": 0.0,
+                "sourceDiversity": 0.0,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": false,
+            "route": false,
+            "usedQuestionContext": false
+          },
+          "passed": false
+        },
+        {
+          "text": "The origin has been conclusively proven.",
+          "expected": {
+            "text": "The origin has been conclusively proven.",
+            "route": "who",
+            "status": "CONTRADICTED",
+            "usedQuestionContext": true
+          },
+          "actual": {
+            "route": "who",
+            "status": "INSUFFICIENT_EVIDENCE",
+            "usedQuestionContext": true,
+            "confidence": {
+              "score": 0.948,
+              "level": "high",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 1.0,
+                "provenanceCompleteness": 1.0,
+                "relationCertainty": 1.0,
+                "entityLinkCertainty": 1.0,
+                "evidenceAgreement": 1.0,
+                "sourceDiversity": 0.65,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": false,
+            "route": true,
+            "usedQuestionContext": true
+          },
+          "passed": false
+        }
+      ],
+      "summaryChecks": {
+        "status": true,
+        "supportedCount": false,
+        "contradictedCount": false,
+        "insufficientEvidenceCount": false,
+        "notVerifiableCount": false,
+        "verifiableClaimCount": false,
+        "needsAttentionCount": false,
+        "supportedRatio": false,
+        "coverageRatio": false,
+        "groundingScore": false
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": false,
+        "summary": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_response_06",
+      "mode": "response",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "question": "When did COVID-19 become a pandemic?",
+        "response": "WHO characterized COVID-19 as a pandemic on March 11, 2020."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "WHO characterized COVID-19 as a pandemic on March 11, 2020.",
+            "route": "history",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      },
+      "actual": {
+        "claimCount": 1,
+        "claimTexts": [
+          "WHO characterized COVID-19 as a pandemic on March 11, 2020."
+        ],
+        "summary": {
+          "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+          "claimCount": 1,
+          "supportedCount": 0,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 1,
+          "verifiableClaimCount": 0,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.0,
+          "coverageRatio": 0.0,
+          "groundingScore": 0.0,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "WHO characterized COVID-19 as a pandemic on March 11, 2020.",
+          "expected": {
+            "text": "WHO characterized COVID-19 as a pandemic on March 11, 2020.",
+            "route": "history",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          "actual": {
+            "route": "relationship",
+            "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.125,
+              "level": "low",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.0,
+                "provenanceCompleteness": 0.0,
+                "relationCertainty": 0.0,
+                "entityLinkCertainty": 0.5,
+                "evidenceAgreement": 0.0,
+                "sourceDiversity": 0.0,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": false,
+            "route": false,
+            "usedQuestionContext": true
+          },
+          "passed": false
+        }
+      ],
+      "summaryChecks": {
+        "status": false,
+        "supportedCount": false,
+        "contradictedCount": true,
+        "insufficientEvidenceCount": true,
+        "notVerifiableCount": false,
+        "verifiableClaimCount": false,
+        "needsAttentionCount": false,
+        "supportedRatio": false,
+        "coverageRatio": false,
+        "groundingScore": false
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": false,
+        "summary": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_response_07",
+      "mode": "response",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "question": "When did COVID-19 become a pandemic?",
+        "response": "WHO characterized COVID-19 as a pandemic on February 11, 2020."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "WHO characterized COVID-19 as a pandemic on February 11, 2020.",
+            "route": "history",
+            "status": "CONTRADICTED",
+            "usedQuestionContext": false
+          }
+        ],
+        "summary": {
+          "status": "CONTRADICTED",
+          "supportedCount": 0,
+          "contradictedCount": 1,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 0.0
+        }
+      },
+      "actual": {
+        "claimCount": 1,
+        "claimTexts": [
+          "WHO characterized COVID-19 as a pandemic on February 11, 2020."
+        ],
+        "summary": {
+          "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+          "claimCount": 1,
+          "supportedCount": 0,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 1,
+          "verifiableClaimCount": 0,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.0,
+          "coverageRatio": 0.0,
+          "groundingScore": 0.0,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "WHO characterized COVID-19 as a pandemic on February 11, 2020.",
+          "expected": {
+            "text": "WHO characterized COVID-19 as a pandemic on February 11, 2020.",
+            "route": "history",
+            "status": "CONTRADICTED",
+            "usedQuestionContext": false
+          },
+          "actual": {
+            "route": "relationship",
+            "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.125,
+              "level": "low",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.0,
+                "provenanceCompleteness": 0.0,
+                "relationCertainty": 0.0,
+                "entityLinkCertainty": 0.5,
+                "evidenceAgreement": 0.0,
+                "sourceDiversity": 0.0,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": false,
+            "route": false,
+            "usedQuestionContext": true
+          },
+          "passed": false
+        }
+      ],
+      "summaryChecks": {
+        "status": false,
+        "supportedCount": true,
+        "contradictedCount": false,
+        "insufficientEvidenceCount": true,
+        "notVerifiableCount": false,
+        "verifiableClaimCount": false,
+        "needsAttentionCount": true,
+        "supportedRatio": true,
+        "coverageRatio": false,
+        "groundingScore": true
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": false,
+        "summary": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_response_08",
+      "mode": "response",
+      "category": "multi_outcome",
+      "labelBasis": "who",
+      "input": {
+        "question": "What do COVID vaccines protect against?",
+        "response": "COVID vaccines reduce severe disease, hospitalization, and death."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "COVID vaccines reduce severe disease, hospitalization, and death.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      },
+      "actual": {
+        "claimCount": 1,
+        "claimTexts": [
+          "COVID vaccines reduce severe disease, hospitalization, and death."
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "claimCount": 1,
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "COVID vaccines reduce severe disease, hospitalization, and death.",
+          "expected": {
+            "text": "COVID vaccines reduce severe disease, hospitalization, and death.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          "actual": {
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.948,
+              "level": "high",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 1.0,
+                "provenanceCompleteness": 1.0,
+                "relationCertainty": 1.0,
+                "entityLinkCertainty": 1.0,
+                "evidenceAgreement": 1.0,
+                "sourceDiversity": 0.65,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": true,
+            "route": true,
+            "usedQuestionContext": true
+          },
+          "passed": true
+        }
+      ],
+      "summaryChecks": {
+        "status": true,
+        "supportedCount": true,
+        "contradictedCount": true,
+        "insufficientEvidenceCount": true,
+        "notVerifiableCount": true,
+        "verifiableClaimCount": true,
+        "needsAttentionCount": true,
+        "supportedRatio": true,
+        "coverageRatio": true,
+        "groundingScore": true
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": true,
+        "summary": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_response_09",
+      "mode": "response",
+      "category": "multi_claim",
+      "labelBasis": "mixed",
+      "input": {
+        "question": "What causes COVID-19 and can remdesivir treat it?",
+        "response": "SARS-CoV-2 causes COVID-19. Remdesivir treats COVID-19. Bluetooth causes COVID-19."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "SARS-CoV-2 causes COVID-19.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "Remdesivir treats COVID-19.",
+            "route": "relationship",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "Bluetooth causes COVID-19.",
+            "route": "relationship",
+            "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+            "usedQuestionContext": false
+          }
+        ],
+        "summary": {
+          "status": "MIXED",
+          "supportedCount": 2,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 1,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.667,
+          "coverageRatio": 0.667,
+          "groundingScore": 0.667
+        }
+      },
+      "actual": {
+        "claimCount": 3,
+        "claimTexts": [
+          "SARS-CoV-2 causes COVID-19.",
+          "Remdesivir treats COVID-19.",
+          "Bluetooth causes COVID-19."
+        ],
+        "summary": {
+          "status": "MIXED",
+          "claimCount": 3,
+          "supportedCount": 2,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 1,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.667,
+          "coverageRatio": 0.667,
+          "groundingScore": 0.667,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "SARS-CoV-2 causes COVID-19.",
+          "expected": {
+            "text": "SARS-CoV-2 causes COVID-19.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          "actual": {
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.924,
+              "level": "high",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.9,
+                "provenanceCompleteness": 1.0,
+                "relationCertainty": 1.0,
+                "entityLinkCertainty": 0.975,
+                "evidenceAgreement": 1.0,
+                "sourceDiversity": 0.65,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": true,
+            "route": true,
+            "usedQuestionContext": true
+          },
+          "passed": true
+        },
+        {
+          "text": "Remdesivir treats COVID-19.",
+          "expected": {
+            "text": "Remdesivir treats COVID-19.",
+            "route": "relationship",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          "actual": {
+            "route": "relationship",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.927,
+              "level": "high",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.9,
+                "provenanceCompleteness": 1.0,
+                "relationCertainty": 1.0,
+                "entityLinkCertainty": 1.0,
+                "evidenceAgreement": 1.0,
+                "sourceDiversity": 0.65,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": true,
+            "route": true,
+            "usedQuestionContext": true
+          },
+          "passed": true
+        },
+        {
+          "text": "Bluetooth causes COVID-19.",
+          "expected": {
+            "text": "Bluetooth causes COVID-19.",
+            "route": "relationship",
+            "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+            "usedQuestionContext": false
+          },
+          "actual": {
+            "route": "relationship",
+            "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.2,
+              "level": "low",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.0,
+                "provenanceCompleteness": 0.0,
+                "relationCertainty": 0.0,
+                "entityLinkCertainty": 1.0,
+                "evidenceAgreement": 0.0,
+                "sourceDiversity": 0.0,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": true,
+            "route": true,
+            "usedQuestionContext": true
+          },
+          "passed": true
+        }
+      ],
+      "summaryChecks": {
+        "status": true,
+        "supportedCount": true,
+        "contradictedCount": true,
+        "insufficientEvidenceCount": true,
+        "notVerifiableCount": true,
+        "verifiableClaimCount": true,
+        "needsAttentionCount": true,
+        "supportedRatio": true,
+        "coverageRatio": true,
+        "groundingScore": true
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": true,
+        "summary": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_response_10",
+      "mode": "response",
+      "category": "claim_extraction",
+      "labelBasis": "annotation",
+      "input": {
+        "question": "What causes COVID-19?",
+        "response": "Maybe. I hope that helps. What else would you like to know?"
+      },
+      "expected": {
+        "claims": [],
+        "summary": {
+          "status": "NO_FACTUAL_CLAIMS",
+          "supportedCount": 0,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 0,
+          "needsAttentionCount": 0,
+          "supportedRatio": null,
+          "coverageRatio": null,
+          "groundingScore": null
+        }
+      },
+      "actual": {
+        "claimCount": 0,
+        "claimTexts": [],
+        "summary": {
+          "status": "NO_FACTUAL_CLAIMS",
+          "claimCount": 0,
+          "supportedCount": 0,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 0,
+          "needsAttentionCount": 0,
+          "supportedRatio": null,
+          "coverageRatio": null,
+          "groundingScore": null,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [],
+      "summaryChecks": {
+        "status": true,
+        "supportedCount": true,
+        "contradictedCount": true,
+        "insufficientEvidenceCount": true,
+        "notVerifiableCount": true,
+        "verifiableClaimCount": true,
+        "needsAttentionCount": true,
+        "supportedRatio": true,
+        "coverageRatio": true,
+        "groundingScore": true
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": true,
+        "summary": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_response_11",
+      "mode": "response",
+      "category": "question_context",
+      "labelBasis": "who",
+      "input": {
+        "question": "How effective are COVID vaccines?",
+        "response": "COVID vaccines reduce severe disease. They completely prevent infection."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "COVID vaccines reduce severe disease.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "They completely prevent infection.",
+            "route": "who",
+            "status": "INSUFFICIENT_EVIDENCE",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "MIXED",
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 1,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.5,
+          "coverageRatio": 1.0,
+          "groundingScore": 0.5
+        }
+      },
+      "actual": {
+        "claimCount": 2,
+        "claimTexts": [
+          "COVID vaccines reduce severe disease.",
+          "They completely prevent infection."
+        ],
+        "summary": {
+          "status": "MIXED",
+          "claimCount": 2,
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 1,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.5,
+          "coverageRatio": 0.5,
+          "groundingScore": 0.5,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "COVID vaccines reduce severe disease.",
+          "expected": {
+            "text": "COVID vaccines reduce severe disease.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          "actual": {
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.927,
+              "level": "high",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.9,
+                "provenanceCompleteness": 1.0,
+                "relationCertainty": 1.0,
+                "entityLinkCertainty": 1.0,
+                "evidenceAgreement": 1.0,
+                "sourceDiversity": 0.65,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": true,
+            "route": true,
+            "usedQuestionContext": true
+          },
+          "passed": true
+        },
+        {
+          "text": "They completely prevent infection.",
+          "expected": {
+            "text": "They completely prevent infection.",
+            "route": "who",
+            "status": "INSUFFICIENT_EVIDENCE",
+            "usedQuestionContext": true
+          },
+          "actual": {
+            "route": "relationship",
+            "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.05,
+              "level": "low",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.0,
+                "provenanceCompleteness": 0.0,
+                "relationCertainty": 0.0,
+                "entityLinkCertainty": 0.0,
+                "evidenceAgreement": 0.0,
+                "sourceDiversity": 0.0,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": false,
+            "route": false,
+            "usedQuestionContext": false
+          },
+          "passed": false
+        }
+      ],
+      "summaryChecks": {
+        "status": true,
+        "supportedCount": true,
+        "contradictedCount": true,
+        "insufficientEvidenceCount": false,
+        "notVerifiableCount": false,
+        "verifiableClaimCount": false,
+        "needsAttentionCount": true,
+        "supportedRatio": true,
+        "coverageRatio": false,
+        "groundingScore": true
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": false,
+        "summary": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_response_12",
+      "mode": "response",
+      "category": "time_sensitive",
+      "labelBasis": "who",
+      "input": {
+        "question": "What is the current COVID-19 situation?",
+        "response": "WHO currently rates the global COVID-19 public health risk as low. BA.3.2 is a SARS-CoV-2 variant under monitoring."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "WHO currently rates the global COVID-19 public health risk as low.",
+            "route": "who",
+            "status": "CONTRADICTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "BA.3.2 is a SARS-CoV-2 variant under monitoring.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          }
+        ],
+        "summary": {
+          "status": "MIXED",
+          "supportedCount": 1,
+          "contradictedCount": 1,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.5,
+          "coverageRatio": 1.0,
+          "groundingScore": 0.5
+        }
+      },
+      "actual": {
+        "claimCount": 2,
+        "claimTexts": [
+          "WHO currently rates the global COVID-19 public health risk as low.",
+          "BA.3.2 is a SARS-CoV-2 variant under monitoring."
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "claimCount": 2,
+          "supportedCount": 2,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0,
+          "method": "claim_status_aggregation",
+          "explanation": "The grounding score is the fraction of extracted factual claims positively supported by the current knowledge graph. It is not a probability that the response is factually correct."
+        }
+      },
+      "claimChecks": [
+        {
+          "text": "WHO currently rates the global COVID-19 public health risk as low.",
+          "expected": {
+            "text": "WHO currently rates the global COVID-19 public health risk as low.",
+            "route": "who",
+            "status": "CONTRADICTED",
+            "usedQuestionContext": false
+          },
+          "actual": {
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.897,
+              "level": "high",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 0.75,
+                "provenanceCompleteness": 1.0,
+                "relationCertainty": 1.0,
+                "entityLinkCertainty": 1.0,
+                "evidenceAgreement": 1.0,
+                "sourceDiversity": 0.65,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": false,
+            "route": true,
+            "usedQuestionContext": true
+          },
+          "passed": false
+        },
+        {
+          "text": "BA.3.2 is a SARS-CoV-2 variant under monitoring.",
+          "expected": {
+            "text": "BA.3.2 is a SARS-CoV-2 variant under monitoring.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          "actual": {
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false,
+            "confidence": {
+              "score": 0.944,
+              "level": "high",
+              "target": "verification_outcome",
+              "calibrated": false,
+              "components": {
+                "evidenceCoverage": 1.0,
+                "provenanceCompleteness": 1.0,
+                "relationCertainty": 1.0,
+                "entityLinkCertainty": 0.975,
+                "evidenceAgreement": 1.0,
+                "sourceDiversity": 0.65,
+                "recency": 1.0
+              },
+              "weights": {
+                "evidenceCoverage": 0.2,
+                "provenanceCompleteness": 0.15,
+                "relationCertainty": 0.15,
+                "entityLinkCertainty": 0.15,
+                "evidenceAgreement": 0.15,
+                "sourceDiversity": 0.15,
+                "recency": 0.05
+              },
+              "explanation": "Heuristic evidence-grounding confidence for the verification outcome. It is not a probability that the claim is factually true and has not yet been empirically calibrated."
+            }
+          },
+          "checks": {
+            "status": true,
+            "route": true,
+            "usedQuestionContext": true
+          },
+          "passed": true
+        }
+      ],
+      "summaryChecks": {
+        "status": false,
+        "supportedCount": false,
+        "contradictedCount": false,
+        "insufficientEvidenceCount": true,
+        "notVerifiableCount": true,
+        "verifiableClaimCount": true,
+        "needsAttentionCount": false,
+        "supportedRatio": false,
+        "coverageRatio": true,
+        "groundingScore": false
+      },
+      "checks": {
+        "claimCount": true,
+        "claimTexts": true,
+        "claimVerification": false,
+        "summary": false
+      },
+      "passed": false
+    }
+  ]
+}
