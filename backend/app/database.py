@@ -38,7 +38,9 @@ class Neo4jClient:
         """
 
         with self.driver.session() as session:
-            result = session.run(query)
+            result = session.run(
+                query
+            )
 
             return [
                 record.data()
@@ -50,19 +52,29 @@ class Neo4jClient:
         entity: str,
     ):
         query = """
-        MATCH (n)
+        MATCH (n:KGEntity)
+
         WHERE toLower(n.name) = toLower($entity)
-        OPTIONAL MATCH (n)-[r]-(connected)
+
+        OPTIONAL MATCH (n)-[r:KG_RELATION]-(connected:KGEntity)
+
         RETURN
-            labels(n) AS entityLabels,
+            n.id AS entityId,
             n.name AS entity,
             coalesce(
+                n.categories,
+                []
+            ) AS entityCategories,
+            coalesce(
                 r.predicate,
-                r.relation,
-                type(r)
+                r.relation
             ) AS relationship,
+            connected.id AS connectedEntityId,
             connected.name AS connectedEntity,
-            labels(connected) AS connectedLabels
+            coalesce(
+                connected.categories,
+                []
+            ) AS connectedCategories
         """
 
         with self.driver.session() as session:
@@ -82,7 +94,8 @@ class Neo4jClient:
         limit: int = 5,
     ):
         query = """
-        MATCH (n)
+        MATCH (n:KGEntity)
+
         WHERE n.name IS NOT NULL
 
         WITH n,
@@ -102,10 +115,16 @@ class Neo4jClient:
         WHERE score > 0
 
         RETURN
-            elementId(n) AS graphId,
-            labels(n) AS labels,
+            n.id AS id,
+            coalesce(
+                n.categories,
+                []
+            ) AS categories,
             n.name AS name,
-            coalesce(n.aliases, []) AS aliases,
+            coalesce(
+                n.aliases,
+                []
+            ) AS aliases,
             score
 
         ORDER BY score DESC
@@ -126,13 +145,9 @@ class Neo4jClient:
 
     def get_relationship_types(self):
         query = """
-        MATCH ()-[r]->()
+        MATCH ()-[r:KG_RELATION]->()
 
-        WITH DISTINCT coalesce(
-            r.predicate,
-            r.relation,
-            type(r)
-        ) AS relationship
+        WITH DISTINCT r.predicate AS relationship
 
         WHERE relationship IS NOT NULL
 
@@ -152,32 +167,57 @@ class Neo4jClient:
 
     def find_related_facts(
         self,
-        graph_id: str,
+        entity_id: str,
         relationship: str,
         limit: int = 20,
     ):
         query = """
-        MATCH (source)-[r]-(target)
+        MATCH (entity:KGEntity {
+            id: $entityId
+        })
 
-        WHERE elementId(source) = $graphId
-          AND (
-              type(r) = $relationship
-              OR r.predicate = $relationship
-              OR r.relation = $relationship
-          )
+        CALL {
+            WITH entity
+
+            MATCH (entity)-[r:KG_RELATION]->(target:KGEntity)
+
+            WHERE r.predicate = $relationship
+               OR r.relation = $relationship
+
+            RETURN
+                entity AS subject,
+                r,
+                target AS object
+
+            UNION ALL
+
+            WITH entity
+
+            MATCH (subject:KGEntity)-[r:KG_RELATION]->(entity)
+
+            WHERE r.predicate = $relationship
+               OR r.relation = $relationship
+
+            RETURN
+                subject,
+                r,
+                entity AS object
+        }
 
         RETURN
-            elementId(source) AS sourceId,
-            labels(source) AS sourceLabels,
-            source.name AS source,
+            subject.id AS subjectId,
+            subject.name AS subject,
             coalesce(
-                r.predicate,
-                r.relation,
-                type(r)
-            ) AS relationship,
-            elementId(target) AS targetId,
-            labels(target) AS targetLabels,
-            target.name AS target,
+                subject.categories,
+                []
+            ) AS subjectCategories,
+            r.predicate AS predicate,
+            object.id AS objectId,
+            object.name AS object,
+            coalesce(
+                object.categories,
+                []
+            ) AS objectCategories,
             properties(r) AS relationshipProperties
 
         LIMIT $limit
@@ -186,7 +226,7 @@ class Neo4jClient:
         with self.driver.session() as session:
             result = session.run(
                 query,
-                graphId=graph_id,
+                entityId=entity_id,
                 relationship=relationship,
                 limit=limit,
             )
@@ -204,28 +244,56 @@ class Neo4jClient:
         limit: int = 20,
     ):
         query = """
-        MATCH (source)-[r]-(target)
+        MATCH (first:KGEntity {
+            id: $sourceId
+        })
 
-        WHERE elementId(source) = $sourceId
-          AND elementId(target) = $targetId
-          AND (
-              type(r) = $relationship
-              OR r.predicate = $relationship
-              OR r.relation = $relationship
-          )
+        MATCH (second:KGEntity {
+            id: $targetId
+        })
+
+        CALL {
+            WITH first, second
+
+            MATCH (first)-[r:KG_RELATION]->(second)
+
+            WHERE r.predicate = $relationship
+               OR r.relation = $relationship
+
+            RETURN
+                first AS subject,
+                r,
+                second AS object
+
+            UNION ALL
+
+            WITH first, second
+
+            MATCH (second)-[r:KG_RELATION]->(first)
+
+            WHERE r.predicate = $relationship
+               OR r.relation = $relationship
+
+            RETURN
+                second AS subject,
+                r,
+                first AS object
+        }
 
         RETURN
-            elementId(source) AS sourceId,
-            labels(source) AS sourceLabels,
-            source.name AS source,
+            subject.id AS subjectId,
+            subject.name AS subject,
             coalesce(
-                r.predicate,
-                r.relation,
-                type(r)
-            ) AS relationship,
-            elementId(target) AS targetId,
-            labels(target) AS targetLabels,
-            target.name AS target,
+                subject.categories,
+                []
+            ) AS subjectCategories,
+            r.predicate AS predicate,
+            object.id AS objectId,
+            object.name AS object,
+            coalesce(
+                object.categories,
+                []
+            ) AS objectCategories,
             properties(r) AS relationshipProperties
 
         LIMIT $limit

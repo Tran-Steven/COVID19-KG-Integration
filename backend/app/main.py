@@ -3,11 +3,13 @@ from contextlib import asynccontextmanager
 import spacy
 from fastapi import FastAPI
 
+from app.augmentation.context_builder import GroundingContextBuilder
 from app.database import Neo4jClient
 from app.models import (
     EntityLinkingResponse,
     EntityRequest,
     GraphRetrievalResponse,
+    GroundingContextResponse,
     NLPAnalysisResponse,
     NLPRequest,
     NLPResponse,
@@ -53,6 +55,8 @@ graph_retriever = GraphRetriever(
     entity_linker,
     relationship_resolver,
 )
+
+grounding_context_builder = GroundingContextBuilder()
 
 
 @asynccontextmanager
@@ -196,6 +200,35 @@ def analyze_text(
     }
 
 
+def retrieve(
+    text: str,
+):
+    extracted_entities = (
+        entity_extractor.extract(
+            text
+        )
+    )
+
+    relation = relation_extractor.extract(
+        text
+    )
+
+    retrieval = graph_retriever.retrieve(
+        entities=extracted_entities,
+        relation=relation["text"],
+    )
+
+    return {
+        "text": text,
+        "entities": retrieval["entities"],
+        "relation": relation,
+        "relationships": retrieval[
+            "relationships"
+        ],
+        "facts": retrieval["facts"],
+    }
+
+
 @app.post(
     "/kg/retrieve",
     response_model=GraphRetrievalResponse,
@@ -203,29 +236,33 @@ def analyze_text(
 def retrieve_graph_context(
     request: NLPRequest,
 ):
-    extracted_entities = (
-        entity_extractor.extract(
-            request.text
-        )
-    )
-
-    relation = relation_extractor.extract(
+    return retrieve(
         request.text
     )
 
-    retrieval = (
-        graph_retriever.retrieve(
-            entities=extracted_entities,
-            relation=relation["text"],
-        )
+
+@app.post(
+    "/kg/context",
+    response_model=GroundingContextResponse,
+)
+def build_grounding_context(
+    request: NLPRequest,
+):
+    retrieval = retrieve(
+        request.text
+    )
+
+    context = grounding_context_builder.build(
+        text=retrieval["text"],
+        entities=retrieval["entities"],
+        relation=retrieval["relation"],
+        relationships=retrieval[
+            "relationships"
+        ],
+        facts=retrieval["facts"],
     )
 
     return {
-        "text": request.text,
-        "entities": retrieval["entities"],
-        "relation": relation,
-        "relationships": retrieval[
-            "relationships"
-        ],
-        "facts": retrieval["facts"],
+        **retrieval,
+        "context": context,
     }

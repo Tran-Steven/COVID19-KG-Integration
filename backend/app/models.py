@@ -24,8 +24,8 @@ class NLPResponse(BaseModel):
 
 
 class GraphEntityCandidate(BaseModel):
-    graphId: str
-    labels: list[str]
+    id: str
+    categories: list[str]
     name: str
     aliases: list[str]
     score: float
@@ -67,15 +67,27 @@ class RelationshipCandidate(BaseModel):
     score: float
 
 
+class KnowledgeGraphEntity(BaseModel):
+    id: str
+    name: str
+    categories: list[str]
+
+
+class Evidence(BaseModel):
+    edgeId: str | None
+    primaryKnowledgeSource: str | None
+    providedBy: list[str]
+    sourceDataset: str | None
+    references: list[str]
+    maxPhaseForIndication: float | None
+    attributes: dict[str, Any]
+
+
 class GraphFact(BaseModel):
-    sourceId: str
-    sourceLabels: list[str]
-    source: str
-    relationship: str
-    targetId: str
-    targetLabels: list[str]
-    target: str
-    relationshipProperties: dict[str, Any]
+    subject: KnowledgeGraphEntity
+    predicate: str
+    object: KnowledgeGraphEntity
+    evidence: Evidence
 
 
 class GraphRetrievalResponse(BaseModel):
@@ -84,3 +96,12 @@ class GraphRetrievalResponse(BaseModel):
     relation: ExtractedRelation
     relationships: list[RelationshipCandidate]
     facts: list[GraphFact]
+
+
+class GroundingContextResponse(BaseModel):
+    text: str
+    entities: list[LinkedEntity]
+    relation: ExtractedRelation
+    relationships: list[RelationshipCandidate]
+    facts: list[GraphFact]
+    context: str
