@@ -291,12 +291,34 @@ class VerifiedResponseClaim(
     )
 
 
+class ResponseVerificationSummary(
+    BaseModel
+):
+    status: str
+    claimCount: int
+    supportedCount: int
+    contradictedCount: int
+    insufficientEvidenceCount: int
+    notVerifiableCount: int
+    verifiableClaimCount: int
+    needsAttentionCount: int
+    supportedRatio: float | None
+    coverageRatio: float | None
+    groundingScore: float | None
+    method: str
+    explanation: str
+
+
 class ResponseVerificationResponse(
     BaseModel
 ):
     question: str
     response: str
     claimCount: int
+
+    summary: (
+        ResponseVerificationSummary
+    )
 
     claims: list[
         VerifiedResponseClaim

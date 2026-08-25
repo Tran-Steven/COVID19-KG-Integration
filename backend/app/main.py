@@ -33,6 +33,9 @@ from app.interpretation.outcome_resolver import (
 from app.interpretation.relation_intent_resolver import (
     RelationIntentResolver,
 )
+from app.interpretation.response_verification_aggregator import (
+    ResponseVerificationAggregator,
+)
 from app.interpretation.semantic_interpreter import (
     SemanticInterpreter,
 )
@@ -121,6 +124,10 @@ response_claim_extractor = (
     ResponseClaimExtractor(
         nlp
     )
+)
+
+response_verification_aggregator = (
+    ResponseVerificationAggregator()
 )
 
 relationship_resolver = (
@@ -1160,12 +1167,20 @@ def verify_response(
         in extracted_claims
     ]
 
+    summary = (
+        response_verification_aggregator
+        .summarize(
+            verified_claims
+        )
+    )
+
     return {
         "question": request.question,
         "response": request.response,
         "claimCount": len(
             verified_claims
         ),
+        "summary": summary,
         "claims": verified_claims,
     }
 
