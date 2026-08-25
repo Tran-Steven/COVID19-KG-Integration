@@ -3,6 +3,10 @@ import re
 from spacy.language import Language
 from spacy.tokens import Token
 
+from app.interpretation.verification_semantic_matcher import (
+    get_verification_semantic_matcher,
+)
+
 
 class RelationExtractor:
     TREATMENT_PATTERNS = (
@@ -33,14 +37,28 @@ class RelationExtractor:
             )
         )
 
+        semantic_result = (
+            self._semantic_result(
+                text,
+                normalized_text,
+            )
+        )
+
+        if self._semantic_out_of_scope(
+            semantic_result
+        ):
+            return self._empty_result()
+
         if self._has_treatment_relation(
             normalized_text
         ):
-            return {
-                "text": "treat",
-                "normalized": "treat",
-                "root": "treat",
-            }
+            return self._treatment_result()
+
+        if self._semantic_treatment_relation(
+            semantic_result,
+            normalized_text,
+        ):
+            return self._treatment_result()
 
         doc = self.nlp(
             text
@@ -57,11 +75,7 @@ class RelationExtractor:
         )
 
         if root is None:
-            return {
-                "text": None,
-                "normalized": None,
-                "root": None,
-            }
+            return self._empty_result()
 
         predicate = (
             self._resolve_predicate(
@@ -84,10 +98,7 @@ class RelationExtractor:
                     "prep",
                 }
             ],
-            key=(
-                lambda token:
-                token.i
-            ),
+            key=lambda token: token.i,
         )
 
         relation_parts.extend(
@@ -115,6 +126,114 @@ class RelationExtractor:
                 predicate.lemma_.lower()
             ),
         }
+
+    def _semantic_result(
+        self,
+        raw_text: str,
+        normalized_text: str,
+    ):
+        if not self._covid_context(
+            normalized_text
+        ):
+            return None
+
+        return (
+            get_verification_semantic_matcher()
+            .resolve(
+                raw_text
+            )
+        )
+
+    def _semantic_out_of_scope(
+        self,
+        result,
+    ):
+        if not result:
+            return False
+
+        return (
+            result["label"]
+            == "out_of_scope"
+            and result[
+                "embeddingScore"
+            ]
+            >= 0.82
+        )
+
+    def _semantic_treatment_relation(
+        self,
+        result,
+        normalized_text: str,
+    ):
+        if not result:
+            return False
+
+        if self._absolute_cure_claim(
+            normalized_text
+        ):
+            return False
+
+        return (
+            result["label"]
+            == "treatment"
+            and result[
+                "embeddingScore"
+            ]
+            >= 0.70
+        )
+
+    def _treatment_result(
+        self,
+    ):
+        return {
+            "text": "treat",
+            "normalized": "treat",
+            "root": "treat",
+        }
+
+    def _empty_result(
+        self,
+    ):
+        return {
+            "text": None,
+            "normalized": None,
+            "root": None,
+        }
+
+    def _absolute_cure_claim(
+        self,
+        text: str,
+    ):
+        return any(
+            value in text
+            for value in (
+                "cure covid",
+                "cures covid",
+                "cured covid",
+                "cure every",
+                "cures every",
+                "eradicate covid",
+                "eradicates covid",
+                "eradicated covid",
+                "every patient",
+                "every case",
+                "all patients",
+                "100 percent",
+            )
+        )
+
+    def _covid_context(
+        self,
+        text: str,
+    ):
+        return any(
+            value in text
+            for value in (
+                "covid",
+                "coronavirus disease 2019",
+                "sars cov 2",
+            )
+        )
 
     def _has_treatment_relation(
         self,
@@ -183,10 +302,7 @@ class RelationExtractor:
                     }
                 )
             ],
-            key=(
-                lambda token:
-                token.i
-            ),
+            key=lambda token: token.i,
         )
 
         if candidates:

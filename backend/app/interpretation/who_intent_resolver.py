@@ -1,5 +1,9 @@
 import re
 
+from app.interpretation.verification_semantic_matcher import (
+    get_verification_semantic_matcher,
+)
+
 
 class WhoIntentResolver:
     COVID_ID = "MONDO:0100096"
@@ -70,7 +74,6 @@ class WhoIntentResolver:
         text: str,
     ):
         raw_text = text
-
         normalized = self._normalize(
             text
         )
@@ -118,9 +121,7 @@ class WhoIntentResolver:
                 )
 
             return {
-                "intent": (
-                    "vaccine_protection"
-                ),
+                "intent": "vaccine_protection",
                 "semanticRoles": [
                     "protects_against"
                 ],
@@ -148,9 +149,7 @@ class WhoIntentResolver:
             normalized
         ):
             return {
-                "intent": (
-                    "long_covid_outcome"
-                ),
+                "intent": "long_covid_outcome",
                 "semanticRoles": [
                     (
                         "can_lead_to_"
@@ -232,10 +231,7 @@ class WhoIntentResolver:
 
             elif not exclusive:
                 roles.append(
-                    (
-                        "transmission_"
-                        "risk_context"
-                    )
+                    "transmission_risk_context"
                 )
 
             return {
@@ -270,18 +266,9 @@ class WhoIntentResolver:
         if self._cause_query(
             normalized
         ):
-            return {
-                "intent": "cause",
-                "semanticRoles": [
-                    "causes"
-                ],
-                "subjectIds": [
-                    self.SARS_ID
-                ],
-                "objectIds": [
-                    self.COVID_ID
-                ],
-                "matchedText": (
+            return self._cause_interpretation(
+                method="rule",
+                matched_text=(
                     self._first_match(
                         normalized,
                         [
@@ -300,16 +287,13 @@ class WhoIntentResolver:
                         ],
                     )
                 ),
-                "method": "rule",
-            }
+            )
 
         if self._current_risk_query(
             normalized
         ):
             return {
-                "intent": (
-                    "current_global_risk"
-                ),
+                "intent": "current_global_risk",
                 "semanticRoles": [
                     (
                         "global_public_health_"
@@ -324,7 +308,71 @@ class WhoIntentResolver:
                 "method": "rule",
             }
 
+        semantic_cause = (
+            self._semantic_cause_fallback(
+                raw_text,
+                normalized,
+            )
+        )
+
+        if semantic_cause:
+            return semantic_cause
+
         return None
+
+    def _semantic_cause_fallback(
+        self,
+        raw_text: str,
+        normalized: str,
+    ):
+        if not self._covid_context(
+            normalized
+        ):
+            return None
+
+        result = (
+            get_verification_semantic_matcher()
+            .resolve(
+                raw_text
+            )
+        )
+
+        if not result:
+            return None
+
+        if result["label"] != "cause":
+            return None
+
+        if (
+            result["embeddingScore"]
+            < 0.70
+        ):
+            return None
+
+        return self._cause_interpretation(
+            method=result["method"],
+            matched_text=None,
+        )
+
+    def _cause_interpretation(
+        self,
+        method: str,
+        matched_text,
+    ):
+        return {
+            "intent": "cause",
+            "semanticRoles": [
+                "causes"
+            ],
+            "subjectIds": [
+                self.SARS_ID
+            ],
+            "objectIds": [
+                self.COVID_ID
+            ],
+            "matchedText": matched_text,
+            "method": method,
+        }
 
     def _resolve_origin(
         self,
@@ -392,10 +440,7 @@ class WhoIntentResolver:
         return {
             "intent": "origin",
             "semanticRoles": [
-                (
-                    "origin_hypothesis_"
-                    "assessment"
-                ),
+                "origin_hypothesis_assessment",
                 "overall_origin_status",
             ],
             "subjectIds": [
@@ -437,10 +482,7 @@ class WhoIntentResolver:
             )
         ):
             roles = [
-                (
-                    "variant_under_"
-                    "monitoring"
-                )
+                "variant_under_monitoring"
             ]
 
         elif any(
@@ -458,10 +500,7 @@ class WhoIntentResolver:
         else:
             roles = [
                 "variant_of_interest",
-                (
-                    "variant_under_"
-                    "monitoring"
-                ),
+                "variant_under_monitoring",
             ]
 
         return {
@@ -891,10 +930,7 @@ class WhoIntentResolver:
             value in text
             for value in (
                 "covid",
-                (
-                    "coronavirus disease "
-                    "2019"
-                ),
+                "coronavirus disease 2019",
                 "sars cov 2",
                 "chinese virus",
             )
@@ -918,13 +954,11 @@ class WhoIntentResolver:
             text,
         )
 
-        text = re.sub(
+        return re.sub(
             r"\s+",
             " ",
             text,
         ).strip()
-
-        return text
 
     def _first_match(
         self,
