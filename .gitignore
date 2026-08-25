@@ -1,6 +1,7 @@
 neo4j
 plugins
 .DS_Store
+.venv/
 
 resources/monarch-kg/*
 !resources/monarch-kg/.gitkeep
