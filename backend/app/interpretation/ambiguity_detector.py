@@ -58,6 +58,7 @@ class AmbiguityDetector:
         text: str,
         relation: str | None,
         outcomes: list[dict],
+        resolved_intent: str | None = None,
     ):
         normalized_text = self._normalize(
             text
@@ -74,6 +75,8 @@ class AmbiguityDetector:
         broad_relation = (
             normalized_relation
             in self.BROAD_RELATIONS
+            or resolved_intent
+            == "broad_effect"
         )
 
         ambiguities = []
@@ -105,6 +108,7 @@ class AmbiguityDetector:
                 {
                     "term": (
                         normalized_relation
+                        or resolved_intent
                         or "relationship"
                     ),
                     "type": "relation",

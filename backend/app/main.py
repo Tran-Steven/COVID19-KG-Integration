@@ -248,6 +248,12 @@ def inspect_semantics(
                 request.text
             )
         ),
+        "directionCandidates": (
+            semantic_interpreter
+            .rank_directions(
+                request.text
+            )
+        ),
     }
 
 
@@ -270,7 +276,7 @@ def interpret_query(
         request.text
     )
 
-    relation_intent = (
+    rule_intent = (
         relation_intent_resolver.resolve(
             text=request.text,
             extracted_relation=relation[
@@ -279,20 +285,11 @@ def interpret_query(
         )
     )
 
-    initial_interpretation = (
-        ambiguity_detector.detect(
-            text=request.text,
-            relation=relation["text"],
-            outcomes=outcomes,
-        )
-    )
+    relation_intent = rule_intent
 
     if (
         not outcomes
         and direction is not None
-        and not initial_interpretation[
-            "ambiguous"
-        ]
     ):
         semantic_outcome = (
             semantic_interpreter
@@ -307,10 +304,15 @@ def interpret_query(
             ]
 
     if (
-        relation_intent["intent"]
-        == "unknown"
-        and direction is not None
+        direction is not None
         and outcomes
+        and rule_intent["intent"]
+        in {
+            "unknown",
+            "treatment",
+            "risk_modifier",
+            "broad_effect",
+        }
     ):
         relation_intent = {
             "intent": "risk_modifier",
@@ -337,28 +339,17 @@ def interpret_query(
                 semantic_intent
             )
         else:
-            relation_intent[
-                "method"
-            ] = "none"
-
-    interpretation_before_outcome = (
-        ambiguity_detector.detect(
-            text=request.text,
-            relation=relation["text"],
-            outcomes=outcomes,
-        )
-    )
+            relation_intent = {
+                **relation_intent,
+                "method": "none",
+            }
 
     if (
         not outcomes
-        and not interpretation_before_outcome[
-            "ambiguous"
-        ]
         and relation_intent["intent"]
         in {
             "risk_modifier",
             "association",
-            "broad_effect",
         }
     ):
         semantic_outcome = (
@@ -374,6 +365,51 @@ def interpret_query(
             ]
 
     if (
+        direction is None
+        and outcomes
+        and rule_intent["intent"]
+        in {
+            "unknown",
+            "treatment",
+            "risk_modifier",
+            "broad_effect",
+        }
+    ):
+        semantic_direction = (
+            semantic_interpreter
+            .resolve_direction(
+                request.text
+            )
+        )
+
+        if semantic_direction:
+            direction = (
+                semantic_direction[
+                    "direction"
+                ]
+            )
+
+    if (
+        direction is not None
+        and outcomes
+        and rule_intent["intent"]
+        in {
+            "unknown",
+            "treatment",
+            "risk_modifier",
+            "broad_effect",
+        }
+    ):
+        relation_intent = {
+            "intent": "risk_modifier",
+            "direction": direction,
+            "matchedText": None,
+            "specific": True,
+            "method": "composed",
+            "score": None,
+        }
+
+    if (
         relation_intent["intent"]
         == "risk_modifier"
         and relation_intent[
@@ -385,26 +421,14 @@ def interpret_query(
             "direction"
         ] = direction
 
-    if (
-        relation_intent["intent"]
-        == "unknown"
-        and direction is not None
-        and outcomes
-    ):
-        relation_intent = {
-            "intent": "risk_modifier",
-            "direction": direction,
-            "matchedText": None,
-            "specific": True,
-            "method": "composed",
-            "score": None,
-        }
-
     interpretation = (
         ambiguity_detector.detect(
             text=request.text,
             relation=relation["text"],
             outcomes=outcomes,
+            resolved_intent=relation_intent[
+                "intent"
+            ],
         )
     )
 

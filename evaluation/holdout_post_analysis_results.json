@@ -1,0 +1,1243 @@
+{
+  "total": 50,
+  "passed": 45,
+  "accuracy": 0.9,
+  "fieldAccuracy": {
+    "intent": 0.92,
+    "direction": 0.96,
+    "outcomes": 0.96,
+    "ambiguous": 0.96
+  },
+  "results": [
+    {
+      "id": "holdout_treatment_beneficial",
+      "text": "Could Paxlovid be beneficial for people with COVID-19?",
+      "expected": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_treatment_doctors_use",
+      "text": "Is remdesivir something doctors use for COVID-19?",
+      "expected": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_treatment_manage",
+      "text": "Can baricitinib help manage COVID-19?",
+      "expected": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_treatment_useful_treating",
+      "text": "Is ritonavir useful in treating COVID-19?",
+      "expected": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_treatment_therapy",
+      "text": "Would Paxlovid be considered a COVID therapy?",
+      "expected": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_treatment_role",
+      "text": "Does remdesivir have a role in COVID treatment?",
+      "expected": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "treatment",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_cause_virus",
+      "text": "Can SARS-CoV-2 infection lead to COVID-19?",
+      "expected": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": false,
+        "ambiguous": true
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_cause_trigger",
+      "text": "Could smoking trigger COVID-19?",
+      "expected": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "checks": {
+        "intent": false,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_cause_obesity",
+      "text": "Does obesity cause COVID-19?",
+      "expected": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_cause_bring_on",
+      "text": "Can remdesivir bring on COVID-19?",
+      "expected": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_cause_passive",
+      "text": "Is COVID-19 caused by SARS-CoV-2?",
+      "expected": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_cause_result",
+      "text": "Could exposure to SARS-CoV-2 result in COVID-19?",
+      "expected": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_association_obesity_severity",
+      "text": "Is obesity connected with severe COVID-19?",
+      "expected": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_association_diabetes_mortality",
+      "text": "Is diabetes tied to COVID-19 mortality?",
+      "expected": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_association_smoking_hospital",
+      "text": "Is smoking linked with hospitalization from COVID-19?",
+      "expected": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_association_asthma_severity",
+      "text": "Is asthma related to COVID-19 severity?",
+      "expected": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_association_nicotine_infection",
+      "text": "Is nicotine associated with the risk of COVID-19 infection?",
+      "expected": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_association_bmi_worse",
+      "text": "Is high BMI connected to worse COVID-19?",
+      "expected": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "association",
+        "direction": null,
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_clinical_evaluated",
+      "text": "Was baricitinib evaluated in trials for COVID-19?",
+      "expected": {
+        "intent": "clinical_study",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "clinical_study",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_clinical_tested_people",
+      "text": "Has Paxlovid been tested in people with COVID-19?",
+      "expected": {
+        "intent": "clinical_study",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "clinical_study",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_clinical_researchers",
+      "text": "Did researchers investigate remdesivir in COVID-19 trials?",
+      "expected": {
+        "intent": "clinical_study",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "clinical_study",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_clinical_studying",
+      "text": "Is ritonavir being studied for COVID-19?",
+      "expected": {
+        "intent": "clinical_study",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "clinical_study",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_phenotype_smell",
+      "text": "Can loss of smell be a sign of COVID-19?",
+      "expected": {
+        "intent": "phenotype",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "phenotype",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_phenotype_cough",
+      "text": "Is a cough one of the manifestations of COVID-19?",
+      "expected": {
+        "intent": "phenotype",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "phenotype",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_phenotype_present",
+      "text": "Does COVID-19 present with fever?",
+      "expected": {
+        "intent": "phenotype",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "causation",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": false,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_phenotype_breath",
+      "text": "Is shortness of breath a COVID-19 symptom?",
+      "expected": {
+        "intent": "phenotype",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "phenotype",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_severity_hit_harder",
+      "text": "Could obesity make COVID-19 hit harder?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "checks": {
+        "intent": false,
+        "direction": false,
+        "outcomes": false,
+        "ambiguous": false
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_severity_raise_chance",
+      "text": "Does diabetes raise the chance of severe COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_severity_vaccine_less",
+      "text": "Could vaccination make COVID-19 less severe?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_severity_reduce",
+      "text": "Can treatment reduce how severe COVID-19 gets?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "severity"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_hospital_admission",
+      "text": "Does smoking make hospital admission more likely with COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_hospital_vaccine",
+      "text": "Could vaccination reduce the chance of being hospitalized for COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_hospital_need_care",
+      "text": "Does obesity increase the odds of needing hospital care with COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "hospitalization"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_mortality_dying",
+      "text": "Does diabetes raise the chance of dying from COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_mortality_lower_death",
+      "text": "Could treatment lower the risk of death from COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_mortality_fatal",
+      "text": "Does obesity make fatal COVID-19 more likely?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "mortality"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_infection_easier",
+      "text": "Does smoking make it easier to catch COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": false,
+        "direction": false,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": false
+    },
+    {
+      "id": "holdout_infection_less_likely",
+      "text": "Could vaccination make me less likely to contract COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_infection_increase_chance",
+      "text": "Does nicotine increase the chance that I get infected with SARS-CoV-2?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "increase",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_infection_mask",
+      "text": "Could a mask reduce the odds of catching COVID-19?",
+      "expected": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "risk_modifier",
+        "direction": "decrease",
+        "outcomes": [
+          "infection"
+        ],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_ambiguous_odds",
+      "text": "Does nicotine change my odds with COVID-19?",
+      "expected": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_ambiguous_risk",
+      "text": "Could smoking influence my COVID-19 risk?",
+      "expected": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_ambiguous_outcomes",
+      "text": "Does obesity affect COVID-19 outcomes?",
+      "expected": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_ambiguous_matter",
+      "text": "Does diabetes matter for COVID-19?",
+      "expected": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_ambiguous_how_goes",
+      "text": "Can vaping change how COVID-19 goes for me?",
+      "expected": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "actual": {
+        "intent": "broad_effect",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": true
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_unknown_color",
+      "text": "What color is remdesivir?",
+      "expected": {
+        "intent": "unknown",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "unknown",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_unknown_discovery",
+      "text": "Who discovered remdesivir?",
+      "expected": {
+        "intent": "unknown",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "unknown",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_unknown_when",
+      "text": "When was COVID-19 first identified?",
+      "expected": {
+        "intent": "unknown",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "unknown",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_unknown_cost",
+      "text": "How much does Paxlovid cost?",
+      "expected": {
+        "intent": "unknown",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "unknown",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    },
+    {
+      "id": "holdout_unknown_where",
+      "text": "Where is SARS-CoV-2 found?",
+      "expected": {
+        "intent": "unknown",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "actual": {
+        "intent": "unknown",
+        "direction": null,
+        "outcomes": [],
+        "ambiguous": false
+      },
+      "checks": {
+        "intent": true,
+        "direction": true,
+        "outcomes": true,
+        "ambiguous": true
+      },
+      "passed": true
+    }
+  ]
+}

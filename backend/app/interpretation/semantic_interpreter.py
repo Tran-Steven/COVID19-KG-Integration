@@ -46,6 +46,11 @@ class SemanticInterpreter:
             "Is this clinical sign a manifestation of the illness?",
             "Does this disease have this symptom?",
         ],
+        "broad_effect": [
+            "Does this factor matter for the disease?",
+            "Could this factor affect what happens with the disease?",
+            "Does this factor change the overall disease outcome?",
+        ],
     }
 
     OUTCOME_PROTOTYPES = {
@@ -68,6 +73,21 @@ class SemanticInterpreter:
             "Could someone die from the disease?",
             "Does this affect the risk of death from the illness?",
             "Does this affect mortality from the disease?",
+        ],
+    }
+
+    DIRECTION_PROTOTYPES = {
+        "increase": [
+            "This makes the outcome more likely.",
+            "This increases the risk of the outcome.",
+            "This makes the disease worse.",
+            "This makes it easier for the outcome to happen.",
+        ],
+        "decrease": [
+            "This makes the outcome less likely.",
+            "This decreases the risk of the outcome.",
+            "This makes the disease less severe.",
+            "This makes it harder for the outcome to happen.",
         ],
     }
 
@@ -102,6 +122,12 @@ class SemanticInterpreter:
             "sign, or manifestation occurs as part of "
             "a disease."
         ),
+        "broad_effect": (
+            "Broad effect intent: asking generally "
+            "whether a factor matters for, affects, "
+            "influences, or changes a disease without "
+            "specifying a particular health outcome."
+        ),
     }
 
     OUTCOME_DESCRIPTIONS = {
@@ -125,20 +151,42 @@ class SemanticInterpreter:
         ),
     }
 
+    DIRECTION_DESCRIPTIONS = {
+        "increase": (
+            "Increase direction: the factor makes the "
+            "specified outcome more likely, more common, "
+            "more severe, easier to occur, or higher risk."
+        ),
+        "decrease": (
+            "Decrease direction: the factor makes the "
+            "specified outcome less likely, less common, "
+            "less severe, harder to occur, or lower risk."
+        ),
+    }
+
     def __init__(
         self,
         intent_threshold: float = 0.70,
         intent_margin: float = 0.035,
         outcome_threshold: float = 0.70,
         outcome_margin: float = 0.035,
+        direction_threshold: float = 0.70,
+        direction_margin: float = 0.035,
         intent_rerank_floor: float = 0.65,
         outcome_rerank_floor: float = 0.65,
+        direction_rerank_floor: float = 0.65,
         rerank_top_k: int = 3,
     ):
         self.intent_threshold = intent_threshold
         self.intent_margin = intent_margin
         self.outcome_threshold = outcome_threshold
         self.outcome_margin = outcome_margin
+        self.direction_threshold = (
+            direction_threshold
+        )
+        self.direction_margin = (
+            direction_margin
+        )
 
         self.intent_rerank_floor = (
             intent_rerank_floor
@@ -146,6 +194,10 @@ class SemanticInterpreter:
 
         self.outcome_rerank_floor = (
             outcome_rerank_floor
+        )
+
+        self.direction_rerank_floor = (
+            direction_rerank_floor
         )
 
         self.rerank_top_k = rerank_top_k
@@ -170,6 +222,12 @@ class SemanticInterpreter:
             )
         )
 
+        self.direction_embeddings = (
+            self._build_prototype_embeddings(
+                self.DIRECTION_PROTOTYPES
+            )
+        )
+
     def resolve_intent(
         self,
         text: str,
@@ -189,7 +247,10 @@ class SemanticInterpreter:
                 "intent": match["label"],
                 "direction": None,
                 "matchedText": None,
-                "specific": True,
+                "specific": (
+                    match["label"]
+                    != "broad_effect"
+                ),
                 "method": "semantic",
                 "score": match["score"],
             }
@@ -210,7 +271,10 @@ class SemanticInterpreter:
             "intent": reranked["label"],
             "direction": None,
             "matchedText": None,
-            "specific": True,
+            "specific": (
+                reranked["label"]
+                != "broad_effect"
+            ),
             "method": "semantic_rerank",
             "score": reranked["score"],
         }
@@ -256,6 +320,45 @@ class SemanticInterpreter:
             "score": reranked["score"],
         }
 
+    def resolve_direction(
+        self,
+        text: str,
+    ):
+        rankings = self.rank_directions(
+            text
+        )
+
+        match = self._select(
+            rankings=rankings,
+            threshold=self.direction_threshold,
+            margin=self.direction_margin,
+        )
+
+        if match:
+            return {
+                "direction": match["label"],
+                "method": "semantic",
+                "score": match["score"],
+            }
+
+        reranked = self._rerank(
+            text=text,
+            rankings=rankings,
+            descriptions=(
+                self.DIRECTION_DESCRIPTIONS
+            ),
+            floor=self.direction_rerank_floor,
+        )
+
+        if not reranked:
+            return None
+
+        return {
+            "direction": reranked["label"],
+            "method": "semantic_rerank",
+            "score": reranked["score"],
+        }
+
     def rank_intents(
         self,
         text: str,
@@ -275,6 +378,17 @@ class SemanticInterpreter:
             text=text,
             prototype_embeddings=(
                 self.outcome_embeddings
+            ),
+        )
+
+    def rank_directions(
+        self,
+        text: str,
+    ):
+        return self._rank(
+            text=text,
+            prototype_embeddings=(
+                self.direction_embeddings
             ),
         )
 
