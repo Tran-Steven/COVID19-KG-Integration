@@ -1,0 +1,21 @@
+{
+  "name": "Authoritative COVID-19 Core Facts",
+  "type": "curated-authoritative",
+  "reviewedOn": "2026-08-24",
+  "sources": [
+    {
+      "name": "World Health Organization",
+      "url": "https://www.who.int/news-room/questions-and-answers/item/coronavirus-disease-covid-19"
+    },
+    {
+      "name": "Centers for Disease Control and Prevention",
+      "url": "https://www.cdc.gov/covid/about/index.html"
+    },
+    {
+      "name": "World Health Organization COVID-19 timeline",
+      "url": "https://www.who.int/news/item/29-06-2020-covidtimeline"
+    }
+  ],
+  "nodeCount": 5,
+  "edgeCount": 5
+}

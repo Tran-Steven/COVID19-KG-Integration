@@ -1,0 +1,6 @@
+id	category	name	xref	synonym	provided_by
+MONDO:0100096	biolink:Disease	COVID-19		Coronavirus disease 2019	World Health Organization|Centers for Disease Control and Prevention
+NCBITaxon:2697049	biolink:OrganismTaxon	SARS-CoV-2		Severe acute respiratory syndrome coronavirus 2	World Health Organization|Centers for Disease Control and Prevention
+covid:location:wuhan	biolink:GeographicLocation	Wuhan, Hubei, China		Wuhan|Wuhan City	World Health Organization
+covid:date:2019-12-31	biolink:NamedThing	31 December 2019		December 31, 2019|2019-12-31	World Health Organization
+covid:date:2020-03-11	biolink:NamedThing	11 March 2020		March 11, 2020|2020-03-11	World Health Organization

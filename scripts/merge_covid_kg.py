@@ -9,9 +9,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-DEFAULT_MONARCH = Path("resources/monarch-covid")
-DEFAULT_CHEMBL = Path("resources/chembl-covid")
-DEFAULT_OUTPUT = Path("resources/covid-kg")
+DEFAULT_MONARCH = Path(
+    "resources/monarch-covid"
+)
+
+DEFAULT_CHEMBL = Path(
+    "resources/chembl-covid"
+)
+
+DEFAULT_AUTHORITATIVE = Path(
+    "resources/authoritative-covid"
+)
+
+DEFAULT_OUTPUT = Path(
+    "resources/covid-kg"
+)
 
 NODE_LIST_FIELDS = {
     "xref",
@@ -38,6 +50,12 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        "--authoritative",
+        type=Path,
+        default=DEFAULT_AUTHORITATIVE,
+    )
+
+    parser.add_argument(
         "--output",
         type=Path,
         default=DEFAULT_OUTPUT,
@@ -50,7 +68,12 @@ def sha256(path: Path):
     digest = hashlib.sha256()
 
     with path.open("rb") as file:
-        for chunk in iter(lambda: file.read(1024 * 1024), b""):
+        for chunk in iter(
+            lambda: file.read(
+                1024 * 1024
+            ),
+            b"",
+        ):
             digest.update(chunk)
 
     return digest.hexdigest()
@@ -67,7 +90,9 @@ def load_json(path: Path):
     )
 
 
-def parse_list(value: str | None):
+def parse_list(
+    value: str | None,
+):
     if not value:
         return []
 
@@ -76,9 +101,14 @@ def parse_list(value: str | None):
     if not value:
         return []
 
-    if value.startswith("[") and value.endswith("]"):
+    if (
+        value.startswith("[")
+        and value.endswith("]")
+    ):
         try:
-            parsed = ast.literal_eval(value)
+            parsed = ast.literal_eval(
+                value
+            )
 
             if isinstance(
                 parsed,
@@ -89,14 +119,22 @@ def parse_list(value: str | None):
                     for item in parsed
                     if str(item).strip()
                 ]
-        except (ValueError, SyntaxError):
-            inner = value[1:-1].strip()
+        except (
+            ValueError,
+            SyntaxError,
+        ):
+            inner = value[
+                1:-1
+            ].strip()
 
             if inner:
                 return [
-                    item.strip().strip("'\"")
-                    for item in inner.split(",")
-                    if item.strip().strip("'\"")
+                    item.strip()
+                    .strip("'\"")
+                    for item
+                    in inner.split(",")
+                    if item.strip()
+                    .strip("'\"")
                 ]
 
             return []
@@ -104,21 +142,25 @@ def parse_list(value: str | None):
     if "|" in value:
         return [
             item.strip()
-            for item in value.split("|")
+            for item
+            in value.split("|")
             if item.strip()
         ]
 
     if ";" in value:
         return [
             item.strip()
-            for item in value.split(";")
+            for item
+            in value.split(";")
             if item.strip()
         ]
 
     return [value]
 
 
-def unique(values: list[str]):
+def unique(
+    values: list[str],
+):
     result = []
     seen = set()
 
@@ -144,7 +186,9 @@ def merge_list_values(
     return "|".join(values)
 
 
-def read_tsv(path: Path):
+def read_tsv(
+    path: Path,
+):
     with path.open(
         "r",
         encoding="utf-8",
@@ -165,7 +209,10 @@ def read_tsv(path: Path):
             for row in reader
         ]
 
-        return list(reader.fieldnames), rows
+        return (
+            list(reader.fieldnames),
+            rows,
+        )
 
 
 def normalize_node(
@@ -182,12 +229,16 @@ def normalize_node(
             normalized[field] = "|".join(
                 unique(
                     parse_list(
-                        normalized.get(field)
+                        normalized.get(
+                            field
+                        )
                     )
                 )
             )
 
-    normalized["source_dataset"] = source
+    normalized[
+        "source_dataset"
+    ] = source
 
     return normalized
 
@@ -198,7 +249,10 @@ def merge_node(
 ):
     result = dict(existing)
 
-    for key in set(existing) | set(incoming):
+    for key in (
+        set(existing)
+        | set(incoming)
+    ):
         existing_value = result.get(
             key,
             "",
@@ -210,14 +264,21 @@ def merge_node(
         )
 
         if key in NODE_LIST_FIELDS:
-            result[key] = merge_list_values(
-                existing_value,
-                incoming_value,
+            result[key] = (
+                merge_list_values(
+                    existing_value,
+                    incoming_value,
+                )
             )
             continue
 
-        if not existing_value and incoming_value:
-            result[key] = incoming_value
+        if (
+            not existing_value
+            and incoming_value
+        ):
+            result[key] = (
+                incoming_value
+            )
 
     return result
 
@@ -226,9 +287,14 @@ def load_nodes(
     directory: Path,
     source: str,
 ):
-    path = directory / "nodes.tsv"
+    path = (
+        directory
+        / "nodes.tsv"
+    )
 
-    headers, rows = read_tsv(path)
+    headers, rows = read_tsv(
+        path
+    )
 
     normalized_rows = [
         normalize_node(
@@ -238,16 +304,24 @@ def load_nodes(
         for row in rows
     ]
 
-    return headers, normalized_rows
+    return (
+        headers,
+        normalized_rows,
+    )
 
 
 def load_edges(
     directory: Path,
     source: str,
 ):
-    path = directory / "edges.tsv"
+    path = (
+        directory
+        / "edges.tsv"
+    )
 
-    headers, rows = read_tsv(path)
+    headers, rows = read_tsv(
+        path
+    )
 
     normalized_rows = []
 
@@ -285,15 +359,22 @@ def load_edges(
                 ]
             )
 
-            normalized["id"] = hashlib.sha256(
-                value.encode("utf-8")
+            normalized[
+                "id"
+            ] = hashlib.sha256(
+                value.encode(
+                    "utf-8"
+                )
             ).hexdigest()
 
         normalized_rows.append(
             normalized
         )
 
-    return headers, normalized_rows
+    return (
+        headers,
+        normalized_rows,
+    )
 
 
 def combine_headers(
@@ -314,7 +395,10 @@ def combine_headers(
                 seen.add(field)
                 result.append(field)
 
-    if "source_dataset" not in seen:
+    if (
+        "source_dataset"
+        not in seen
+    ):
         result.append(
             "source_dataset"
         )
@@ -349,9 +433,30 @@ def write_tsv(
                         field,
                         "",
                     )
-                    for field in headers
+                    for field
+                    in headers
                 }
             )
+
+
+def metadata_key(
+    source: str,
+    suffix: str,
+):
+    parts = source.split("-")
+
+    prefix = (
+        parts[0]
+        + "".join(
+            part.capitalize()
+            for part
+            in parts[1:]
+        )
+    )
+
+    return (
+        f"{prefix}{suffix}"
+    )
 
 
 def main():
@@ -366,102 +471,141 @@ def main():
         exist_ok=True,
     )
 
-    monarch_node_headers, monarch_nodes = load_nodes(
-        args.monarch,
-        "monarch",
-    )
+    datasets = [
+        (
+            "monarch",
+            args.monarch,
+        ),
+        (
+            "chembl",
+            args.chembl,
+        ),
+        (
+            "authoritative-covid",
+            args.authoritative,
+        ),
+    ]
 
-    chembl_node_headers, chembl_nodes = load_nodes(
-        args.chembl,
-        "chembl",
-    )
+    all_node_headers = []
+    all_edge_headers = []
 
     nodes = {}
 
-    for node in monarch_nodes + chembl_nodes:
-        node_id = node.get("id")
+    for source, directory in datasets:
+        (
+            node_headers,
+            source_nodes,
+        ) = load_nodes(
+            directory,
+            source,
+        )
 
-        if not node_id:
-            continue
+        all_node_headers.append(
+            node_headers
+        )
 
-        if node_id in nodes:
-            nodes[node_id] = merge_node(
-                nodes[node_id],
-                node,
+        for node in source_nodes:
+            node_id = node.get(
+                "id"
             )
-        else:
-            nodes[node_id] = node
 
-    monarch_edge_headers, monarch_edges = load_edges(
-        args.monarch,
-        "monarch",
-    )
+            if not node_id:
+                continue
 
-    chembl_edge_headers, chembl_edges = load_edges(
-        args.chembl,
-        "chembl",
-    )
+            if node_id in nodes:
+                nodes[node_id] = (
+                    merge_node(
+                        nodes[node_id],
+                        node,
+                    )
+                )
+            else:
+                nodes[node_id] = (
+                    node
+                )
 
     edges = {}
     node_ids = set(nodes)
 
-    for edge in monarch_edges + chembl_edges:
-        edge_id = edge["id"]
-
-        if edge_id in edges:
-            raise RuntimeError(
-                f"Duplicate edge ID: {edge_id}"
-            )
-
-        subject = edge.get(
-            "subject"
+    for source, directory in datasets:
+        (
+            edge_headers,
+            source_edges,
+        ) = load_edges(
+            directory,
+            source,
         )
 
-        object_id = edge.get(
-            "object"
+        all_edge_headers.append(
+            edge_headers
         )
 
-        if subject not in node_ids:
-            raise RuntimeError(
-                f"Missing subject node: {subject}"
+        for edge in source_edges:
+            edge_id = edge[
+                "id"
+            ]
+
+            if edge_id in edges:
+                raise RuntimeError(
+                    "Duplicate edge ID: "
+                    f"{edge_id}"
+                )
+
+            subject = edge.get(
+                "subject"
             )
 
-        if object_id not in node_ids:
-            raise RuntimeError(
-                f"Missing object node: {object_id}"
+            object_id = edge.get(
+                "object"
             )
 
-        edges[edge_id] = edge
+            if subject not in node_ids:
+                raise RuntimeError(
+                    "Missing subject node: "
+                    f"{subject}"
+                )
 
-    node_headers = combine_headers(
-        [
-            "id",
-            "category",
-            "name",
-            "xref",
-            "synonym",
-            "provided_by",
-            "source_dataset",
-        ],
-        monarch_node_headers,
-        chembl_node_headers,
+            if object_id not in node_ids:
+                raise RuntimeError(
+                    "Missing object node: "
+                    f"{object_id}"
+                )
+
+            edges[
+                edge_id
+            ] = edge
+
+    node_headers = (
+        combine_headers(
+            [
+                "id",
+                "category",
+                "name",
+                "xref",
+                "synonym",
+                "provided_by",
+                "source_dataset",
+            ],
+            *all_node_headers,
+        )
     )
 
-    edge_headers = combine_headers(
-        [
-            "id",
-            "predicate",
-            "category",
-            "primary_knowledge_source",
-            "aggregator_knowledge_source",
-            "provided_by",
-            "publications",
-            "subject",
-            "object",
-            "source_dataset",
-        ],
-        monarch_edge_headers,
-        chembl_edge_headers,
+    edge_headers = (
+        combine_headers(
+            [
+                "id",
+                "predicate",
+                "category",
+                "primary_knowledge_source",
+                "aggregator_knowledge_source",
+                "provided_by",
+                "publications",
+                "subject",
+                "object",
+                "source_dataset",
+            ],
+            *all_edge_headers,
+        )
     )
 
     nodes_path = (
@@ -477,13 +621,17 @@ def main():
     write_tsv(
         nodes_path,
         node_headers,
-        list(nodes.values()),
+        list(
+            nodes.values()
+        ),
     )
 
     write_tsv(
         edges_path,
         edge_headers,
-        list(edges.values()),
+        list(
+            edges.values()
+        ),
     )
 
     category_counts = Counter(
@@ -491,7 +639,8 @@ def main():
             "category",
             "",
         )
-        for node in nodes.values()
+        for node
+        in nodes.values()
     )
 
     predicate_counts = Counter(
@@ -499,44 +648,61 @@ def main():
             "predicate",
             "",
         )
-        for edge in edges.values()
+        for edge
+        in edges.values()
     )
 
+    sources = {}
+
+    input_hashes = {}
+
+    for source, directory in datasets:
+        sources[source] = (
+            load_json(
+                directory
+                / "source.json"
+            )
+        )
+
+        input_hashes[
+            metadata_key(
+                source,
+                "Nodes",
+            )
+        ] = sha256(
+            directory
+            / "nodes.tsv"
+        )
+
+        input_hashes[
+            metadata_key(
+                source,
+                "Edges",
+            )
+        ] = sha256(
+            directory
+            / "edges.tsv"
+        )
+
     metadata = {
-        "name": "COVID-19 Knowledge Graph",
-        "generatedAt": datetime.now(
-            timezone.utc
-        ).isoformat(),
-        "nodeCount": len(nodes),
-        "edgeCount": len(edges),
-        "sources": {
-            "monarch": load_json(
-                args.monarch
-                / "source.json"
-            ),
-            "chembl": load_json(
-                args.chembl
-                / "source.json"
-            ),
-        },
-        "inputHashes": {
-            "monarchNodes": sha256(
-                args.monarch
-                / "nodes.tsv"
-            ),
-            "monarchEdges": sha256(
-                args.monarch
-                / "edges.tsv"
-            ),
-            "chemblNodes": sha256(
-                args.chembl
-                / "nodes.tsv"
-            ),
-            "chemblEdges": sha256(
-                args.chembl
-                / "edges.tsv"
-            ),
-        },
+        "name": (
+            "COVID-19 Knowledge Graph"
+        ),
+        "generatedAt": (
+            datetime.now(
+                timezone.utc
+            ).isoformat()
+        ),
+        "nodeCount": len(
+            nodes
+        ),
+        "edgeCount": len(
+            edges
+        ),
+        "sources": sources,
+        "inputHashes": (
+            input_hashes
+        ),
         "nodeCategoryCounts": dict(
             sorted(
                 category_counts.items()
@@ -549,7 +715,9 @@ def main():
         ),
     }
 
-    metadata["outputHashes"] = {
+    metadata[
+        "outputHashes"
+    ] = {
         "nodes": sha256(
             nodes_path
         ),
@@ -567,16 +735,19 @@ def main():
         json.dumps(
             metadata,
             indent=2,
-        ),
+        )
+        + "\n",
         encoding="utf-8",
     )
 
     print(
-        f"Nodes written: {len(nodes)}"
+        "Nodes written: "
+        f"{len(nodes)}"
     )
 
     print(
-        f"Edges written: {len(edges)}"
+        "Edges written: "
+        f"{len(edges)}"
     )
 
     print(
@@ -588,7 +759,8 @@ def main():
     )
 
     print(
-        f"Metadata: {metadata_path}"
+        "Metadata: "
+        f"{metadata_path}"
     )
 
 
