@@ -6,17 +6,29 @@ from neo4j import GraphDatabase
 class Neo4jClient:
     def __init__(self):
         self.driver = GraphDatabase.driver(
-            os.getenv("NEO4J_URI", "bolt://neo4j:7687"),
+            os.getenv(
+                "NEO4J_URI",
+                "bolt://neo4j:7687",
+            ),
             auth=(
-                os.getenv("NEO4J_USERNAME", "neo4j"),
-                os.getenv("NEO4J_PASSWORD", "cvkgdemo"),
+                os.getenv(
+                    "NEO4J_USERNAME",
+                    "neo4j",
+                ),
+                os.getenv(
+                    "NEO4J_PASSWORD",
+                    "cvkgdemo",
+                ),
             ),
         )
 
     def close(self):
         self.driver.close()
 
-    def get_entity_context(self, entity: str):
+    def get_entity_context(
+        self,
+        entity: str,
+    ):
         query = """
         MATCH (n)
         WHERE toLower(n.name) = toLower($entity)
@@ -24,16 +36,31 @@ class Neo4jClient:
         RETURN
             labels(n) AS entityLabels,
             n.name AS entity,
-            coalesce(r.predicate, r.relation, type(r)) AS relationship,
+            coalesce(
+                r.predicate,
+                r.relation,
+                type(r)
+            ) AS relationship,
             connected.name AS connectedEntity,
             labels(connected) AS connectedLabels
         """
 
         with self.driver.session() as session:
-            result = session.run(query, entity=entity)
-            return [record.data() for record in result]
+            result = session.run(
+                query,
+                entity=entity,
+            )
 
-    def find_entity_candidates(self, entity: str, limit: int = 5):
+            return [
+                record.data()
+                for record in result
+            ]
+
+    def find_entity_candidates(
+        self,
+        entity: str,
+        limit: int = 5,
+    ):
         query = """
         MATCH (n)
         WHERE n.name IS NOT NULL
@@ -71,24 +98,37 @@ class Neo4jClient:
                 entity=entity,
                 limit=limit,
             )
-            return [record.data() for record in result]
+
+            return [
+                record.data()
+                for record in result
+            ]
 
     def get_relationship_types(self):
         query = """
         MATCH ()-[r]->()
+
         WITH DISTINCT coalesce(
             r.predicate,
             r.relation,
             type(r)
         ) AS relationship
+
         WHERE relationship IS NOT NULL
+
         RETURN relationship
         ORDER BY relationship
         """
 
         with self.driver.session() as session:
-            result = session.run(query)
-            return [record["relationship"] for record in result]
+            result = session.run(
+                query
+            )
+
+            return [
+                record["relationship"]
+                for record in result
+            ]
 
     def find_related_facts(
         self,
@@ -98,6 +138,7 @@ class Neo4jClient:
     ):
         query = """
         MATCH (source)-[r]-(target)
+
         WHERE elementId(source) = $graphId
           AND (
               type(r) = $relationship
@@ -129,7 +170,11 @@ class Neo4jClient:
                 relationship=relationship,
                 limit=limit,
             )
-            return [record.data() for record in result]
+
+            return [
+                record.data()
+                for record in result
+            ]
 
     def find_relationship_between_entities(
         self,
@@ -140,6 +185,7 @@ class Neo4jClient:
     ):
         query = """
         MATCH (source)-[r]-(target)
+
         WHERE elementId(source) = $sourceId
           AND elementId(target) = $targetId
           AND (
@@ -173,7 +219,11 @@ class Neo4jClient:
                 relationship=relationship,
                 limit=limit,
             )
-            return [record.data() for record in result]
+
+            return [
+                record.data()
+                for record in result
+            ]
 
     def clear_graph(self):
         query = """
@@ -182,7 +232,9 @@ class Neo4jClient:
         """
 
         with self.driver.session() as session:
-            session.run(query).consume()
+            session.run(
+                query
+            ).consume()
 
     def ensure_kg_constraints(self):
         query = """
@@ -192,13 +244,20 @@ class Neo4jClient:
         """
 
         with self.driver.session() as session:
-            session.run(query).consume()
+            session.run(
+                query
+            ).consume()
 
-    def upsert_kg_nodes(self, rows: list[dict]):
+    def upsert_kg_nodes(
+        self,
+        rows: list[dict],
+    ):
         query = """
         UNWIND $rows AS row
 
-        MERGE (n:KGEntity {id: row.id})
+        MERGE (n:KGEntity {
+            id: row.id
+        })
 
         SET n.name = row.name,
             n.categories = row.categories,
@@ -211,22 +270,40 @@ class Neo4jClient:
         """
 
         with self.driver.session() as session:
-            result = session.run(query, rows=rows)
-            record = result.single()
-            return record["count"] if record else 0
+            result = session.run(
+                query,
+                rows=rows,
+            )
 
-    def upsert_kg_edges(self, rows: list[dict]):
+            record = result.single()
+
+            return (
+                record["count"]
+                if record
+                else 0
+            )
+
+    def upsert_kg_edges(
+        self,
+        rows: list[dict],
+    ):
         query = """
         UNWIND $rows AS row
 
-        MATCH (source:KGEntity {id: row.subject})
-        MATCH (target:KGEntity {id: row.object})
+        MATCH (source:KGEntity {
+            id: row.subject
+        })
+
+        MATCH (target:KGEntity {
+            id: row.object
+        })
 
         MERGE (source)-[r:KG_RELATION {
             edgeKey: row.edgeKey
         }]->(target)
 
-        SET r.predicate = row.predicate,
+        SET r.id = row.id,
+            r.predicate = row.predicate,
             r.relation = row.relation,
             r.providedBy = row.providedBy
 
@@ -236,6 +313,15 @@ class Neo4jClient:
         """
 
         with self.driver.session() as session:
-            result = session.run(query, rows=rows)
+            result = session.run(
+                query,
+                rows=rows,
+            )
+
             record = result.single()
-            return record["count"] if record else 0
+
+            return (
+                record["count"]
+                if record
+                else 0
+            )

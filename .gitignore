@@ -3,3 +3,7 @@ plugins
 .DS_Store
 resources/monarch-kg/*
 !resources/monarch-kg/.gitkeep
+resources/monarch-covid/*
+!resources/monarch-covid/.gitkeep
+resources/chembl-covid/*
+!resources/chembl-covid/.gitkeep

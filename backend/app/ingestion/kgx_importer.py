@@ -26,8 +26,13 @@ class KGXImporter:
 
         self.database.ensure_kg_constraints()
 
-        node_count = self._import_nodes(Path(nodes_path))
-        edge_count = self._import_edges(Path(edges_path))
+        node_count = self._import_nodes(
+            Path(nodes_path)
+        )
+
+        edge_count = self._import_edges(
+            Path(edges_path)
+        )
 
         return {
             "nodes": node_count,
@@ -39,7 +44,9 @@ class KGXImporter:
         batch = []
 
         for row in self._read_tsv(path):
-            node = self._normalize_node(row)
+            node = self._normalize_node(
+                row
+            )
 
             if node is None:
                 continue
@@ -47,11 +54,18 @@ class KGXImporter:
             batch.append(node)
 
             if len(batch) >= self.batch_size:
-                total += self.database.upsert_kg_nodes(batch)
+                total += (
+                    self.database
+                    .upsert_kg_nodes(batch)
+                )
+
                 batch = []
 
         if batch:
-            total += self.database.upsert_kg_nodes(batch)
+            total += (
+                self.database
+                .upsert_kg_nodes(batch)
+            )
 
         return total
 
@@ -60,7 +74,9 @@ class KGXImporter:
         batch = []
 
         for row in self._read_tsv(path):
-            edge = self._normalize_edge(row)
+            edge = self._normalize_edge(
+                row
+            )
 
             if edge is None:
                 continue
@@ -68,11 +84,18 @@ class KGXImporter:
             batch.append(edge)
 
             if len(batch) >= self.batch_size:
-                total += self.database.upsert_kg_edges(batch)
+                total += (
+                    self.database
+                    .upsert_kg_edges(batch)
+                )
+
                 batch = []
 
         if batch:
-            total += self.database.upsert_kg_edges(batch)
+            total += (
+                self.database
+                .upsert_kg_edges(batch)
+            )
 
         return total
 
@@ -101,7 +124,10 @@ class KGXImporter:
         if not node_id:
             return None
 
-        name = row.get("name") or node_id
+        name = (
+            row.get("name")
+            or node_id
+        )
 
         categories = self._parse_list(
             row.get("category")
@@ -133,9 +159,11 @@ class KGXImporter:
             "providedBy",
         }
 
-        properties = self._additional_properties(
-            row,
-            excluded,
+        properties = (
+            self._additional_properties(
+                row,
+                excluded,
+            )
         )
 
         return {
@@ -158,25 +186,34 @@ class KGXImporter:
             row.get("predicate")
             or row.get("edge_label")
             or row.get("relation")
-            or "related_to"
+            or "biolink:related_to"
         )
 
-        relation = row.get("relation") or predicate
+        relation = (
+            row.get("relation")
+            or predicate
+        )
 
         provided_by = self._parse_list(
             row.get("provided_by")
             or row.get("providedBy")
         )
 
-        edge_key = self._edge_key(
-            subject,
-            predicate,
-            object_id,
-            relation,
-            provided_by,
-        )
+        edge_id = row.get("id")
+
+        if edge_id:
+            edge_key = edge_id
+        else:
+            edge_key = self._edge_key(
+                subject,
+                predicate,
+                object_id,
+                relation,
+                provided_by,
+            )
 
         excluded = {
+            "id",
             "subject",
             "object",
             "predicate",
@@ -186,12 +223,15 @@ class KGXImporter:
             "providedBy",
         }
 
-        properties = self._additional_properties(
-            row,
-            excluded,
+        properties = (
+            self._additional_properties(
+                row,
+                excluded,
+            )
         )
 
         return {
+            "id": edge_id or edge_key,
             "subject": subject,
             "object": object_id,
             "predicate": predicate,
@@ -219,15 +259,23 @@ class KGXImporter:
 
         return properties
 
-    def _parse_list(self, value: str | None):
+    def _parse_list(
+        self,
+        value: str | None,
+    ):
         if not value:
             return []
 
         value = value.strip()
 
-        if value.startswith("[") and value.endswith("]"):
+        if (
+            value.startswith("[")
+            and value.endswith("]")
+        ):
             try:
-                parsed = json.loads(value)
+                parsed = json.loads(
+                    value
+                )
 
                 if isinstance(parsed, list):
                     return [
@@ -268,7 +316,9 @@ class KGXImporter:
                 predicate,
                 object_id,
                 relation,
-                ",".join(sorted(provided_by)),
+                ",".join(
+                    sorted(provided_by)
+                ),
             ]
         )
 
