@@ -15,6 +15,7 @@ from app.models import (
 )
 from app.nlp.entity_extractor import EntityExtractor
 from app.nlp.entity_linker import EntityLinker
+from app.nlp.kg_entity_matcher import KGEntityMatcher
 from app.nlp.relation_extractor import RelationExtractor
 from app.retrieval.graph_retriever import GraphRetriever
 from app.retrieval.relationship_resolver import RelationshipResolver
@@ -23,13 +24,30 @@ from app.retrieval.relationship_resolver import RelationshipResolver
 nlp = spacy.load("en_core_web_sm")
 
 neo4j_client = Neo4jClient()
-entity_extractor = EntityExtractor(nlp)
-entity_linker = EntityLinker(neo4j_client)
-relation_extractor = RelationExtractor(nlp)
+
+kg_entity_matcher = KGEntityMatcher(
+    nlp,
+    neo4j_client,
+)
+
+entity_extractor = EntityExtractor(
+    nlp,
+    kg_entity_matcher,
+)
+
+entity_linker = EntityLinker(
+    neo4j_client
+)
+
+relation_extractor = RelationExtractor(
+    nlp
+)
+
 relationship_resolver = RelationshipResolver(
     neo4j_client,
     nlp,
 )
+
 graph_retriever = GraphRetriever(
     neo4j_client,
     entity_linker,
@@ -51,12 +69,21 @@ app = FastAPI(
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok"
+    }
 
 
 @app.post("/kg/entity")
-def entity_context(request: EntityRequest):
-    context = neo4j_client.get_entity_context(request.entity)
+def entity_context(
+    request: EntityRequest,
+):
+    context = (
+        neo4j_client
+        .get_entity_context(
+            request.entity
+        )
+    )
 
     return {
         "entity": request.entity,
@@ -64,9 +91,16 @@ def entity_context(request: EntityRequest):
     }
 
 
-@app.post("/nlp/entities", response_model=NLPResponse)
-def extract_entities(request: NLPRequest):
-    entities = entity_extractor.extract(request.text)
+@app.post(
+    "/nlp/entities",
+    response_model=NLPResponse,
+)
+def extract_entities(
+    request: NLPRequest,
+):
+    entities = entity_extractor.extract(
+        request.text
+    )
 
     return {
         "text": request.text,
@@ -74,14 +108,25 @@ def extract_entities(request: NLPRequest):
     }
 
 
-@app.post("/nlp/link", response_model=EntityLinkingResponse)
-def link_entities(request: NLPRequest):
-    extracted_entities = entity_extractor.extract(request.text)
+@app.post(
+    "/nlp/link",
+    response_model=EntityLinkingResponse,
+)
+def link_entities(
+    request: NLPRequest,
+):
+    extracted_entities = (
+        entity_extractor.extract(
+            request.text
+        )
+    )
 
     linked_entities = []
 
     for entity in extracted_entities:
-        candidates = entity_linker.link(entity["text"])
+        candidates = entity_linker.link(
+            entity["text"]
+        )
 
         linked_entities.append(
             {
@@ -96,9 +141,16 @@ def link_entities(request: NLPRequest):
     }
 
 
-@app.post("/nlp/relation", response_model=RelationResponse)
-def extract_relation(request: NLPRequest):
-    relation = relation_extractor.extract(request.text)
+@app.post(
+    "/nlp/relation",
+    response_model=RelationResponse,
+)
+def extract_relation(
+    request: NLPRequest,
+):
+    relation = relation_extractor.extract(
+        request.text
+    )
 
     return {
         "text": request.text,
@@ -106,15 +158,29 @@ def extract_relation(request: NLPRequest):
     }
 
 
-@app.post("/nlp/analyze", response_model=NLPAnalysisResponse)
-def analyze_text(request: NLPRequest):
-    extracted_entities = entity_extractor.extract(request.text)
-    relation = relation_extractor.extract(request.text)
+@app.post(
+    "/nlp/analyze",
+    response_model=NLPAnalysisResponse,
+)
+def analyze_text(
+    request: NLPRequest,
+):
+    extracted_entities = (
+        entity_extractor.extract(
+            request.text
+        )
+    )
+
+    relation = relation_extractor.extract(
+        request.text
+    )
 
     linked_entities = []
 
     for entity in extracted_entities:
-        candidates = entity_linker.link(entity["text"])
+        candidates = entity_linker.link(
+            entity["text"]
+        )
 
         linked_entities.append(
             {
@@ -130,20 +196,36 @@ def analyze_text(request: NLPRequest):
     }
 
 
-@app.post("/kg/retrieve", response_model=GraphRetrievalResponse)
-def retrieve_graph_context(request: NLPRequest):
-    extracted_entities = entity_extractor.extract(request.text)
-    relation = relation_extractor.extract(request.text)
+@app.post(
+    "/kg/retrieve",
+    response_model=GraphRetrievalResponse,
+)
+def retrieve_graph_context(
+    request: NLPRequest,
+):
+    extracted_entities = (
+        entity_extractor.extract(
+            request.text
+        )
+    )
 
-    retrieval = graph_retriever.retrieve(
-        entities=extracted_entities,
-        relation=relation["text"],
+    relation = relation_extractor.extract(
+        request.text
+    )
+
+    retrieval = (
+        graph_retriever.retrieve(
+            entities=extracted_entities,
+            relation=relation["text"],
+        )
     )
 
     return {
         "text": request.text,
         "entities": retrieval["entities"],
         "relation": relation,
-        "relationships": retrieval["relationships"],
+        "relationships": retrieval[
+            "relationships"
+        ],
         "facts": retrieval["facts"],
     }

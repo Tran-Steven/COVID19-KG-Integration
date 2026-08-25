@@ -25,6 +25,26 @@ class Neo4jClient:
     def close(self):
         self.driver.close()
 
+    def get_entity_terms(self):
+        query = """
+        MATCH (n:KGEntity)
+
+        RETURN
+            n.id AS id,
+            n.name AS name,
+            coalesce(n.aliases, []) AS aliases
+
+        ORDER BY n.id
+        """
+
+        with self.driver.session() as session:
+            result = session.run(query)
+
+            return [
+                record.data()
+                for record in result
+            ]
+
     def get_entity_context(
         self,
         entity: str,
