@@ -1,0 +1,80 @@
+name: Verification problem
+description: Report an incorrect or unclear Knowledge Graph Check
+title: "[Verification]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve COVID19-KG-Integration. Please do not include private or sensitive information.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: User question
+      description: What question was asked?
+      placeholder: What causes COVID-19?
+    validations:
+      required: true
+
+  - type: textarea
+    id: response
+    attributes:
+      label: ChatGPT response
+      description: Paste the response that was checked.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: displayed-status
+    attributes:
+      label: Displayed verification status
+      options:
+        - SUPPORTED
+        - CONTRADICTED
+        - INSUFFICIENT_EVIDENCE
+        - NOT_VERIFIABLE_WITH_CURRENT_KG
+        - MIXED
+        - NO_FACTUAL_CLAIMS
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What seems wrong?
+      multiple: true
+      options:
+        - Incorrect verification status
+        - Wrong or irrelevant evidence
+        - Missing evidence
+        - Incorrect entity or relation
+        - Question context was misunderstood
+        - Confidence seems misleading
+        - Claim extraction problem
+        - UI or presentation problem
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect the Knowledge Graph Check to show?
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Additional details
+      description: Add screenshots, evidence, source links, or any other useful context.
+
+  - type: checkboxes
+    id: prototype
+    attributes:
+      label: Research prototype
+      options:
+        - label: I understand this project is a research prototype and is not intended for clinical decision-making.
+          required: true

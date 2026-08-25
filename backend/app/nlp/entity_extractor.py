@@ -4,6 +4,16 @@ from app.nlp.kg_entity_matcher import KGEntityMatcher
 
 
 class EntityExtractor:
+    IGNORED_SPACY_TYPES = {
+        "CARDINAL",
+        "ORDINAL",
+        "DATE",
+        "TIME",
+        "MONEY",
+        "PERCENT",
+        "QUANTITY",
+    }
+
     def __init__(
         self,
         nlp: Language,
@@ -22,6 +32,12 @@ class EntityExtractor:
         entities = list(kg_entities)
 
         for entity in doc.ents:
+            if (
+                entity.label_
+                in self.IGNORED_SPACY_TYPES
+            ):
+                continue
+
             if self._overlaps_kg_entity(
                 entity.start_char,
                 entity.end_char,

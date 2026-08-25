@@ -1,0 +1,64 @@
+name: Bug report
+description: Report a problem with the extension, API, setup, or interface
+title: "[Bug]: "
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Browser extension
+        - FastAPI backend
+        - Neo4j / knowledge graph
+        - Data build
+        - Setup / run.sh
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start the project with ...
+        2. Open ...
+        3. Enter ...
+        4. See ...
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 140
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: macOS 26
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Add relevant logs, screenshots, or error output.

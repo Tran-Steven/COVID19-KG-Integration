@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "COVID19-KG-Integration",
   "description": "Integrates COVID-19 knowledge graph evidence into ChatGPT",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "host_permissions": [
     "http://localhost:8000/*",
     "http://127.0.0.1:8000/*",
@@ -37,5 +37,16 @@
     "storage",
     "activeTab",
     "tabs"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "images/icon-32.png"
+      ],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ]
+    }
   ]
 }
