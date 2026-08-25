@@ -8,6 +8,7 @@ from app.augmentation.prompt_augmenter import PromptAugmenter
 from app.database import Neo4jClient
 from app.interpretation.ambiguity_detector import AmbiguityDetector
 from app.interpretation.outcome_resolver import OutcomeResolver
+from app.interpretation.relation_intent_resolver import RelationIntentResolver
 from app.models import (
     AugmentedPromptResponse,
     EntityLinkingResponse,
@@ -56,6 +57,10 @@ relationship_resolver = RelationshipResolver(
 )
 
 outcome_resolver = OutcomeResolver()
+
+relation_intent_resolver = (
+    RelationIntentResolver()
+)
 
 ambiguity_detector = AmbiguityDetector()
 
@@ -228,6 +233,15 @@ def interpret_query(
         request.text
     )
 
+    relation_intent = (
+        relation_intent_resolver.resolve(
+            text=request.text,
+            extracted_relation=relation[
+                "text"
+            ],
+        )
+    )
+
     interpretation = (
         ambiguity_detector.detect(
             text=request.text,
@@ -235,6 +249,10 @@ def interpret_query(
             outcomes=outcomes,
         )
     )
+
+    interpretation[
+        "relationIntent"
+    ] = relation_intent
 
     return {
         "text": request.text,

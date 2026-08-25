@@ -125,10 +125,18 @@ class ResolvedOutcome(BaseModel):
     matchedText: str
 
 
+class ResolvedRelationIntent(BaseModel):
+    intent: str
+    direction: str | None
+    matchedText: str | None
+    specific: bool
+
+
 class QueryInterpretation(BaseModel):
     ambiguous: bool
     broadRelation: bool
     outcomes: list[ResolvedOutcome]
+    relationIntent: ResolvedRelationIntent
     ambiguities: list[QueryAmbiguity]
 
 
