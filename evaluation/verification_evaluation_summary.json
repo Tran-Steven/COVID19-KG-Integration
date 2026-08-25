@@ -1,0 +1,283 @@
+{
+  "title": "COVID-19 KG verification evaluation summary",
+  "comparisonType": "system_evolution_across_distinct_holdouts",
+  "pairedComparison": false,
+  "independentExternalEvaluation": false,
+  "stages": [
+    {
+      "id": "initial_holdout",
+      "label": "Initial frozen holdout",
+      "systemStage": "Pre-targeted verification refinements",
+      "benchmark": "end_to_end_verification_holdout_v1",
+      "evaluationType": "fresh_holdout_first_run",
+      "generalizationEstimate": true,
+      "sourceResults": "evaluation/end_to_end_verification_holdout_initial_results.json",
+      "caseAccuracy": {
+        "passed": 25,
+        "total": 60,
+        "accuracy": 0.4166666666666667
+      },
+      "caseAccuracyWilson95": {
+        "lower": 0.30064086487871833,
+        "upper": 0.5427214568676039
+      },
+      "statusAccuracy": {
+        "passed": 31,
+        "total": 66,
+        "accuracy": 0.4696969696969697
+      },
+      "routeAccuracy": {
+        "passed": 43,
+        "total": 66,
+        "accuracy": 0.6515151515151515
+      },
+      "claimExtraction": {
+        "matched": 16,
+        "expected": 18,
+        "actual": 17,
+        "precision": 0.9411764705882353,
+        "recall": 0.8888888888888888,
+        "f1": 0.9142857142857143
+      },
+      "questionContextAccuracy": {
+        "passed": 12,
+        "total": 18,
+        "accuracy": 0.6666666666666666
+      },
+      "responseSummaryStatusAccuracy": {
+        "passed": 7,
+        "total": 12,
+        "accuracy": 0.5833333333333334
+      },
+      "responseGroundingScoreAccuracy": {
+        "passed": 7,
+        "total": 12,
+        "accuracy": 0.5833333333333334
+      },
+      "responseCoverageRatioAccuracy": {
+        "passed": 6,
+        "total": 12,
+        "accuracy": 0.5
+      },
+      "confidenceDiagnostics": {
+        "calibrated": false,
+        "meanConfidenceWhenCorrect": 0.8162580645161291,
+        "meanConfidenceWhenIncorrect": 0.48354545454545456
+      },
+      "notes": [
+        "First recorded evaluation on the 60-case unseen holdout.",
+        "Labels were defined before the first recorded run.",
+        "The available development transcript does not independently establish that the benchmark file was committed to Git before execution.",
+        "The benchmark was internally authored rather than independently constructed by an external evaluator."
+      ]
+    },
+    {
+      "id": "final_holdout_v1",
+      "label": "Fresh 80-case holdout",
+      "systemStage": "After targeted claim, history, response, and treatment verification refinements",
+      "benchmark": "end_to_end_verification_final_holdout_v1",
+      "evaluationType": "fresh_holdout_first_run",
+      "generalizationEstimate": true,
+      "sourceResults": "evaluation/end_to_end_verification_final_holdout_results.json",
+      "caseAccuracy": {
+        "passed": 56,
+        "total": 80,
+        "accuracy": 0.7
+      },
+      "caseAccuracyWilson95": {
+        "lower": 0.5923163971203269,
+        "upper": 0.789355708373843
+      },
+      "statusAccuracy": {
+        "passed": 65,
+        "total": 87,
+        "accuracy": 0.7471264367816092
+      },
+      "routeAccuracy": {
+        "passed": 72,
+        "total": 87,
+        "accuracy": 0.8275862068965517
+      },
+      "claimExtraction": {
+        "matched": 16,
+        "expected": 19,
+        "actual": 18,
+        "precision": 0.8888888888888888,
+        "recall": 0.8421052631578947,
+        "f1": 0.8648648648648649
+      },
+      "questionContextAccuracy": {
+        "passed": 14,
+        "total": 19,
+        "accuracy": 0.7368421052631579
+      },
+      "responseSummaryStatusAccuracy": {
+        "passed": 8,
+        "total": 12,
+        "accuracy": 0.6666666666666666
+      },
+      "responseGroundingScoreAccuracy": {
+        "passed": 7,
+        "total": 12,
+        "accuracy": 0.5833333333333334
+      },
+      "responseCoverageRatioAccuracy": {
+        "passed": 8,
+        "total": 12,
+        "accuracy": 0.6666666666666666
+      },
+      "confidenceDiagnostics": {
+        "calibrated": false,
+        "meanConfidenceWhenCorrect": 0.7971230769230769,
+        "meanConfidenceWhenIncorrect": 0.5290526315789473
+      },
+      "notes": [
+        "Fresh 80-case holdout evaluated before the subsequent semantic-normalization and proposition-level development work.",
+        "The benchmark was internally authored with knowledge of the target system capabilities.",
+        "After this first run, its failures were observed and used to guide later development, so later executions of the same set would not be blind."
+      ]
+    },
+    {
+      "id": "blind_v2",
+      "label": "Blind holdout v2",
+      "systemStage": "After generalized deterministic routing, origin qualifiers, and response extraction",
+      "benchmark": "end_to_end_verification_blind_v2",
+      "evaluationType": "fresh_frozen_holdout_first_run",
+      "generalizationEstimate": true,
+      "sourceResults": "evaluation/end_to_end_verification_blind_v2_results.json",
+      "caseAccuracy": {
+        "passed": 71,
+        "total": 100,
+        "accuracy": 0.71
+      },
+      "caseAccuracyWilson95": {
+        "lower": 0.6146092505999206,
+        "upper": 0.7898529302601586
+      },
+      "statusAccuracy": {
+        "passed": 84,
+        "total": 111,
+        "accuracy": 0.7567567567567568
+      },
+      "routeAccuracy": {
+        "passed": 105,
+        "total": 111,
+        "accuracy": 0.9459459459459459
+      },
+      "claimExtraction": {
+        "matched": 31,
+        "expected": 31,
+        "actual": 31,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "questionContextAccuracy": {
+        "passed": 30,
+        "total": 31,
+        "accuracy": 0.967741935483871
+      },
+      "responseSummaryStatusAccuracy": {
+        "passed": 17,
+        "total": 20,
+        "accuracy": 0.85
+      },
+      "responseGroundingScoreAccuracy": {
+        "passed": 17,
+        "total": 20,
+        "accuracy": 0.85
+      },
+      "responseCoverageRatioAccuracy": {
+        "passed": 20,
+        "total": 20,
+        "accuracy": 1.0
+      },
+      "confidenceDiagnostics": {
+        "calibrated": false,
+        "meanConfidenceWhenCorrect": 0.8570357142857142,
+        "meanConfidenceWhenIncorrect": 0.697
+      },
+      "notes": [
+        "Fresh 100-case frozen holdout evaluated after deterministic semantic-routing, origin-qualifier, and response-extraction improvements.",
+        "The implementation was not tuned using the results before the reported first-run score.",
+        "The benchmark was internally authored and is not an independent third-party evaluation."
+      ]
+    },
+    {
+      "id": "blind_v3",
+      "label": "Blind holdout v3",
+      "systemStage": "After embedding-based semantic fallbacks and proposition-level origin matching",
+      "benchmark": "end_to_end_verification_blind_v3",
+      "evaluationType": "fresh_frozen_holdout_first_run",
+      "generalizationEstimate": true,
+      "sourceResults": "evaluation/end_to_end_verification_blind_v3_results.json",
+      "caseAccuracy": {
+        "passed": 79,
+        "total": 100,
+        "accuracy": 0.79
+      },
+      "caseAccuracyWilson95": {
+        "lower": 0.7001985069803768,
+        "upper": 0.8583445046835422
+      },
+      "statusAccuracy": {
+        "passed": 89,
+        "total": 108,
+        "accuracy": 0.8240740740740741
+      },
+      "routeAccuracy": {
+        "passed": 102,
+        "total": 108,
+        "accuracy": 0.9444444444444444
+      },
+      "claimExtraction": {
+        "matched": 27,
+        "expected": 28,
+        "actual": 29,
+        "precision": 0.9310344827586207,
+        "recall": 0.9642857142857143,
+        "f1": 0.9473684210526316
+      },
+      "questionContextAccuracy": {
+        "passed": 25,
+        "total": 28,
+        "accuracy": 0.8928571428571429
+      },
+      "responseSummaryStatusAccuracy": {
+        "passed": 17,
+        "total": 20,
+        "accuracy": 0.85
+      },
+      "responseGroundingScoreAccuracy": {
+        "passed": 17,
+        "total": 20,
+        "accuracy": 0.85
+      },
+      "responseCoverageRatioAccuracy": {
+        "passed": 19,
+        "total": 20,
+        "accuracy": 0.95
+      },
+      "confidenceDiagnostics": {
+        "calibrated": false,
+        "meanConfidenceWhenCorrect": 0.8767191011235955,
+        "meanConfidenceWhenIncorrect": 0.8346111111111111
+      },
+      "notes": [
+        "Fresh 100-case frozen holdout containing 80 direct claim cases and 20 response-level cases.",
+        "The benchmark was committed before its first execution against the frozen semantic-fallback implementation.",
+        "The benchmark generator rejected exact atomic-claim overlap with prior evaluation sets before freezing.",
+        "The benchmark was internally authored and therefore does not constitute an independent third-party evaluation."
+      ],
+      "implementationCommit": "38a254667e92aa8bbffe9f0220b4d42f057240a4",
+      "benchmarkCommit": "f51534ee57ba21b7a08fbe2c4e176b1c8b13f7e4",
+      "benchmarkSha256": "b2e9b2e93099cf34ad683e451520bcfb531ed84c8a5e4a7f17179aa785a40884"
+    }
+  ],
+  "reportingConstraints": [
+    "Do not describe development-set performance as blind generalization.",
+    "Do not describe a holdout as blind after its failures have been inspected and used for tuning.",
+    "Do not claim statistical significance for differences across distinct internally authored holdouts without additional analysis.",
+    "Do not interpret confidence scores as truth probabilities."
+  ]
+}
