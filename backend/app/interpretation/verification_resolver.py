@@ -997,6 +997,24 @@ class VerificationResolver:
                     method="relationship",
                 )
 
+            if self._is_unrelated_claim(
+                text
+            ):
+                return self._result(
+                    status=self.CONTRADICTED,
+                    reason=(
+                        "The claim explicitly "
+                        "denies a relationship "
+                        "that is directly "
+                        "supported by retrieved "
+                        "knowledge graph evidence."
+                    ),
+                    evidence_count=len(
+                        facts
+                    ),
+                    method="relationship",
+                )
+
             if self._is_negated_claim(
                 text
             ):
@@ -1521,6 +1539,24 @@ class VerificationResolver:
                     r"|n['’]t\b"
                 ),
                 normalized,
+            )
+        )
+
+    def _is_unrelated_claim(
+        self,
+        text: str,
+    ):
+        normalized = self._normalize(
+            text
+        )
+
+        return any(
+            value in normalized
+            for value in (
+                "unrelated to",
+                "not related to",
+                "no relationship to",
+                "no relation to",
             )
         )
 
