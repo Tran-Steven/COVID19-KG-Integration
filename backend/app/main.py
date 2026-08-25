@@ -31,7 +31,7 @@ from app.retrieval.graph_retriever import GraphRetriever
 from app.retrieval.relationship_resolver import RelationshipResolver
 
 
-nlp = spacy.load("en_core_web_md")
+nlp = spacy.load("en_core_web_sm")
 
 neo4j_client = Neo4jClient()
 
@@ -65,9 +65,7 @@ relation_intent_resolver = (
 )
 
 semantic_interpreter = (
-    SemanticInterpreter(
-        nlp
-    )
+    SemanticInterpreter()
 )
 
 direction_resolver = (
@@ -247,6 +245,10 @@ def interpret_query(
         request.text
     )
 
+    direction = direction_resolver.resolve(
+        request.text
+    )
+
     relation_intent = (
         relation_intent_resolver.resolve(
             text=request.text,
@@ -255,6 +257,21 @@ def interpret_query(
             ],
         )
     )
+
+    if (
+        relation_intent["intent"]
+        == "unknown"
+        and direction is not None
+        and outcomes
+    ):
+        relation_intent = {
+            "intent": "risk_modifier",
+            "direction": direction,
+            "matchedText": None,
+            "specific": True,
+            "method": "composed",
+            "score": None,
+        }
 
     if (
         relation_intent["intent"]
@@ -314,17 +331,26 @@ def interpret_query(
         and relation_intent[
             "direction"
         ] is None
+        and direction is not None
     ):
-        direction = (
-            direction_resolver.resolve(
-                request.text
-            )
-        )
+        relation_intent[
+            "direction"
+        ] = direction
 
-        if direction:
-            relation_intent[
-                "direction"
-            ] = direction
+    if (
+        relation_intent["intent"]
+        == "unknown"
+        and direction is not None
+        and outcomes
+    ):
+        relation_intent = {
+            "intent": "risk_modifier",
+            "direction": direction,
+            "matchedText": None,
+            "specific": True,
+            "method": "composed",
+            "score": None,
+        }
 
     interpretation = (
         ambiguity_detector.detect(
