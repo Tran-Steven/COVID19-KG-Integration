@@ -6,43 +6,141 @@
 
 A provenance-aware knowledge-graph system for grounding and verifying factual COVID-19 information in Large Language Model responses.
 
-This project was developed through the Neuro-Symbolic Computing Research Lab at the University of Georgia.
+Developed through the **Neuro-Symbolic Computing Research Lab** at the University of Georgia.
 
-## Authors
+## Quick Start
 
-- Steven Tran
-- Khoa Le
-- Tushar Mishra
-- Owen Na
-- I. Budak Arpinar
+### Requirements
 
-**Neuro-Symbolic Computing Research Lab**  
-School of Computing  
-University of Georgia  
-Athens, Georgia 30602-7404, USA
+- Docker Desktop
+- Python 3.10+
+- Internet connection for the initial knowledge-graph build
+
+Clone the repository and run:
+
+```bash
+git clone https://github.com/Tran-Steven/COVID19-KG-Integration.git
+cd COVID19-KG-Integration
+./run.sh
+```
+
+That's it.
+
+The first run builds the knowledge graph, starts Neo4j, imports the graph, builds the API, and starts the verification backend.
+
+Later runs reuse the generated knowledge graph and start much faster.
+
+When setup finishes:
+
+```text
+API:        http://localhost:8000
+API docs:   http://localhost:8000/docs
+Neo4j:      http://localhost:7474
+```
+
+Verify the backend:
+
+```bash
+curl -s http://localhost:8000/health
+```
+
+Expected:
+
+```json
+{"status":"ok"}
+```
+
+### Stop the System
+
+```bash
+./run.sh --stop
+```
+
+### Rebuild the Knowledge Graph
+
+To discard locally generated graph data and rebuild from the source datasets:
+
+```bash
+./run.sh --refresh-data
+```
+
+### Help
+
+```bash
+./run.sh --help
+```
+
+## Browser Extension
+
+After running `./run.sh`:
+
+1. Open `chrome://extensions`
+2. Enable **Developer mode**
+3. Select **Load unpacked**
+4. Select the root `COVID19-KG-Integration` directory
+
+The extension integrates knowledge-graph grounding with ChatGPT.
+
+Chrome requires unpacked extensions to be loaded manually, so this is the only part of setup that is not performed by `./run.sh`.
+
+## What `run.sh` Does
+
+On a fresh installation, the launcher automatically:
+
+1. Checks Docker and Python
+2. Creates a local Python virtual environment
+3. Installs data-processing dependencies
+4. Downloads the Monarch Knowledge Graph
+5. Extracts the COVID-19 Monarch subgraph
+6. Builds the ChEMBL COVID-19 graph
+7. Downloads and transforms the WHO COVID-19 timeline
+8. Builds WHO historical evidence
+9. Builds the unified WHO COVID-19 evidence graph
+10. Merges all graph sources
+11. Starts Neo4j
+12. Imports the merged graph
+13. Builds and starts the FastAPI backend
+14. Waits until the API is healthy
+
+Individual scripts remain available for reproducibility and development, but they are not required for normal setup.
 
 ## Project Overview
 
-Large Language Models can generate fluent answers while still producing unsupported, outdated, or incorrect factual claims. This project investigates whether a provenance-aware COVID-19 knowledge graph can provide structured external evidence for verifying those claims.
+Large Language Models can produce fluent responses while still generating unsupported, outdated, or incorrect factual claims.
 
-The system integrates biomedical and public-health evidence from:
+This project investigates whether a provenance-aware COVID-19 knowledge graph can provide structured external evidence for grounding and verifying those claims.
+
+The system integrates information from:
 
 - World Health Organization
 - ChEMBL
 - Monarch Initiative
 
-LLM responses can be decomposed into individual factual claims. Each claim is interpreted, routed to an appropriate evidence pathway, checked against the knowledge graph, and assigned one of four verification outcomes:
+Language-model responses are decomposed into individual factual claims. Each claim is semantically interpreted, routed to an appropriate evidence source, checked against the graph, and assigned a verification outcome.
 
-- `SUPPORTED`
-- `CONTRADICTED`
-- `INSUFFICIENT_EVIDENCE`
-- `NOT_VERIFIABLE_WITH_CURRENT_KG`
+## Verification Outcomes
 
-The system intentionally distinguishes missing evidence from contradictory evidence. A claim is not considered false merely because the current graph does not contain evidence supporting it.
+### `SUPPORTED`
+
+The available knowledge-graph evidence supports the interpreted proposition.
+
+### `CONTRADICTED`
+
+The available evidence conflicts with the proposition expressed by the claim.
+
+### `INSUFFICIENT_EVIDENCE`
+
+The claim falls within a modeled evidence domain, but the available evidence is not sufficient to support or contradict the proposition.
+
+### `NOT_VERIFIABLE_WITH_CURRENT_KG`
+
+The proposition cannot currently be evaluated using the concepts and relationships represented by the graph.
+
+The system intentionally distinguishes missing evidence from contradictory evidence.
+
+Absence of supporting evidence is not automatically treated as proof that a claim is false.
 
 ## System Architecture
-
-The verification pipeline is:
 
 ```text
 User Question / LLM Response
@@ -76,51 +174,58 @@ User Question / LLM Response
    Response-Level Aggregation
 ```
 
-Deterministic semantic rules are attempted first. When deterministic interpretation is insufficient, the final system uses embedding-based semantic fallbacks and constrained reranking.
+Deterministic semantic interpretation is attempted first.
 
-The semantic matcher uses:
+When deterministic rules cannot reliably resolve a claim, the final system uses embedding-based semantic fallbacks and constrained reranking.
+
+Semantic models:
 
 - `BAAI/bge-small-en-v1.5`
 - `Xenova/ms-marco-MiniLM-L-6-v2`
-
-The semantic layer is especially important for distinguishing propositions involving uncertainty, evidentiary support, treatment semantics, biological causation, and SARS-CoV-2 origin hypotheses.
 
 ## Knowledge Graph
 
 ### Monarch Initiative
 
-The Monarch Initiative provides biomedical entities and general disease relationships.
+The Monarch subgraph is centered on:
 
-The project downloads the Monarch Knowledge Graph and extracts a COVID-19-centered subgraph around:
+```text
+MONDO:0100096
+COVID-19
 
-- `MONDO:0100096` — COVID-19
-- `NCBITaxon:2697049` — SARS-CoV-2
+NCBITaxon:2697049
+SARS-CoV-2
+```
 
-The final one-hop Monarch slice contains:
+Final extracted slice:
 
-- 16 nodes
-- 22 edges
+```text
+16 nodes
+22 edges
+```
 
 ### ChEMBL
 
-ChEMBL provides structured COVID-19 drug-indication information.
+The ChEMBL COVID-19 graph contains:
 
-The generated COVID-19 slice contains:
+```text
+552 nodes
+590 edges
+```
 
-- 552 nodes
-- 590 edges
+Drug-indication records are represented using separate relations:
 
-Indication records are mapped into distinct predicates:
+```text
+Phase 4       -> biolink:treats
+Phase 1-3     -> biolink:in_clinical_trials_for
+Unknown phase -> biolink:studied_to_treat
+```
 
-- Phase 4 → `biolink:treats`
-- Phase 1–3 → `biolink:in_clinical_trials_for`
-- Unknown phase → `biolink:studied_to_treat`
-
-This mapping preserves the distinction between treatment relations and clinical-trial evidence.
+This preserves the distinction between treatment relations and clinical-trial evidence.
 
 ### World Health Organization
 
-WHO evidence expands coverage beyond biomedical graph relations into areas including:
+The WHO evidence graph covers areas including:
 
 - COVID-19 disease basics
 - Transmission
@@ -131,86 +236,85 @@ WHO evidence expands coverage beyond biomedical graph relations into areas inclu
 - COVID-19 history
 - SARS-CoV-2 origin assessments
 
-The final WHO graph contains:
+Final WHO graph:
 
-- 178 nodes
-- 322 edges
-- 145 source-backed evidence statements
-
-WHO source files and metadata retain provenance information such as source URL, source date, retrieval metadata, and SHA-256 digests.
+```text
+178 nodes
+322 edges
+145 source-backed evidence statements
+```
 
 ### Merged Graph
 
-The final merged COVID-19 knowledge graph contains:
+The final merged graph contains:
 
-- 742 nodes
-- 934 edges
+```text
+742 nodes
+934 edges
+```
 
-Shared canonical entities are merged while separate source assertions and provenance are preserved.
+Assertions retain source and provenance information during retrieval.
 
-## SARS-CoV-2 Origin Representation
+## SARS-CoV-2 Origin Evidence
 
-Origin evidence is not represented as a simple binary claim.
+Origin evidence is represented as scientific assessments rather than a binary origin label.
 
-The WHO SAGO assessment is modeled using separate hypotheses and evidence states, including:
+The graph preserves separate conclusions including:
 
-- Natural zoonotic spillover as the hypothesis best supported by the available scientific evidence
-- A laboratory-related event as neither proven nor ruled out with the available information
-- No additional supporting evidence for a cold-chain introduction hypothesis
-- No scientific evidence supporting deliberate laboratory manipulation over natural processes
-- Overall SARS-CoV-2 origin remaining inconclusive pending additional information or scientific data
+- Natural zoonotic spillover is the hypothesis best supported by the available scientific evidence
+- A laboratory-related event cannot currently be proven or ruled out
+- No additional evidence supports a cold-chain introduction hypothesis
+- No scientific evidence supports deliberate laboratory manipulation over natural processes
+- The overall origin remains inconclusive pending additional information or scientific data
 
-This representation preserves scientific uncertainty rather than flattening it into a binary conclusion.
-
-## Claim Verification
-
-For each interpreted factual claim, the verifier produces one of four statuses.
-
-### `SUPPORTED`
-
-The available knowledge-graph evidence supports the interpreted proposition.
-
-### `CONTRADICTED`
-
-The available evidence conflicts with the proposition expressed by the claim.
-
-### `INSUFFICIENT_EVIDENCE`
-
-The claim falls within a modeled evidence domain, but the current evidence is not sufficient to support or contradict the requested proposition.
-
-### `NOT_VERIFIABLE_WITH_CURRENT_KG`
-
-The requested proposition cannot be evaluated using the concepts and relationships represented by the current graph.
+This allows the verifier to preserve uncertainty rather than converting evolving scientific assessments into unsupported binary claims.
 
 ## Response Verification
 
-The `/kg/verify-response` endpoint verifies LLM responses at the individual-claim level.
-
-The response verifier:
-
-1. Extracts factual claims from the response
-2. Verifies each claim independently
-3. Uses the original question as context when necessary
-4. Preserves each claim's verification result
-5. Produces an aggregate response summary
-
-A response can therefore contain a mixture of supported, contradicted, insufficiently evidenced, and currently unverifiable claims.
-
-The response grounding score is defined as:
+The backend exposes response-level verification through:
 
 ```text
-SUPPORTED factual claims / total extracted factual claims
+POST /kg/verify-response
+```
+
+A response is decomposed into factual claims and each claim is independently verified.
+
+This allows one response to contain a mixture of:
+
+```text
+SUPPORTED
+CONTRADICTED
+INSUFFICIENT_EVIDENCE
+NOT_VERIFIABLE_WITH_CURRENT_KG
+```
+
+The original user question may also be used as context when a response contains references such as:
+
+```text
+it
+that condition
+this treatment
+```
+
+## Grounding Score
+
+The response grounding score is:
+
+```text
+SUPPORTED factual claims
+------------------------
+total factual claims
 ```
 
 The knowledge-graph coverage ratio is:
 
 ```text
-claims receiving SUPPORTED, CONTRADICTED, or INSUFFICIENT_EVIDENCE
------------------------------------------------------------------
-                  total extracted factual claims
+SUPPORTED + CONTRADICTED + INSUFFICIENT_EVIDENCE claims
+-------------------------------------------------------
+                  total factual claims
 ```
 
-Neither value is interpreted as the probability that the entire response is correct.
+These values are not probabilities that the response is correct.
 
 ## Evidence-Grounding Confidence
 
@@ -228,15 +332,13 @@ The score combines:
 | Source diversity | 0.15 |
 | Recency | 0.05 |
 
-The confidence score is explicitly uncalibrated.
+The confidence score is explicitly **uncalibrated**.
 
-It represents the strength of the evidence-grounding process, not the probability that a claim is true or that the verification decision is correct.
+It measures characteristics of the evidence-grounding process rather than the probability that a factual claim is true.
 
 ## Evaluation
 
-The final development regression benchmark reached 100%, but development cases were repeatedly used during implementation and are not treated as a generalization estimate.
-
-Fresh holdout evaluations were used throughout development:
+The final system was evaluated using frozen holdout benchmarks separate from the development regression cases.
 
 | Evaluation | Case Accuracy | Status Accuracy | Route Accuracy |
 | --- | ---: | ---: | ---: |
@@ -245,18 +347,21 @@ Fresh holdout evaluations were used throughout development:
 | Blind holdout v2 | 71.0% | 75.7% | 94.6% |
 | Blind holdout v3 | **79.0%** | **82.4%** | **94.4%** |
 
-Blind holdout v3 contains 100 cases:
+The final blind-v3 benchmark contains:
 
-- 80 direct factual-claim cases
-- 20 response-level cases
+```text
+100 total cases
+80 direct claim cases
+20 response-level cases
+```
 
 The benchmark was frozen before its first execution against the final semantic-verification implementation.
 
-All evaluation benchmarks were internally authored and should not be interpreted as independent third-party evaluations.
+The benchmarks were internally authored and are not independent third-party evaluations.
 
 ## Semantic Verification Ablation
 
-A retrospective paired ablation compared a historical deterministic-only checkpoint with the final semantic-verification system on the same frozen blind-v3 benchmark.
+A retrospective paired comparison evaluated a historical deterministic configuration and the semantic-verification configuration on the same frozen 100-case benchmark.
 
 | Metric | Deterministic | Semantic | Difference |
 | --- | ---: | ---: | ---: |
@@ -268,47 +373,38 @@ A retrospective paired ablation compared a historical deterministic-only checkpo
 | Grounding score | 60.0% | 85.0% | +25.0 pp |
 | Coverage ratio | 75.0% | 95.0% | +20.0 pp |
 
-Paired outcomes:
+Paired case outcomes:
 
-- Correct under both configurations: 52
-- Correct only with semantic verification: 27
-- Correct only with deterministic verification: 1
-- Incorrect under both configurations: 20
+```text
+Correct under both:             52
+Correct only with semantic:     27
+Correct only with deterministic: 1
+Incorrect under both:           20
+```
 
 An exact two-sided McNemar test over the 28 discordant cases produced:
 
 ```text
-p = 2.1606684 × 10^-7
+p = 2.1606684 x 10^-7
 ```
 
-Because the benchmark is internally authored, this statistical result should be interpreted as a within-benchmark comparison rather than evidence of population-wide performance.
-
-The comparison is an ablation of the integrated semantic-verification package, not the embedding model alone.
+The comparison measures the integrated semantic-verification package rather than the embedding model alone.
 
 ## Remaining Error Patterns
 
-The final blind-v3 evaluation contained 21 failed cases.
+Blind-v3 contained 21 failed cases.
 
-The primary failure categories were:
+The largest remaining error groups were:
 
-| Failure Type | Cases |
+| Error Type | Cases |
 | --- | ---: |
 | Negation or polarity | 4 |
 | Proposition/entity mismatch | 3 |
 | State-change polarity | 3 |
 | Scope or domain overreach | 2 |
 | Historical routing | 2 |
-| Exclusivity or quantifier semantics | 1 |
-| Treatment overclaim scope | 1 |
-| Uncertainty entailment | 1 |
-| Context-usage mismatch | 1 |
-| Claim extraction | 1 |
-| Contextual reference resolution | 1 |
-| Certainty-overclaim semantics | 1 |
 
-The final system therefore performs substantially better at identifying the correct evidence domain than at resolving every fine-grained natural-language proposition.
-
-Current limitations are concentrated in areas such as:
+Remaining limitations are concentrated in fine-grained semantic phenomena such as:
 
 - Negation
 - Entity identity
@@ -318,226 +414,90 @@ Current limitations are concentrated in areas such as:
 - Contextual references
 - Logical entailment
 
-## Repository Structure
+## API
 
-```text
-backend/
-    app/
-        augmentation/
-        ingestion/
-        interpretation/
-        nlp/
-        retrieval/
-    import_kg.py
-
-evaluation/
-    benchmark definitions
-    frozen result files
-    error analyses
-    system-evolution summaries
-    ablation results
-    paper drafts
-
-resources/
-    source-specific graph data
-    merged COVID-19 graph
-
-scripts/
-    graph acquisition and construction
-    source auditing
-    regression checks
-    end-to-end evaluation
-    evaluation analysis
-
-background.js
-contentScript.js
-manifest.json
-popup/
-docker-compose.yml
-```
-
-## Requirements
-
-### Runtime
-
-- Docker
-- Docker Compose
-- Neo4j 5
-- Python 3
-
-The backend container installs:
-
-- FastAPI
-- Uvicorn
-- Neo4j Python driver
-- Pydantic
-- spaCy
-- FastEmbed
-- NumPy
-
-### Data Construction
-
-Install the additional data-processing dependencies:
+After running:
 
 ```bash
-python3 -m pip install -r requirements-data.txt
+./run.sh
 ```
 
-## Building the Knowledge Graph
+FastAPI documentation is available at:
 
-### 1. Download Monarch
+```text
+http://localhost:8000/docs
+```
 
-The full Monarch graph is large and is not stored directly in this repository.
+Major backend functionality includes:
+
+- Factual claim extraction
+- Entity extraction and linking
+- Relation interpretation
+- Semantic interpretation
+- WHO evidence retrieval
+- Historical evidence retrieval
+- General graph retrieval
+- Prompt grounding
+- Prompt augmentation
+- Response-level verification
+- Evidence-grounding confidence
+
+## Manual Data Pipeline
+
+Normal users should use:
+
+```bash
+./run.sh
+```
+
+The individual commands below are provided for research reproducibility.
+
+### Monarch
 
 ```bash
 python3 scripts/download_kg.py
-```
-
-This downloads and extracts the current Monarch KG into:
-
-```text
-resources/monarch-kg/
-```
-
-### 2. Extract the COVID-19 Monarch Subgraph
-
-```bash
 python3 scripts/extract_covid_subgraph.py
 ```
 
-Output:
-
-```text
-resources/monarch-covid/
-```
-
-### 3. Build the ChEMBL COVID-19 Graph
+### ChEMBL
 
 ```bash
 python3 scripts/download_chembl_covid.py
 ```
 
-Output:
-
-```text
-resources/chembl-covid/
-```
-
-### 4. Build WHO Historical Evidence
+### WHO Timeline and History
 
 ```bash
+python3 scripts/download_who_covid_timeline.py
+python3 scripts/transform_who_covid_timeline.py
 python3 scripts/build_who_covid_history.py
 ```
 
-### 5. Build the WHO COVID-19 Graph
+### WHO Evidence Graph
 
 ```bash
 python3 scripts/build_who_covid_kg.py
 ```
 
-Output:
-
-```text
-resources/who-covid-kg/
-```
-
-### 6. Merge the Graphs
+### Merge
 
 ```bash
 python3 scripts/merge_covid_kg.py
 ```
 
-Output:
-
-```text
-resources/covid-kg/
-```
-
-The merged directory contains the node and edge TSV files used by Neo4j.
-
-## Running the System
-
-Build and start Neo4j and the API:
+### Neo4j Import
 
 ```bash
-docker compose up -d --build
-```
-
-Verify that the containers are running:
-
-```bash
-docker compose ps
-```
-
-Import the generated graph into Neo4j:
-
-```bash
-docker compose exec api \
+docker compose run --rm api \
   python import_kg.py \
   --nodes /data/covid-kg/nodes.tsv \
   --edges /data/covid-kg/edges.tsv \
   --clear
 ```
 
-Verify API health:
-
-```bash
-curl -s http://localhost:8000/health
-```
-
-Expected response:
-
-```json
-{"status":"ok"}
-```
-
-## API
-
-The backend is available by default at:
-
-```text
-http://localhost:8000
-```
-
-Interactive FastAPI documentation is available at:
-
-```text
-http://localhost:8000/docs
-```
-
-Major functionality includes:
-
-- NLP and entity extraction
-- Entity linking
-- Semantic interpretation
-- Graph retrieval
-- WHO evidence retrieval
-- Historical evidence retrieval
-- Prompt grounding
-- Prompt augmentation
-- Response-level claim verification
-
-## Browser Extension
-
-The repository also contains a Chrome extension for integrating the knowledge graph with ChatGPT.
-
-To load the extension:
-
-1. Start the backend and Neo4j services.
-2. Open `chrome://extensions`.
-3. Enable **Developer mode**.
-4. Select **Load unpacked**.
-5. Select the root directory of this repository.
-
-The extension can retrieve grounding context for ChatGPT queries and augment the current prompt with knowledge-graph evidence.
-
-The response-level verification system is implemented in the backend and evaluated through the API. The current extension should not be interpreted as a complete user-facing implementation of every verification feature.
-
 ## Reproducing the Final Evaluation
 
-Start the API and ensure the merged graph has been imported.
-
-Then run:
+With the API running:
 
 ```bash
 python3 scripts/evaluate_end_to_end_verification.py \
@@ -545,17 +505,9 @@ python3 scripts/evaluate_end_to_end_verification.py \
   --output /tmp/end_to_end_verification_blind_v3_reproduction.json
 ```
 
-The preserved first-run blind-v3 result is stored separately in the repository.
+The preserved result in the repository is the original frozen first-run result.
 
-A new execution is a reproduction of the benchmark and should not be described as a new blind evaluation.
-
-Evaluation analysis can be regenerated with:
-
-```bash
-python3 scripts/analyze_verification_failures.py
-
-python3 scripts/build_evaluation_summary.py
-```
+Any later execution should be described as a reproduction rather than a new blind evaluation.
 
 ## Reproducibility Checkpoints
 
@@ -577,26 +529,55 @@ Blind-v3 benchmark SHA-256:
 b2e9b2e93099cf34ad683e451520bcfb531ed84c8a5e4a7f17179aa785a40884
 ```
 
-Historical deterministic checkpoint used for the retrospective ablation:
+Historical deterministic ablation checkpoint:
 
 ```text
 0a2f07cfe2a5b599c5a3662eb61967a272720c45
 ```
 
+## Repository Structure
+
+```text
+backend/
+    FastAPI verification backend
+
+evaluation/
+    benchmarks, results, analyses, and paper drafts
+
+resources/
+    source and generated knowledge-graph data
+
+scripts/
+    data construction, validation, and evaluation scripts
+
+popup/
+    browser-extension interface
+
+run.sh
+    one-command setup and launcher
+```
+
 ## Research Notes
 
-Additional project documentation and research notes are available on the project Notion page:
+Additional research notes are available on the project Notion page:
 
 https://steven-tran.notion.site/Enhancing-COVID-19-Information-Verification-in-Large-Language-Models-via-Knowledge-Graphs-253089fcc6cf46009055aecd91f074bb
 
+## Authors
+
+Steven Tran  
+Khoa Le  
+Tushar Mishra  
+Owen Na  
+I. Budak Arpinar
+
+**Neuro-Symbolic Computing Research Lab**  
+School of Computing  
+University of Georgia  
+Athens, Georgia 30602-7404, USA
+
 ## Limitations
 
-This project should not be interpreted as a clinical decision-support system.
+This project is a research prototype and should not be interpreted as a clinical decision-support system.
 
-The knowledge graph is intentionally incomplete, the verification benchmarks are internally authored, and the confidence score is not calibrated as a probability of factual correctness.
-
-The system is a research prototype for investigating knowledge-graph grounding and factual verification of COVID-19 information in LLM responses.
-
-## Acknowledgments
-
-This research was conducted through the Neuro-Symbolic Computing Research Lab in the School of Computing at the University of Georgia.
+The knowledge graph is intentionally incomplete, evaluation benchmarks are internally authored, and evidence-grounding confidence is not calibrated as a probability of factual correctness.
