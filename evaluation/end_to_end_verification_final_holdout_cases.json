@@ -1,0 +1,1333 @@
+{
+  "benchmark": "end_to_end_verification_final_holdout_v1",
+  "frozen": true,
+  "purpose": "Final untouched holdout for evaluating generalization of the completed COVID-19 knowledge-graph verification system.",
+  "notes": [
+    "Expected labels were defined before executing this benchmark against the frozen implementation.",
+    "These cases must not be used to tune or modify the implementation.",
+    "Do not change expected labels after observing results unless an annotation is independently demonstrated to be incorrect.",
+    "This benchmark is distinct from the original 60-case holdout used for post-analysis development.",
+    "Confidence values remain heuristic evidence-grounding scores and are not probabilities of factual truth."
+  ],
+  "cases": [
+    {
+      "id": "final_cause_01",
+      "mode": "claim",
+      "category": "cause",
+      "labelBasis": "who",
+      "input": {
+        "text": "What pathogen is responsible for coronavirus disease 2019?"
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_cause_02",
+      "mode": "claim",
+      "category": "cause",
+      "labelBasis": "who",
+      "input": {
+        "text": "SARS-CoV-2 is the causative virus of COVID-19."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_cause_03",
+      "mode": "claim",
+      "category": "cause",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 develops after infection with SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_cause_04",
+      "mode": "claim",
+      "category": "cause",
+      "labelBasis": "who",
+      "input": {
+        "text": "Respiratory syncytial virus causes COVID-19."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_cause_05",
+      "mode": "claim",
+      "category": "cause",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 is not caused by SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+
+    {
+      "id": "final_transmission_01",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 can spread more easily in poorly ventilated indoor rooms."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_transmission_02",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "Infectious respiratory particles can carry COVID-19 from one person to another."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_transmission_03",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 cannot be transmitted through airborne respiratory particles."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_transmission_04",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "Contact with a contaminated surface can contribute to COVID-19 transmission."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_transmission_05",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "Contaminated surfaces are the only way COVID-19 spreads."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_transmission_06",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "Crowded indoor settings can increase COVID-19 transmission risk."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_transmission_07",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "Close contact does not increase the chance of catching COVID-19."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_transmission_08",
+      "mode": "claim",
+      "category": "transmission",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 spreads solely through the air."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+
+    {
+      "id": "final_vaccine_01",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID vaccines lower the chance of severe disease."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_vaccine_02",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "Vaccination against COVID-19 helps reduce hospitalization."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_vaccine_03",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 vaccination reduces the risk of death."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_vaccine_04",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID vaccines do not protect against severe disease."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_vaccine_05",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID vaccines guarantee that nobody will be infected."
+      },
+      "expected": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE"
+      }
+    },
+    {
+      "id": "final_vaccine_06",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID vaccines completely stop transmission."
+      },
+      "expected": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE"
+      }
+    },
+    {
+      "id": "final_vaccine_07",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Influenza vaccination prevents severe COVID-19."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      }
+    },
+    {
+      "id": "final_vaccine_08",
+      "mode": "claim",
+      "category": "vaccination",
+      "labelBasis": "who",
+      "input": {
+        "text": "Do COVID-19 vaccines help prevent hospitalization?"
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+
+    {
+      "id": "final_long_covid_01",
+      "mode": "claim",
+      "category": "long_covid",
+      "labelBasis": "who",
+      "input": {
+        "text": "Post-COVID condition can occur after acute COVID-19."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_long_covid_02",
+      "mode": "claim",
+      "category": "long_covid",
+      "labelBasis": "who",
+      "input": {
+        "text": "Long COVID may follow an infection with COVID-19."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_long_covid_03",
+      "mode": "claim",
+      "category": "long_covid",
+      "labelBasis": "who",
+      "input": {
+        "text": "COVID-19 cannot lead to long COVID."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_long_covid_04",
+      "mode": "claim",
+      "category": "long_covid",
+      "labelBasis": "who",
+      "input": {
+        "text": "Long COVID is unrelated to a prior COVID-19 infection."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_long_covid_05",
+      "mode": "claim",
+      "category": "long_covid",
+      "labelBasis": "who",
+      "input": {
+        "text": "Can an acute COVID-19 infection be followed by post-COVID condition?"
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+
+    {
+      "id": "final_risk_01",
+      "mode": "claim",
+      "category": "current_risk",
+      "labelBasis": "who",
+      "input": {
+        "text": "The current WHO global public health risk assessment for COVID-19 is moderate."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_risk_02",
+      "mode": "claim",
+      "category": "current_risk",
+      "labelBasis": "who",
+      "input": {
+        "text": "WHO currently assesses the global COVID-19 public health risk as high."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_risk_03",
+      "mode": "claim",
+      "category": "current_risk",
+      "labelBasis": "who",
+      "input": {
+        "text": "WHO's current global COVID-19 risk assessment is not moderate."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_risk_04",
+      "mode": "claim",
+      "category": "current_risk",
+      "labelBasis": "who",
+      "input": {
+        "text": "What is WHO's current global public health risk level for COVID-19?"
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+
+    {
+      "id": "final_variant_01",
+      "mode": "claim",
+      "category": "variants",
+      "labelBasis": "who",
+      "input": {
+        "text": "What SARS-CoV-2 variants is WHO currently monitoring?"
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_variant_02",
+      "mode": "claim",
+      "category": "variants",
+      "labelBasis": "who",
+      "input": {
+        "text": "WHO is monitoring BA.3.2 as a SARS-CoV-2 variant."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_variant_03",
+      "mode": "claim",
+      "category": "variants",
+      "labelBasis": "who",
+      "input": {
+        "text": "NB.1.8.1 remains under WHO monitoring."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_variant_04",
+      "mode": "claim",
+      "category": "variants",
+      "labelBasis": "who",
+      "input": {
+        "text": "XFG is under monitoring by WHO."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_variant_05",
+      "mode": "claim",
+      "category": "variants",
+      "labelBasis": "who",
+      "input": {
+        "text": "WHO is not monitoring BA.3.2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+
+    {
+      "id": "final_origin_01",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "Zoonotic spillover is currently the best-supported origin hypothesis for SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_origin_02",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "Zoonotic spillover has been proven beyond doubt as the origin of SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE"
+      }
+    },
+    {
+      "id": "final_origin_03",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "A laboratory-related event is impossible as an origin for SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_origin_04",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "Available information cannot prove or exclude a laboratory-related event for SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_origin_05",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "WHO has scientific evidence that deliberate laboratory manipulation is more likely than natural processes."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_origin_06",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "There is strong new evidence for a cold-chain origin of SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_origin_07",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "The origin of SARS-CoV-2 is still unresolved."
+      },
+      "expected": {
+        "route": "who",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_origin_08",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "Researchers know the exact origin of SARS-CoV-2."
+      },
+      "expected": {
+        "route": "who",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_origin_09",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "Was SARS-CoV-2 deliberately engineered in a laboratory?"
+      },
+      "expected": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE"
+      }
+    },
+    {
+      "id": "final_origin_10",
+      "mode": "claim",
+      "category": "origin",
+      "labelBasis": "who_sago",
+      "input": {
+        "text": "What does WHO conclude about the origin of SARS-CoV-2?"
+      },
+      "expected": {
+        "route": "who",
+        "status": "INSUFFICIENT_EVIDENCE"
+      }
+    },
+
+    {
+      "id": "final_history_01",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "WHO characterized COVID-19 as a pandemic in March 2020."
+      },
+      "expected": {
+        "route": "history",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_history_02",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "WHO characterized COVID-19 as a pandemic in April 2020."
+      },
+      "expected": {
+        "route": "history",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_history_03",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "WHO characterized COVID-19 as a pandemic on 11 March 2020."
+      },
+      "expected": {
+        "route": "history",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_history_04",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "The WHO China Country Office picked up the Wuhan pneumonia report on 31 December 2019."
+      },
+      "expected": {
+        "route": "history",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_history_05",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "The WHO-linked Wuhan outbreak report occurred in December 2019."
+      },
+      "expected": {
+        "route": "history",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_history_06",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "The first WHO-linked Wuhan outbreak report happened in February 2020."
+      },
+      "expected": {
+        "route": "history",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_history_07",
+      "mode": "claim",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "text": "COVID-19 was first reported in Beijing."
+      },
+      "expected": {
+        "route": "history",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_history_08",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "who_history_scope",
+      "input": {
+        "text": "When was SARS-CoV-2 first biologically identified?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      }
+    },
+
+    {
+      "id": "final_treatment_01",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Remdesivir is used in the treatment of COVID-19."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_treatment_02",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Remdesivir has been used to treat coronavirus disease 2019."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_treatment_03",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Remdesivir has not been used to treat COVID-19."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_treatment_04",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Remdesivir has no relationship to the treatment of COVID-19."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_treatment_05",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Remdesivir cures all COVID-19 patients."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      }
+    },
+    {
+      "id": "final_treatment_06",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Could remdesivir treat COVID-19?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "SUPPORTED"
+      }
+    },
+    {
+      "id": "final_treatment_07",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "Remdesivir was studied for COVID-19 but was never used as treatment."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "CONTRADICTED"
+      }
+    },
+    {
+      "id": "final_treatment_08",
+      "mode": "claim",
+      "category": "treatment",
+      "labelBasis": "chembl",
+      "input": {
+        "text": "COVID-19 is treated by remdesivir."
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "SUPPORTED"
+      }
+    },
+
+    {
+      "id": "final_scope_01",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Does Wi-Fi cause COVID-19?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      }
+    },
+    {
+      "id": "final_scope_02",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Can Bluetooth prevent COVID-19?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      }
+    },
+    {
+      "id": "final_scope_03",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Do flu shots prevent COVID-19 hospitalization?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      }
+    },
+    {
+      "id": "final_scope_04",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "What causes seasonal influenza?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      }
+    },
+    {
+      "id": "final_scope_05",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Does vitamin C cure every COVID-19 case?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      }
+    },
+    {
+      "id": "final_scope_06",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "What is the origin of the common cold?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      }
+    },
+    {
+      "id": "final_scope_07",
+      "mode": "claim",
+      "category": "scope",
+      "labelBasis": "scope_policy",
+      "input": {
+        "text": "Does 5G make SARS-CoV-2 more infectious?"
+      },
+      "expected": {
+        "route": "relationship",
+        "status": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+      }
+    },
+
+    {
+      "id": "final_response_01",
+      "mode": "response",
+      "category": "multi_clause",
+      "labelBasis": "who",
+      "input": {
+        "question": "How does COVID spread and what do COVID vaccines reduce?",
+        "response": "COVID can spread through the air, and vaccines reduce hospitalization."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "COVID can spread through the air",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "vaccines reduce hospitalization",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 2,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      }
+    },
+    {
+      "id": "final_response_02",
+      "mode": "response",
+      "category": "question_context",
+      "labelBasis": "who",
+      "input": {
+        "question": "How does COVID-19 spread?",
+        "response": "It can spread in crowded indoor spaces."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "It can spread in crowded indoor spaces.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      }
+    },
+    {
+      "id": "final_response_03",
+      "mode": "response",
+      "category": "question_context",
+      "labelBasis": "who",
+      "input": {
+        "question": "What do COVID vaccines protect against?",
+        "response": "They reduce severe disease and hospitalization."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "They reduce severe disease and hospitalization.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      }
+    },
+    {
+      "id": "final_response_04",
+      "mode": "response",
+      "category": "origin_uncertainty",
+      "labelBasis": "who_sago",
+      "input": {
+        "question": "What is known about possible origins of COVID-19?",
+        "response": "A laboratory-related event cannot currently be excluded or established. The overall origin remains unresolved."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "A laboratory-related event cannot currently be excluded or established.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          },
+          {
+            "text": "The overall origin remains unresolved.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 2,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      }
+    },
+    {
+      "id": "final_response_05",
+      "mode": "response",
+      "category": "origin_uncertainty",
+      "labelBasis": "who_sago",
+      "input": {
+        "question": "What does current evidence suggest about the origin of COVID-19?",
+        "response": "Natural spillover currently has the strongest evidentiary support. The origin is definitely known."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "Natural spillover currently has the strongest evidentiary support.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          },
+          {
+            "text": "The origin is definitely known.",
+            "route": "who",
+            "status": "CONTRADICTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "MIXED",
+          "supportedCount": 1,
+          "contradictedCount": 1,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.5,
+          "coverageRatio": 1.0,
+          "groundingScore": 0.5
+        }
+      }
+    },
+    {
+      "id": "final_response_06",
+      "mode": "response",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "question": "When did WHO characterize COVID-19 as a pandemic?",
+        "response": "WHO characterized COVID-19 as a pandemic on 11 March 2020."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "WHO characterized COVID-19 as a pandemic on 11 March 2020.",
+            "route": "history",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          }
+        ],
+        "summary": {
+          "status": "SUPPORTED",
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 0,
+          "supportedRatio": 1.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 1.0
+        }
+      }
+    },
+    {
+      "id": "final_response_07",
+      "mode": "response",
+      "category": "history",
+      "labelBasis": "who_history",
+      "input": {
+        "question": "When did WHO characterize COVID-19 as a pandemic?",
+        "response": "WHO characterized COVID-19 as a pandemic in April 2020."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "WHO characterized COVID-19 as a pandemic in April 2020.",
+            "route": "history",
+            "status": "CONTRADICTED",
+            "usedQuestionContext": false
+          }
+        ],
+        "summary": {
+          "status": "CONTRADICTED",
+          "supportedCount": 0,
+          "contradictedCount": 1,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 1,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.0,
+          "coverageRatio": 1.0,
+          "groundingScore": 0.0
+        }
+      }
+    },
+    {
+      "id": "final_response_08",
+      "mode": "response",
+      "category": "multi_claim",
+      "labelBasis": "mixed",
+      "input": {
+        "question": "What causes COVID-19, can remdesivir treat it, and does 5G cure it?",
+        "response": "SARS-CoV-2 causes COVID-19. Remdesivir treats COVID-19. 5G cures COVID-19."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "SARS-CoV-2 causes COVID-19.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "Remdesivir treats COVID-19.",
+            "route": "relationship",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "5G cures COVID-19.",
+            "route": "relationship",
+            "status": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+            "usedQuestionContext": false
+          }
+        ],
+        "summary": {
+          "status": "MIXED",
+          "supportedCount": 2,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 1,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.667,
+          "coverageRatio": 0.667,
+          "groundingScore": 0.667
+        }
+      }
+    },
+    {
+      "id": "final_response_09",
+      "mode": "response",
+      "category": "claim_extraction",
+      "labelBasis": "annotation",
+      "input": {
+        "question": "How does COVID-19 spread?",
+        "response": "I'm not sure. Thanks for asking. Would you like anything else?"
+      },
+      "expected": {
+        "claims": [],
+        "summary": {
+          "status": "NO_FACTUAL_CLAIMS",
+          "supportedCount": 0,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 0,
+          "needsAttentionCount": 0,
+          "supportedRatio": null,
+          "coverageRatio": null,
+          "groundingScore": null
+        }
+      }
+    },
+    {
+      "id": "final_response_10",
+      "mode": "response",
+      "category": "question_context",
+      "labelBasis": "who",
+      "input": {
+        "question": "How effective are COVID vaccines?",
+        "response": "COVID vaccines reduce the risk of death. They guarantee that infection cannot occur."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "COVID vaccines reduce the risk of death.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "They guarantee that infection cannot occur.",
+            "route": "who",
+            "status": "INSUFFICIENT_EVIDENCE",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "MIXED",
+          "supportedCount": 1,
+          "contradictedCount": 0,
+          "insufficientEvidenceCount": 1,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.5,
+          "coverageRatio": 1.0,
+          "groundingScore": 0.5
+        }
+      }
+    },
+    {
+      "id": "final_response_11",
+      "mode": "response",
+      "category": "time_sensitive",
+      "labelBasis": "who",
+      "input": {
+        "question": "What is the current WHO COVID-19 situation?",
+        "response": "WHO currently considers the global COVID-19 public health risk high. XFG is under monitoring."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "WHO currently considers the global COVID-19 public health risk high.",
+            "route": "who",
+            "status": "CONTRADICTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "XFG is under monitoring.",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "MIXED",
+          "supportedCount": 1,
+          "contradictedCount": 1,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.5,
+          "coverageRatio": 1.0,
+          "groundingScore": 0.5
+        }
+      }
+    },
+    {
+      "id": "final_response_12",
+      "mode": "response",
+      "category": "multi_clause",
+      "labelBasis": "who",
+      "input": {
+        "question": "How does COVID spread and can COVID vaccination reduce hospitalization?",
+        "response": "COVID spreads only via contaminated surfaces, but vaccines lower hospitalization risk."
+      },
+      "expected": {
+        "claims": [
+          {
+            "text": "COVID spreads only via contaminated surfaces",
+            "route": "who",
+            "status": "CONTRADICTED",
+            "usedQuestionContext": false
+          },
+          {
+            "text": "vaccines lower hospitalization risk",
+            "route": "who",
+            "status": "SUPPORTED",
+            "usedQuestionContext": true
+          }
+        ],
+        "summary": {
+          "status": "MIXED",
+          "supportedCount": 1,
+          "contradictedCount": 1,
+          "insufficientEvidenceCount": 0,
+          "notVerifiableCount": 0,
+          "verifiableClaimCount": 2,
+          "needsAttentionCount": 1,
+          "supportedRatio": 0.5,
+          "coverageRatio": 1.0,
+          "groundingScore": 0.5
+        }
+      }
+    }
+  ]
+}
