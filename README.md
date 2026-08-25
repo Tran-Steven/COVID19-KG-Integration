@@ -4,11 +4,13 @@
   <img src="images/icon-128.png" alt="COVID-19 KG Integration logo" width="80">
 </p>
 
-A provenance-aware knowledge-graph system for grounding and verifying factual COVID-19 information in Large Language Model responses.
+### [About](https://steven-tran.notion.site/Enhancing-COVID-19-Information-Verification-in-Large-Language-Models-via-Knowledge-Graphs-253089fcc6cf46009055aecd91f074bb?pvs=4)
 
-Developed through the **Neuro-Symbolic Computing Research Lab** at the University of Georgia.
+Grounds ChatGPT responses with COVID-19 knowledge-graph evidence.
 
-[About](https://steven-tran.notion.site/Enhancing-COVID-19-Information-Verification-in-Large-Language-Models-via-Knowledge-Graphs-253089fcc6cf46009055aecd91f074bb?pvs=4)
+### Authors
+
+Steven Tran 
 
 ## Quick Start
 
