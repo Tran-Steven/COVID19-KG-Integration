@@ -112,16 +112,23 @@ class AugmentedPromptResponse(
 ):
     hasEvidence: bool
     augmentedPrompt: str
-    
+
+
 class QueryAmbiguity(BaseModel):
     term: str
     type: str
     possibleInterpretations: list[str]
 
 
+class ResolvedOutcome(BaseModel):
+    outcome: str
+    matchedText: str
+
+
 class QueryInterpretation(BaseModel):
     ambiguous: bool
     broadRelation: bool
+    outcomes: list[ResolvedOutcome]
     ambiguities: list[QueryAmbiguity]
 
 
