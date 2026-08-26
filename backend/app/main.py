@@ -306,6 +306,16 @@ def finalize_retrieval(
         )
     )
 
+    clear_facts = verification.pop(
+        "_clearFacts",
+        False,
+    )
+
+    if clear_facts:
+        retrieval[
+            "facts"
+        ] = []
+
     verification[
         "confidence"
     ] = (
@@ -379,6 +389,76 @@ def contextualize_claim(
         context_text
     ):
         return None
+
+    stripped = text.strip()
+
+    normalized = (
+        stripped.lower()
+    )
+
+    context_normalized = (
+        context_text.lower()
+    )
+
+    vaccine_claim_starts = (
+        "vaccine ",
+        "vaccines ",
+        "vaccination ",
+        "vaccinations ",
+    )
+
+    if normalized.startswith(
+        vaccine_claim_starts
+    ):
+        return (
+            f"COVID-19 {stripped}"
+        )
+
+    context_has_vaccine = any(
+        value in context_normalized
+        for value in (
+            "vaccine",
+            "vaccines",
+            "vaccination",
+            "vaccinated",
+        )
+    )
+
+    if (
+        context_has_vaccine
+        and normalized.startswith(
+            (
+                "they ",
+                "these ",
+                "those ",
+            )
+        )
+    ):
+        parts = stripped.split(
+            maxsplit=1
+        )
+
+        if len(parts) == 2:
+            return (
+                "COVID-19 vaccines "
+                f"{parts[1]}"
+            )
+
+    if (
+        context_has_vaccine
+        and normalized.startswith(
+            "it "
+        )
+    ):
+        parts = stripped.split(
+            maxsplit=1
+        )
+
+        if len(parts) == 2:
+            return (
+                "COVID-19 vaccination "
+                f"{parts[1]}"
+            )
 
     return (
         f"{text} "
@@ -932,6 +1012,11 @@ def verify_response_claim(
             ),
             "INSUFFICIENT_EVIDENCE",
         }
+        and not has_covid_context(
+            claim[
+                "text"
+            ]
+        )
     )
 
     if not retry_with_context:

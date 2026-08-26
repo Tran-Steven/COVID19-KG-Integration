@@ -3,6 +3,9 @@ import re
 from app.interpretation.origin_qualifier_resolver import (
     OriginQualifierResolver,
 )
+from app.interpretation.proposition_guard import (
+    PropositionGuard,
+)
 
 
 class VerificationResolver:
@@ -34,6 +37,10 @@ class VerificationResolver:
             OriginQualifierResolver()
         )
 
+        self.proposition_guard = (
+            PropositionGuard()
+        )
+
     def resolve(
         self,
         text: str,
@@ -51,6 +58,7 @@ class VerificationResolver:
         if verification_type == "who":
             return self._who_result(
                 text=text,
+                entities=entities,
                 facts=facts,
             )
 
@@ -127,6 +135,7 @@ class VerificationResolver:
     def _who_result(
         self,
         text: str,
+        entities: list[dict],
         facts: list[dict],
     ):
         if not facts:
@@ -172,6 +181,21 @@ class VerificationResolver:
             )
 
         if "causes" in roles:
+            guarded = (
+                self.proposition_guard
+                .cause_decision(
+                    text=text,
+                    entities=entities,
+                    facts=facts,
+                )
+            )
+
+            if guarded is not None:
+                return self._guard_result(
+                    guarded,
+                    "who_semantic",
+                )
+
             return self._cause_result(
                 text=text,
                 facts=facts,
@@ -184,6 +208,20 @@ class VerificationResolver:
             )
 
         if "transmitted_via" in roles:
+            guarded = (
+                self.proposition_guard
+                .transmission_decision(
+                    text=text,
+                    facts=facts,
+                )
+            )
+
+            if guarded is not None:
+                return self._guard_result(
+                    guarded,
+                    "who_semantic",
+                )
+
             return self._transmission_result(
                 text=text,
                 facts=facts,
@@ -1026,6 +1064,30 @@ class VerificationResolver:
         facts: list[dict],
     ):
         if facts:
+            guarded = (
+                self.proposition_guard
+                .cause_decision(
+                    text=text,
+                    entities=entities,
+                    facts=facts,
+                )
+            )
+
+            if guarded is None:
+                guarded = (
+                    self.proposition_guard
+                    .transmission_decision(
+                        text=text,
+                        facts=facts,
+                    )
+                )
+
+            if guarded is not None:
+                return self._guard_result(
+                    guarded,
+                    "relationship",
+                )
+
             if self._has_explicit_contradiction(
                 facts
             ):
@@ -1762,6 +1824,33 @@ class VerificationResolver:
             " ",
             text,
         ).strip()
+
+    def _guard_result(
+        self,
+        decision: dict,
+        method: str,
+    ):
+        result = self._result(
+            status=decision[
+                "status"
+            ],
+            reason=decision[
+                "reason"
+            ],
+            evidence_count=decision[
+                "evidenceCount"
+            ],
+            method=method,
+        )
+
+        if decision.get(
+            "clearFacts"
+        ):
+            result[
+                "_clearFacts"
+            ] = True
+
+        return result
 
     def _result(
         self,
