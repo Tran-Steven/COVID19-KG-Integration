@@ -1,59 +1,1023 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>COVID19-KG-Integration</title>
+
+    <title>COVID-19 Knowledge Graph</title>
+
     <link rel="stylesheet" href="bulma.min.css" />
+
     <style>
-      .header_container {
-        justify-content: center;
-        align-items: center;
+      :root {
+        --bg: #ffffff;
+        --soft: #f7f7f7;
+        --text: #222222;
+        --secondary-heading: #3a3a3a;
+        --value-text: #555555;
+        --muted: #7a7a7a;
+        --action: #4a4a4a;
+        --action-hover: #2f2f2f;
+        --unavailable: #747474;
+        --border: #e4e4e4;
+        --success: #23d160;
+        --danger: #ff3860;
+
+        --supported-bg: #edf9f0;
+        --supported-text: #24713d;
+
+        --contradicted-bg: #fdf0f0;
+        --contradicted-text: #9d3c3c;
+
+        --insufficient-bg: #fff7df;
+        --insufficient-text: #8e6000;
+
+        --neutral-bg: #f0f0f0;
+        --neutral-text: #555555;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 360px;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      body {
+        font-size: 13px;
+      }
+
+      .popup {
+        padding: 17px 17px 10px;
+      }
+
+      .brand {
         display: flex;
-      }
-      .header_container img {
-        transform: translateY(8px);
-      }
-      .footer_container {
-        justify-content: center;
         align-items: center;
-        display: flex;
-        transform: translateY(-8px);
+        gap: 10px;
+        padding-top: 2px;
       }
-      .container {
-        margin-left: 1rem;
+
+      .brand-logo {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        object-fit: contain;
+      }
+
+      .brand-title {
+        margin: 0 !important;
+        padding-top: 1px;
+        color: #222222 !important;
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+
+      .brand-subtitle {
+        margin-top: 1px;
+        color: #7a7a7a !important;
+        font-size: 12px;
+        line-height: 1.3;
+      }
+
+      .tabs {
+        margin: 14px 0 15px !important;
+      }
+
+      .tabs ul {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        width: 100%;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .tabs li {
+        width: 100%;
+      }
+
+      .tabs a {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        padding: 8px 0;
+        color: #7a7a7a !important;
+        border-bottom: 2px solid transparent !important;
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .tabs a:hover {
+        color: #222222 !important;
+        border-bottom-color: transparent !important;
+      }
+
+      .tabs li.is-active a,
+      .tabs li.is-active a:hover {
+        color: #222222 !important;
+        border-bottom-color: #222222 !important;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.active {
+        display: block;
+      }
+
+      .overview-copy {
+        margin-bottom: 15px;
+      }
+
+      .overview-title {
+        color: #222222;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.3;
+      }
+
+      .overview-detail {
+        margin-top: 4px;
+        color: #707070;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .status-card {
+        padding: 11px 12px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: var(--soft);
+      }
+
+      .status-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .status-dot {
+        width: 9px;
+        height: 9px;
+        margin-top: 5px;
+        flex: 0 0 9px;
+        border-radius: 50%;
+        background: #7a7a7a;
+      }
+
+      .status-dot.connected {
+        background: var(--success);
+      }
+
+      .status-dot.error {
+        background: var(--danger);
+      }
+
+      .status-title {
+        color: #222222;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.3;
+      }
+
+      .status-detail {
+        margin-top: 2px;
+        color: #707070;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .about-intro {
+        margin-bottom: 18px;
+        color: #222222;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.5;
+      }
+
+      .about-meta {
+        display: grid;
+        gap: 14px;
+      }
+
+      .about-row {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+      }
+
+      .about-label {
+        padding-top: 1px;
+        color: #3a3a3a !important;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+
+      .about-value {
+        color: #555555;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .source-links {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .source-links a {
+        color: #555555 !important;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .source-links a:hover {
+        color: #222222 !important;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      .source-separator {
+        color: #8a8a8a;
+      }
+
+      .outcome-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+
+      .outcome {
+        display: inline-flex;
+        align-items: center;
+        min-height: 20px;
+        padding: 3px 6px;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+
+      .outcome.supported {
+        background: var(--supported-bg);
+        color: var(--supported-text);
+      }
+
+      .outcome.contradicted {
+        background: var(--contradicted-bg);
+        color: var(--contradicted-text);
+      }
+
+      .outcome.insufficient {
+        background: var(--insufficient-bg);
+        color: var(--insufficient-text);
+      }
+
+      .outcome.not-verifiable {
+        background: var(--neutral-bg);
+        color: var(--neutral-text);
+      }
+
+      .research-note {
+        margin-top: 17px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: var(--soft);
+      }
+
+      .research-note-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .research-note-title {
+        color: #3a3a3a !important;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+
+      .research-note-version {
+        color: #555555 !important;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.35;
+        white-space: nowrap;
+      }
+
+      .research-note-copy {
+        margin-top: 2px;
+        color: #777777;
+        font-size: 10px;
+        line-height: 1.4;
+      }
+
+      .advanced-group {
+        padding: 2px 0 12px;
+      }
+
+      .advanced-group + .advanced-group {
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+      }
+
+      #advancedView .advanced-group:last-child {
+        padding-bottom: 2px;
+      }
+
+      .group-label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 8px;
+        color: #3a3a3a !important;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        line-height: 1.2;
+        text-transform: uppercase;
+      }
+
+      .advanced-description {
+        color: #666666 !important;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .text-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 7px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--action) !important;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .text-action:hover {
+        color: var(--action-hover) !important;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      .text-action.is-unavailable {
+        color: var(--unavailable) !important;
+        cursor: not-allowed;
+        text-decoration: none;
+      }
+
+      .text-action.is-unavailable:hover {
+        color: var(--unavailable) !important;
+        text-decoration: none;
+      }
+
+      .text-action:disabled {
+        color: #676767 !important;
+        cursor: wait;
+        opacity: 1;
+        text-decoration: none;
+      }
+
+      #restoreDraftButton {
+        display: none;
+        margin-left: 10px;
+      }
+
+      .mini-info-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 17px;
+        height: 17px;
+        padding: 0;
+        border: 1px solid #cccccc;
+        border-radius: 50%;
+        background: transparent;
+        color: #666666 !important;
+        cursor: pointer;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .mini-info-button:hover {
+        color: #222222 !important;
+        border-color: #888888;
+      }
+
+      .labs-info {
+        display: none;
+        margin: 0 0 9px;
+        padding: 9px 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--soft);
+        color: #606060;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      .labs-info.visible {
+        display: block;
+      }
+
+      .labs-info a {
+        display: inline-block;
+        margin-top: 5px;
+        color: #444444 !important;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .labs-info a:hover {
+        color: #222222 !important;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      .action-status {
+        min-height: 0;
+        margin-top: 5px;
+        color: #707070;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+
+      .action-status:empty {
+        display: none;
+      }
+
+      .action-status.error {
+        color: var(--danger);
+      }
+
+      .retrieval-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #666666 !important;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .retrieval-back:hover {
+        color: #222222 !important;
+      }
+
+      .retrieval-title {
+        margin: 12px 0;
+        color: #222222;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+
+      .technical-list {
+        display: grid;
+        gap: 0;
+      }
+
+      .technical-item {
+        padding: 9px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .technical-item:first-child {
+        padding-top: 0;
+      }
+
+      .technical-item:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .technical-label {
+        margin-bottom: 3px;
+        color: #3a3a3a !important;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+
+      .technical-value {
+        overflow-wrap: anywhere;
+        color: #222222;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.35;
+      }
+
+      .raw-details {
+        margin-top: 14px;
+      }
+
+      .raw-details summary {
+        cursor: pointer;
+        color: #606060 !important;
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .raw-details summary:hover {
+        color: #222222 !important;
+      }
+
+      .raw-context {
+        max-height: 260px;
+        overflow: auto;
+        margin-top: 9px;
+        padding: 10px;
+        border-radius: 8px;
+        background: var(--soft);
+        color: #222222;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 10px;
+        line-height: 1.45;
+      }
+
+      .popup-footer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        margin-top: 7px;
+        padding-top: 9px;
+        border-top: 1px solid var(--border);
+      }
+
+      #advancedView.active ~ .popup-footer {
+        margin-top: 4px;
+      }
+
+      .affiliation-link {
+        min-width: 0;
+        overflow: hidden;
+        color: #3a3a3a !important;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.3;
+        text-decoration: none;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .affiliation-link:hover {
+        color: #222222 !important;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      .project-links {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+
+      .project-links a {
+        color: #666666 !important;
+        font-size: 11px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .project-links a:hover {
+        color: #222222 !important;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      .footer-separator {
+        color: #888888;
+        font-size: 11px;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #222222;
+          --soft: #2b2b2b;
+          --text: #f2f2f2;
+          --action: #c9c9c9;
+          --action-hover: #f0f0f0;
+          --unavailable: #858585;
+          --border: #414141;
+
+          --supported-bg: #173d2c;
+          --supported-text: #9ee6b8;
+
+          --contradicted-bg: #4a2020;
+          --contradicted-text: #f3abab;
+
+          --insufficient-bg: #493713;
+          --insufficient-text: #f5d58c;
+
+          --neutral-bg: #333333;
+          --neutral-text: #d6d6d6;
+        }
+
+        .brand-logo {
+          filter: invert(1);
+        }
+
+        .brand-title,
+        .overview-title,
+        .status-title,
+        .about-intro,
+        .retrieval-title,
+        .technical-value {
+          color: #f2f2f2 !important;
+        }
+
+        .brand-subtitle,
+        .overview-detail,
+        .status-detail,
+        .research-note-copy,
+        .action-status {
+          color: #aaaaaa !important;
+        }
+
+        .about-label,
+        .research-note-title,
+        .group-label,
+        .technical-label,
+        .affiliation-link {
+          color: #d7d7d7 !important;
+        }
+
+        .about-value,
+        .source-links a,
+        .research-note-version,
+        .advanced-description,
+        .labs-info,
+        .retrieval-back,
+        .raw-details summary,
+        .project-links a {
+          color: #bcbcbc !important;
+        }
+
+        .text-action {
+          color: var(--action) !important;
+        }
+
+        .text-action:hover {
+          color: var(--action-hover) !important;
+        }
+
+        .text-action.is-unavailable,
+        .text-action.is-unavailable:hover {
+          color: var(--unavailable) !important;
+        }
+
+        .source-links a:hover,
+        .labs-info a,
+        .retrieval-back:hover,
+        .raw-details summary:hover,
+        .affiliation-link:hover,
+        .project-links a:hover {
+          color: #f2f2f2 !important;
+        }
+
+        .tabs a {
+          color: #aaaaaa !important;
+        }
+
+        .tabs a:hover {
+          color: #f2f2f2 !important;
+          border-bottom-color: transparent !important;
+        }
+
+        .tabs li.is-active a,
+        .tabs li.is-active a:hover {
+          color: #f2f2f2 !important;
+          border-bottom-color: #f2f2f2 !important;
+        }
+
+        .raw-context {
+          color: #eeeeee;
+        }
+
+        .mini-info-button {
+          color: #bbbbbb !important;
+          border-color: #555555;
+        }
+
+        .mini-info-button:hover {
+          color: #ffffff !important;
+          border-color: #888888;
+        }
       }
     </style>
   </head>
+
   <body>
-    <div class="container">
-      <br />
-      <div class="header_container">
-        <h1>
-          <img
-            src="../images/icon-32.png"
-            alt="cvkg logo"
-          />COVID19-KG-Integration
-        </h1>
-      </div>
-      <div class="main_container">
-        <hr />
-        <p>Integrates a knowledge graph into ChatGPT to augment responses.</p>
-        <br />
-        <h2>Authors:</h2>
-        <p>Steven Tran
-        <hr />
+    <main class="popup">
+      <header class="brand">
+        <img class="brand-logo" src="../images/icon-32.png" alt="" />
+
+        <div>
+          <h1 class="brand-title">COVID-19 Knowledge Graph</h1>
+
+          <div class="brand-subtitle">
+            Knowledge graph verification for LLM responses
+          </div>
+        </div>
+      </header>
+
+      <div id="mainTabs" class="tabs is-small">
+        <ul>
+          <li id="overviewTab" class="is-active">
+            <a> Overview </a>
+          </li>
+
+          <li id="aboutTab">
+            <a> About </a>
+          </li>
+
+          <li id="advancedTab">
+            <a> Advanced </a>
+          </li>
+        </ul>
       </div>
 
-      <div class="footer_container">
+      <section id="overviewView" class="view active">
+        <div class="overview-copy">
+          <div class="overview-title">Automatic verification</div>
+
+          <div id="verificationDetail" class="overview-detail">
+            COVID-19 responses are checked automatically when relevant context
+            is detected.
+          </div>
+        </div>
+
+        <div class="status-card">
+          <div class="status-row">
+            <span id="backendDot" class="status-dot"></span>
+
+            <div>
+              <div id="backendStatus" class="status-title">
+                Checking backend...
+              </div>
+
+              <div id="pageStatus" class="status-detail">
+                Checking ChatGPT...
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="aboutView" class="view">
+        <div class="about-intro">
+          Verifies factual claims in ChatGPT COVID-19 responses using
+          source-backed knowledge-graph evidence.
+        </div>
+
+        <div class="about-meta">
+          <div class="about-row">
+            <div class="about-label">Sources</div>
+
+            <div class="about-value source-links">
+              <a
+                href="https://www.who.int/health-topics/coronavirus"
+                target="_blank"
+                rel="noreferrer"
+              >
+                WHO
+              </a>
+
+              <span class="source-separator"> · </span>
+
+              <a
+                href="https://www.ebi.ac.uk/chembl/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                ChEMBL
+              </a>
+
+              <span class="source-separator"> · </span>
+
+              <a
+                href="https://monarchinitiative.org/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Monarch Initiative
+              </a>
+            </div>
+          </div>
+
+          <div class="about-row">
+            <div class="about-label">Outcomes</div>
+
+            <div class="about-value outcome-list">
+              <span class="outcome supported"> Supported </span>
+
+              <span class="outcome contradicted"> Contradicted </span>
+
+              <span class="outcome insufficient"> Insufficient Evidence </span>
+
+              <span class="outcome not-verifiable"> Not Verifiable </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="research-note">
+          <div class="research-note-header">
+            <div class="research-note-title">Research prototype</div>
+
+            <div id="versionText" class="research-note-version">v—</div>
+          </div>
+
+          <div class="research-note-copy">
+            Not intended for clinical decision-making.
+          </div>
+        </div>
+      </section>
+
+      <section id="advancedView" class="view">
+        <div class="advanced-group">
+          <div class="group-label">Verification</div>
+
+          <div class="advanced-description">
+            View evidence routing, confidence, provenance, and raw grounding
+            data.
+          </div>
+
+          <button id="inspectButton" class="text-action" type="button">
+            View details
+          </button>
+        </div>
+
+        <div class="advanced-group">
+          <div class="group-label">Conversation</div>
+
+          <div id="conversationDetail" class="advanced-description">
+            Checking conversation...
+          </div>
+
+          <button id="previousButton" class="text-action" type="button">
+            Check previous responses →
+          </button>
+        </div>
+
+        <div class="advanced-group">
+          <div class="group-label">
+            <span> Labs </span>
+
+            <button
+              id="labsInfoButton"
+              class="mini-info-button"
+              type="button"
+              aria-label="About Labs"
+              title="About Labs"
+            >
+              ?
+            </button>
+          </div>
+
+          <div id="labsInfo" class="labs-info">
+            Experimental features that augment or modify the ChatGPT prompt
+            before it is sent.
+
+            <br />
+
+            <a
+              href="https://github.com/Tran-Steven/COVID19-KG-Integration/wiki/Browser-Extension"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Learn more ↗
+            </a>
+          </div>
+
+          <div class="advanced-description">
+            Add Knowledge Graph evidence to a draft before sending it.
+          </div>
+
+          <button id="groundDraftButton" class="text-action" type="button">
+            Ground draft with Knowledge Graph
+          </button>
+
+          <button id="restoreDraftButton" class="text-action" type="button">
+            Restore original →
+          </button>
+
+          <div id="actionStatus" class="action-status"></div>
+        </div>
+      </section>
+
+      <section id="retrievalView" class="view">
+        <button id="retrievalBack" class="retrieval-back" type="button">
+          ← Advanced
+        </button>
+
+        <h2 class="retrieval-title">Latest retrieval</h2>
+
+        <div class="technical-list">
+          <div class="technical-item">
+            <div class="technical-label">Status</div>
+
+            <div id="technicalStatus" class="technical-value">—</div>
+          </div>
+
+          <div class="technical-item">
+            <div class="technical-label">Route</div>
+
+            <div id="technicalRoute" class="technical-value">—</div>
+          </div>
+
+          <div class="technical-item">
+            <div class="technical-label">Relation</div>
+
+            <div id="technicalRelation" class="technical-value">—</div>
+          </div>
+
+          <div class="technical-item">
+            <div class="technical-label">Evidence</div>
+
+            <div id="technicalEvidence" class="technical-value">—</div>
+          </div>
+
+          <div class="technical-item">
+            <div class="technical-label">Confidence</div>
+
+            <div id="technicalConfidence" class="technical-value">—</div>
+          </div>
+
+          <div class="technical-item">
+            <div class="technical-label">Linked entities</div>
+
+            <div id="technicalEntities" class="technical-value">—</div>
+          </div>
+        </div>
+
+        <details class="raw-details">
+          <summary>View raw grounding context</summary>
+
+          <pre id="rawContext" class="raw-context"></pre>
+        </details>
+      </section>
+
+      <footer class="popup-footer">
         <a
-          href="https://github.com/Tran-Steven/COVID19-KG-Integration"
+          class="affiliation-link"
+          href="https://neslabuga.github.io/"
           target="_blank"
           rel="noreferrer"
+          title="Neuro-Symbolic Computing Research"
         >
-          <img src="../images/github.png" alt="github logo"
-        /></a>
-      </div>
-    </div>
+          Neuro-Symbolic Computing Research
+        </a>
+
+        <div class="project-links">
+          <a
+            href="https://github.com/Tran-Steven/COVID19-KG-Integration"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+
+          <span class="footer-separator"> · </span>
+
+          <a
+            href="https://github.com/Tran-Steven/COVID19-KG-Integration/wiki"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Wiki
+          </a>
+        </div>
+      </footer>
+    </main>
+
+    <script src="popup.js"></script>
   </body>
 </html>
