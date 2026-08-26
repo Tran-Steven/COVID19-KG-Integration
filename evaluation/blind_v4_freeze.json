@@ -1,6 +1,6 @@
 {
   "benchmark": "end_to_end_verification_blind_v4",
-  "implementationCommit": "PASTE_FULL_SHA_HERE",
+  "implementationCommit": "cf18f246092929768876b92352aedea25332e54c",
   "implementationFrozen": true,
   "benchmarkExecuted": false,
   "protocol": [
