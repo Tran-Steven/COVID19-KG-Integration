@@ -1,0 +1,14 @@
+{
+  "benchmark": "end_to_end_verification_blind_v4",
+  "implementationCommit": "PASTE_FULL_SHA_HERE",
+  "implementationFrozen": true,
+  "benchmarkExecuted": false,
+  "protocol": [
+    "The implementation was frozen before the blind-v4 benchmark was authored.",
+    "Expected labels will be defined before the benchmark is executed.",
+    "The benchmark will be committed before its first execution.",
+    "No blind-v4 result will be consulted while constructing or labeling the benchmark.",
+    "The implementation will not be tuned on blind-v4 before the first-run result is recorded.",
+    "The benchmark is internally authored and is not an externally independent evaluation."
+  ]
+}
