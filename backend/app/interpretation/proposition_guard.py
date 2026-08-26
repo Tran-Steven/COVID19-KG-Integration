@@ -42,6 +42,16 @@ class PropositionGuard:
         "resulted from",
         "due to",
         "attributable to",
+        "infectious agent",
+        "etiologic agent",
+        "etiological agent",
+        "pathogen",
+        "gives rise to",
+        "give rise to",
+        "produces",
+        "produce",
+        "underlies",
+        "underlie",
     )
 
     TRANSMISSION_LANGUAGE = (
@@ -87,6 +97,52 @@ class PropositionGuard:
         "dominant way",
     )
 
+    OUT_OF_SCOPE_NORMATIVE_LANGUAGE = (
+        "health safety violation",
+        "safety violation",
+        "policy violation",
+        "rule violation",
+        "workplace violation",
+        "against policy",
+        "against the law",
+        "illegal",
+        "unlawful",
+        "criminal",
+        "crime",
+        "unethical",
+        "immoral",
+        "misconduct",
+    )
+
+    def scope_decision(
+        self,
+        text: str,
+    ):
+        normalized = self._normalize(
+            text
+        )
+
+        if not any(
+            value in normalized
+            for value
+            in self.OUT_OF_SCOPE_NORMATIVE_LANGUAGE
+        ):
+            return None
+
+        return self._decision(
+            status=self.NOT_VERIFIABLE,
+            reason=(
+                "The claim expresses a legal, "
+                "normative, policy, or safety "
+                "judgment that is outside the "
+                "factual biomedical relationships "
+                "represented by the current "
+                "knowledge graph."
+            ),
+            evidence_count=0,
+            clear_facts=True,
+        )
+
     def cause_decision(
         self,
         text: str,
@@ -118,22 +174,40 @@ class PropositionGuard:
         )
 
         if assertion is None:
-            if self._has_cause_language(
-                normalized
-            ):
-                return None
-
-            return self._decision(
-                status=self.NOT_VERIFIABLE,
-                reason=(
-                    "Retrieved causal evidence "
-                    "does not correspond to a "
-                    "causal proposition expressed "
-                    "by this claim."
-                ),
-                evidence_count=0,
-                clear_facts=True,
+            has_question_context = (
+                "question context"
+                in normalized
             )
+
+            claim_text = (
+                normalized.split(
+                    "question context",
+                    1,
+                )[0].strip()
+                if has_question_context
+                else normalized
+            )
+
+            if (
+                has_question_context
+                and not self._has_cause_language(
+                    claim_text
+                )
+            ):
+                return self._decision(
+                    status=self.NOT_VERIFIABLE,
+                    reason=(
+                        "Retrieved causal evidence "
+                        "comes from conversational "
+                        "context, but the claim itself "
+                        "does not express a causal "
+                        "proposition."
+                    ),
+                    evidence_count=0,
+                    clear_facts=True,
+                )
+
+            return None
 
         claimed_cause = assertion[
             "cause"

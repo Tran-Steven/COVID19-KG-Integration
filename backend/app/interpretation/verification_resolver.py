@@ -50,6 +50,19 @@ class VerificationResolver:
         facts: list[dict],
         history: dict | None,
     ):
+        scoped = (
+            self.proposition_guard
+            .scope_decision(
+                text
+            )
+        )
+
+        if scoped is not None:
+            return self._guard_result(
+                scoped,
+                verification_type,
+            )
+
         if verification_type == "history":
             return self._history_result(
                 history
