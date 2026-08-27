@@ -32,6 +32,15 @@ cases = [
         "response": "The exact origin has been identified.",
         "expected": "CONTRADICTED",
     },
+    {
+        "name": "origin_engineered_distinction",
+        "question": "Was SARS-CoV-2 definitely created in a laboratory?",
+        "response": (
+            "Those are different claims from saying the virus was "
+            "deliberately created or engineered in a lab."
+        ),
+        "expected": "INSUFFICIENT_EVIDENCE",
+    },
 ]
 
 passed = 0

@@ -109,7 +109,6 @@ open "$OUT"
 
 echo
 echo "Summary copied to clipboard."
-echo "Drag full.log into ChatGPT if you want me to inspect everything."
 
 if [ "$FAILED" -gt 0 ]; then
   exit 1

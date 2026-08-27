@@ -179,6 +179,25 @@ class OriginQualifierResolver:
         ):
             return False
 
+        distinction = any(
+            value in text
+            for value in (
+                "different claim from",
+                "different claims from",
+                "different from saying",
+                "not the same as saying",
+                "is not the same as",
+                "isn't the same as",
+                "does not mean",
+                "doesn't mean",
+                "not equivalent to",
+                "distinct from saying",
+            )
+        )
+
+        if distinction:
+            return False
+
         lexical = any(
             value in text
             for value in (
