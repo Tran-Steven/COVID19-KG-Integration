@@ -26,3 +26,4 @@ resources/who-covid-kg/*
 .regression-output/
 __pycache__/
 *.py[cod]
+evaluation/chatgpt_real_response_results.json
