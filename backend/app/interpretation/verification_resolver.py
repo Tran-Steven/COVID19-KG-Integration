@@ -122,7 +122,7 @@ class VerificationResolver(
             overall_inconclusive
             and self.semantics
             .is_origin_inconclusive(
-                normalized
+                text
             )
         ):
             return self._result(
@@ -143,7 +143,7 @@ class VerificationResolver(
             lab_uncertain
             and self.semantics
             .is_lab_uncertainty(
-                normalized
+                text
             )
         ):
             return self._result(
