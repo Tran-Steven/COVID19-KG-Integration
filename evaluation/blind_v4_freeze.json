@@ -2,13 +2,31 @@
   "benchmark": "end_to_end_verification_blind_v4",
   "implementationCommit": "cf18f246092929768876b92352aedea25332e54c",
   "implementationFrozen": true,
-  "benchmarkExecuted": false,
+  "benchmarkCommit": "2f5fcb0d77e30611e010f1e75676cd4471f085de",
+  "benchmarkSha256": "8dc86acd8b80b45afade79f8c0eac6a4c96b18de08e0414287ad8c7caf698401",
+  "benchmarkExecuted": true,
+  "firstRunResultCommit": "2dae57cd0f9d5d2b73dcf63d13fab8142da8769a",
+  "firstRunResultSha256": "8ea700d501aad81dc0c897f49fc85533258af1878d75e74bc3c0c0d7cc7d3f3a",
+  "firstRunMetrics": {
+    "caseAccuracy": 0.72,
+    "statusAccuracy": 0.761,
+    "routeAccuracy": 0.927,
+    "claimExtractionPrecision": 0.903,
+    "claimExtractionRecall": 0.966,
+    "claimExtractionF1": 0.933,
+    "responseSummaryStatusAccuracy": 0.9,
+    "responseGroundingScoreAccuracy": 0.9,
+    "responseCoverageRatioAccuracy": 0.85,
+    "meanConfidenceCorrect": 0.842132530120482,
+    "meanConfidenceIncorrect": 0.5992000000000001
+  },
   "protocol": [
     "The implementation was frozen before the blind-v4 benchmark was authored.",
-    "Expected labels will be defined before the benchmark is executed.",
-    "The benchmark will be committed before its first execution.",
-    "No blind-v4 result will be consulted while constructing or labeling the benchmark.",
-    "The implementation will not be tuned on blind-v4 before the first-run result is recorded.",
+    "Expected labels were defined before executing the benchmark.",
+    "The benchmark was committed before its first execution.",
+    "No blind-v4 execution result was consulted while constructing or labeling the benchmark.",
+    "The implementation was not tuned using blind-v4 before the first-run result was recorded.",
+    "The first-run result was committed before post-hoc error analysis or further implementation changes.",
     "The benchmark is internally authored and is not an externally independent evaluation."
   ]
 }
