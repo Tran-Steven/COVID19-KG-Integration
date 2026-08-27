@@ -22,4 +22,7 @@ resources/who-covid-history/*
 !resources/who-covid-history/.gitkeep
 
 resources/who-covid-kg/*
-!resources/who-covid-kg/.gitkeep
+!resources/who-covid-kg/.gitkeep.regression-output/
+.regression-output/
+__pycache__/
+*.py[cod]

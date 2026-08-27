@@ -73,8 +73,8 @@ class ResponseVerificationAggregator:
         )
 
         needs_attention_count = (
-            claim_count
-            - supported_count
+            contradicted_count
+            + insufficient_count
         )
 
         supported_ratio = (
@@ -155,9 +155,12 @@ class ResponseVerificationAggregator:
                 "fraction of extracted factual "
                 "claims positively supported by "
                 "the current knowledge graph. "
-                "It is not a probability that "
-                "the response is factually "
-                "correct."
+                "Unverifiable claims reduce "
+                "coverage but do not by themselves "
+                "make the overall response mixed. "
+                "The grounding score is not a "
+                "probability that the response is "
+                "factually correct."
             ),
         }
 
@@ -174,34 +177,39 @@ class ResponseVerificationAggregator:
                 self.NO_FACTUAL_CLAIMS
             )
 
+        verifiable_count = (
+            claim_count
+            - not_verifiable_count
+        )
+
+        if verifiable_count == 0:
+            return (
+                self.NOT_VERIFIABLE
+            )
+
         if (
-            supported_count
-            == claim_count
+            supported_count > 0
+            and contradicted_count == 0
+            and insufficient_count == 0
         ):
             return self.SUPPORTED
 
         if (
-            contradicted_count
-            == claim_count
+            contradicted_count > 0
+            and supported_count == 0
+            and insufficient_count == 0
         ):
             return (
                 self.CONTRADICTED
             )
 
         if (
-            insufficient_count
-            == claim_count
+            insufficient_count > 0
+            and supported_count == 0
+            and contradicted_count == 0
         ):
             return (
                 self.INSUFFICIENT_EVIDENCE
-            )
-
-        if (
-            not_verifiable_count
-            == claim_count
-        ):
-            return (
-                self.NOT_VERIFIABLE
             )
 
         return self.MIXED

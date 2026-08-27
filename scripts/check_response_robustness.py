@@ -57,7 +57,7 @@ CASES = [
                 False,
             ),
         ],
-        "summary": "MIXED",
+        "summary": "SUPPORTED",
     },
     {
         "name": "but_clause_split",
