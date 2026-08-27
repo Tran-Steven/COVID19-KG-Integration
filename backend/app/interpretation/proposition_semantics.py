@@ -180,6 +180,11 @@ class PropositionSemantics:
         ):
             return False
 
+        if self._is_meta_relation_qualification(
+            normalized
+        ):
+            return False
+
         scoped_vaccine_clause = (
             self._scoped_vaccine_relation_clause(
                 normalized
@@ -222,6 +227,25 @@ class PropositionSemantics:
                 normalized
             )
             is not None
+        )
+
+    def _is_meta_relation_qualification(
+        self,
+        text: str,
+    ):
+        return any(
+            value in text
+            for value in (
+                "not a declaration that",
+                "not the same as saying",
+                "is not the same as",
+                "isn't the same as",
+                "does not mean",
+                "doesn't mean",
+                "different from saying",
+                "different claim from",
+                "different claims from",
+            )
         )
 
     def _scoped_vaccine_relation_clause(

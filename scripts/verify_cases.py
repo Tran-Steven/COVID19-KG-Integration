@@ -52,6 +52,16 @@ cases = [
         ),
         "expected": "SUPPORTED",
     },
+    {
+        "name": "xfg_vum_not_dangerous",
+        "question": "Why are they still tracking XFG?",
+        "response": (
+            "WHO still tracks XFG because Variant Under Monitoring "
+            "is essentially a watchlist category, not a declaration "
+            "that the variant is especially dangerous."
+        ),
+        "expected": "SUPPORTED",
+    },
 ]
 
 passed = 0
