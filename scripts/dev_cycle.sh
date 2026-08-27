@@ -26,6 +26,10 @@ done
 
 echo "API ready"
 
+echo
+echo "== Targeted semantic regressions =="
+python3 scripts/verify_cases.py
+
 if [[ "${1:-}" == "--full" ]]; then
   echo
   echo "== Full regressions =="

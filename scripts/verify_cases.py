@@ -41,6 +41,17 @@ cases = [
         ),
         "expected": "INSUFFICIENT_EVIDENCE",
     },
+    {
+        "name": "mmr_compound_vaccine_qualification",
+        "question": "Is a measles vaccine effective against severe COVID-19?",
+        "response": (
+            "The evidence has not shown it to be a reliable substitute "
+            "for COVID-19 vaccination, which is specifically designed "
+            "to reduce the risk of severe COVID-19, hospitalization, "
+            "and death."
+        ),
+        "expected": "SUPPORTED",
+    },
 ]
 
 passed = 0
@@ -79,7 +90,7 @@ for case in cases:
         print(f"  reason:   {verification['reason']}")
 
 print()
-print("TARGETED ORIGIN REGRESSIONS")
+print("TARGETED SEMANTIC REGRESSIONS")
 print(f"cases: {passed}/{len(cases)}")
 
 if passed != len(cases):

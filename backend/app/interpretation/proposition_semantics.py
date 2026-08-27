@@ -180,6 +180,20 @@ class PropositionSemantics:
         ):
             return False
 
+        scoped_vaccine_clause = (
+            self._scoped_vaccine_relation_clause(
+                normalized
+            )
+        )
+
+        if scoped_vaccine_clause is not None:
+            return (
+                self.NEGATION.search(
+                    scoped_vaccine_clause
+                )
+                is not None
+            )
+
         if any(
             value in normalized
             for value
@@ -209,6 +223,82 @@ class PropositionSemantics:
             )
             is not None
         )
+
+    def _scoped_vaccine_relation_clause(
+        self,
+        text: str,
+    ):
+        vaccine_reference = any(
+            value in text
+            for value in (
+                "covid vaccine",
+                "covid 19 vaccine",
+                "covid vaccination",
+                "covid 19 vaccination",
+            )
+        )
+
+        if not vaccine_reference:
+            return None
+
+        positive_relation = (
+            "reduce the risk",
+            "reduces the risk",
+            "reducing the risk",
+            "lower the risk",
+            "lowers the risk",
+            "lowering the risk",
+            "help reduce",
+            "helps reduce",
+            "designed to reduce",
+            "protect against",
+            "protects against",
+            "protection against",
+            "effective against",
+        )
+
+        boundaries = (
+            " which ",
+            " but ",
+            " although ",
+            " while ",
+            " whereas ",
+        )
+
+        candidates = []
+
+        for boundary in boundaries:
+            start = 0
+
+            while True:
+                position = text.find(
+                    boundary,
+                    start,
+                )
+
+                if position == -1:
+                    break
+
+                candidates.append(
+                    text[
+                        position
+                        + len(boundary):
+                    ]
+                )
+
+                start = (
+                    position
+                    + len(boundary)
+                )
+
+        for clause in candidates:
+            if any(
+                value in clause
+                for value in positive_relation
+            ):
+                return clause
+
+        return None
 
     def is_origin_inconclusive(
         self,
