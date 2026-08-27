@@ -62,6 +62,25 @@ cases = [
         ),
         "expected": "SUPPORTED",
     },
+    {
+        "name": "xfg_no_additional_risk_indirect",
+        "question": "Why are they still tracking XFG?",
+        "response": (
+            "WHO currently says the evidence does not indicate that "
+            "XFG poses additional public-health risk compared with "
+            "other circulating SARS-CoV-2 variants."
+        ),
+        "expected": "INSUFFICIENT_EVIDENCE",
+    },
+    {
+        "name": "xfg_tracking_not_severity_rationale",
+        "question": "Why are they still tracking XFG?",
+        "response": (
+            "They are tracking XFG to catch a meaningful change early, "
+            "not because they presently think XFG is unusually severe."
+        ),
+        "expected": "INSUFFICIENT_EVIDENCE",
+    },
 ]
 
 passed = 0

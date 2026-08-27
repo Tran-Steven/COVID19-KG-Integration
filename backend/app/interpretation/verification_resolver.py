@@ -74,6 +74,27 @@ class VerificationResolver(
                 method="who_semantic",
             )
 
+        if (
+            self.semantics
+            .is_variant_tracking_rationale_claim(
+                text
+            )
+        ):
+            return self._result(
+                status=self.INSUFFICIENT_EVIDENCE,
+                reason=(
+                    "WHO variant monitoring evidence "
+                    "was retrieved, but the current "
+                    "knowledge graph does not establish "
+                    "the claimed rationale for why the "
+                    "variant is being monitored."
+                ),
+                evidence_count=len(
+                    facts
+                ),
+                method="who_semantic",
+            )
+
         return super()._who_result(
             text=text,
             entities=entities,

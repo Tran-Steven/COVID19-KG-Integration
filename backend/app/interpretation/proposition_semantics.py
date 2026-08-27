@@ -180,6 +180,11 @@ class PropositionSemantics:
         ):
             return False
 
+        if self.is_variant_tracking_rationale_claim(
+            text
+        ):
+            return False
+
         if self._is_meta_relation_qualification(
             normalized
         ):
@@ -247,6 +252,59 @@ class PropositionSemantics:
                 "different claims from",
             )
         )
+
+    def is_variant_tracking_rationale_claim(
+        self,
+        text: str,
+    ):
+        normalized = self.normalize(
+            text
+        )
+
+        tracking = any(
+            value in normalized
+            for value in (
+                "tracking",
+                "tracks",
+                "track",
+                "monitoring",
+                "monitors",
+                "monitor",
+            )
+        )
+
+        rationale = any(
+            value in normalized
+            for value in (
+                "not because",
+                "because it is not",
+                "because it isn't",
+                "reason for tracking",
+                "reason for monitoring",
+                "tracking it to",
+                "monitoring it to",
+            )
+        )
+
+        severity = any(
+            value in normalized
+            for value in (
+                "severe",
+                "severity",
+                "dangerous",
+                "more dangerous",
+                "unusually severe",
+                "especially dangerous",
+                "additional public health risk",
+            )
+        )
+
+        return (
+            tracking
+            and rationale
+            and severity
+        )
+
 
     def _scoped_vaccine_relation_clause(
         self,
@@ -420,22 +478,40 @@ class PropositionSemantics:
         ):
             return True
 
-        return (
-            re.search(
-                (
-                    r"\b(?:does not|doesn't|doesnt|doesn t)\s+"
-                    r"(?:currently\s+)?"
-                    r"(?:(?:appear|seem) to\s+)?"
-                    r"(?:currently\s+)?"
-                    r"pose\s+"
-                    r"(?:an\s+)?"
-                    r"additional\s+"
-                    r"public health risk\b"
-                ),
-                normalized,
-            )
-            is not None
+        direct = re.search(
+            (
+                r"\b(?:does not|doesn't|doesnt|doesn t)\s+"
+                r"(?:currently\s+)?"
+                r"(?:(?:appear|seem) to\s+)?"
+                r"(?:currently\s+)?"
+                r"pose\s+"
+                r"(?:an\s+)?"
+                r"additional\s+"
+                r"public health risk\b"
+            ),
+            normalized,
         )
+
+        if direct is not None:
+            return True
+
+        indirect = re.search(
+            (
+                r"\b(?:evidence|data)\s+"
+                r"(?:does not|doesn't|doesnt|doesn t)\s+"
+                r"(?:currently\s+)?"
+                r"(?:indicate|show|suggest)\s+"
+                r"(?:that\s+)?"
+                r".{0,100}?"
+                r"(?:poses?|pose)\s+"
+                r"(?:an\s+)?"
+                r"additional\s+"
+                r"public health risk\b"
+            ),
+            normalized,
+        )
+
+        return indirect is not None
 
     def explicit_years(
         self,
