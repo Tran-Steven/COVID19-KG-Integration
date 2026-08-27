@@ -1,0 +1,228 @@
+{
+  "suite": "chatgpt_real_response_regression",
+  "purpose": "Post-hoc development regression using naturally generated ChatGPT responses observed during manual browser-extension testing.",
+  "sourceCapturedAt": "2026-08-27T05:20:09.798Z",
+  "caseCount": 43,
+  "omittedPromptCount": 2,
+  "omittedPrompts": [
+    "What's the deal with the lab leak theory? What do we actually know?",
+    "What treatments exist for COVID?"
+  ],
+  "cases": [
+    {
+      "id": "chatgpt_real_cause_basic",
+      "question": "What causes COVID-19?",
+      "response": "COVID-19 is caused by infection with SARS-CoV-2, a coronavirus that primarily spreads between people through virus-containing respiratory particles in the air."
+    },
+    {
+      "id": "chatgpt_real_treatment_remdesivir",
+      "question": "Does remdesivir treat COVID-19?",
+      "response": "Yes. Remdesivir is an antiviral medication used to treat COVID-19 by inhibiting SARS-CoV-2 replication.\nIt’s given intravenously and is used for certain hospitalized patients and some non-hospitalized people at high risk of severe disease, especially when started early."
+    },
+    {
+      "id": "chatgpt_real_cause_flu_correction",
+      "question": "COVID-19 is caused by the flu virus.",
+      "response": "No. COVID-19 is caused by SARS-CoV-2, a coronavirus.\nThe flu is caused by influenza viruses. They can produce similar symptoms, but they are different viruses and different illnesses."
+    },
+    {
+      "id": "chatgpt_real_treatment_remdesivir_correction",
+      "question": "Remdesivir has nothing to do with treating COVID-19.",
+      "response": "That statement is false. Remdesivir (brand name Veklury) is an antiviral drug specifically approved by the FDA to treat COVID-19 in certain adults and children. It works by interfering with SARS-CoV-2 replication. fda.gov+1\nIt does not prevent COVID-19, and it isn't appropriate for every patient, but it absolutely is a COVID-19 treatment."
+    },
+    {
+      "id": "chatgpt_real_vaccine_hospitalization",
+      "question": "Do COVID vaccines reduce the risk of hospitalization?",
+      "response": "Yes. COVID-19 vaccines reduce the risk of hospitalization from COVID-19, with the strongest benefit generally seen against severe disease, hospitalization, and death rather than against getting infected at all. World Health Organization+1\nThe protection is not absolute and tends to wane over time, which is one reason updated doses are focused especially on people at higher risk of severe disease. Recent WHO data also found meaningful protection from up-to-date vaccination against COVID-19 hospitalization. World Health Organization+1"
+    },
+    {
+      "id": "chatgpt_real_transmission_surface_correction",
+      "question": "COVID spreads only through contaminated surfaces.",
+      "response": "No. COVID-19 spreads mainly through respiratory particles in the air when an infected person breathes, talks, coughs, or sneezes.\nSpread from contaminated surfaces is possible, but it is not the primary route of transmission."
+    },
+    {
+      "id": "chatgpt_real_vaccine_infection_absolute_correction",
+      "question": "COVID vaccines guarantee that you can never get infected.",
+      "response": "No. COVID vaccines do not guarantee that you can never get infected.\nThey can reduce the risk of infection, but breakthrough infections still happen. Their most consistent benefit is reducing the risk of severe illness, hospitalization, and death."
+    },
+    {
+      "id": "chatgpt_real_scope_5g",
+      "question": "Can 5G cure COVID-19?",
+      "response": "No. 5G cannot cure COVID-19. 5G is a wireless communications technology and has no antiviral or medical mechanism that treats SARS-CoV-2 infection."
+    },
+    {
+      "id": "chatgpt_real_transmission_respiratory",
+      "question": "Can COVID spread through respiratory particles?",
+      "response": "Yes. COVID-19 can spread through respiratory particles in the air, including droplets and smaller aerosols released when an infected person breathes, talks, coughs, or sneezes."
+    },
+    {
+      "id": "chatgpt_real_scope_crystals",
+      "question": "Can healing crystals prevent COVID-19?",
+      "response": "No. There’s no reliable evidence that healing crystals prevent COVID-19.\nPrevention relies on measures with evidence behind them, such as vaccination, good ventilation/air filtration, masking in higher-risk settings, and avoiding close contact when someone is infectious."
+    },
+    {
+      "id": "chatgpt_real_long_covid_negative_correction",
+      "question": "COVID-19 can never lead to long COVID.",
+      "response": "That statement is false. COVID-19 can lead to long COVID, with symptoms that persist or develop after the initial infection."
+    },
+    {
+      "id": "chatgpt_real_long_covid_positive",
+      "question": "Can COVID-19 lead to long COVID?",
+      "response": "Yes. COVID-19 can lead to long COVID, where symptoms such as fatigue, shortness of breath, brain fog, or other problems persist or appear after the initial infection."
+    },
+    {
+      "id": "chatgpt_real_origin_exact",
+      "question": "What is the exact origin of SARS-CoV-2?",
+      "response": "The exact origin of SARS-CoV-2 is still not known with certainty.\nThe best-supported scientific explanation is a zoonotic spillover: a SARS-CoV-2-related coronavirus circulating in animals, probably ultimately originating in horseshoe bats, crossed into humans either directly or through an intermediate animal. The WHO’s 2025 expert assessment concluded that the weight of available evidence favors zoonotic spillover, and early cases were strongly concentrated around Wuhan’s Huanan market, where susceptible wildlife species were being sold. World Health Organization+1\nHowever, researchers have not identified the specific infected animal or complete transmission chain, so the precise place, animal, and moment of the first human infection remain unresolved. Nature\nA laboratory-associated incident has also been investigated. WHO says it cannot be completely excluded because important laboratory and early-outbreak data have not been made available, but there is currently no conclusive scientific evidence demonstrating that SARS-CoV-2 escaped from a laboratory. World Health Organization+1\nSo the accurate answer is: we don't know the exact origin; current scientific evidence favors an animal-to-human origin, but the question has not been definitively resolved."
+    },
+    {
+      "id": "chatgpt_real_origin_engineered",
+      "question": "Was SARS-CoV-2 definitely created in a laboratory?",
+      "response": "No. There is no definitive evidence that SARS-CoV-2 was created in a laboratory.\nIts exact origin remains unresolved. Most scientific evidence supports a natural zoonotic origin, while a laboratory-associated incident has not been completely ruled out. Those are different claims from saying the virus was deliberately created or engineered in a lab."
+    },
+    {
+      "id": "chatgpt_real_origin_lab_not_ruled_out",
+      "question": "Has a laboratory-related origin been completely ruled out?",
+      "response": "No. A laboratory-related origin has not been completely ruled out.\nThe WHO’s 2025 expert review concluded that the available evidence leans toward zoonotic spillover, but said it could neither confirm nor eliminate a laboratory-related incident because key information about Wuhan laboratories, biosafety practices, research activities, and staff health records has not been made available for review. World Health Organization+1\nThat also does not mean SARS-CoV-2 was proven to have been created or engineered in a lab. A lab-related origin could theoretically involve an accidental infection involving a naturally occurring virus being collected or studied. U.S. intelligence agencies have also differed in their assessments of whether natural spillover or a laboratory-associated incident was more likely. ODNI+1\nSo the accurate answer is: not ruled out, but not proven either."
+    },
+    {
+      "id": "chatgpt_real_history_false_february",
+      "question": "WHO characterized COVID-19 as a pandemic in February 2020.",
+      "response": "That statement is false. WHO characterized COVID-19 as a pandemic on March 11, 2020, not in February 2020."
+    },
+    {
+      "id": "chatgpt_real_history_pandemic_date",
+      "question": "When did WHO characterize COVID-19 as a pandemic?",
+      "response": "WHO characterized COVID-19 as a pandemic on March 11, 2020."
+    },
+    {
+      "id": "chatgpt_real_current_risk",
+      "question": "What is WHO's current global COVID-19 risk assessment?",
+      "response": "As of WHO’s latest global assessment, published August 6, 2026, the global public-health risk from COVID-19 is rated moderate. World Health Organization+1\nWHO says COVID-19’s direct impact is much lower than during the early pandemic, but SARS-CoV-2 still circulates globally and can cause severe disease and death, especially in older adults, immunocompromised people, and people with comorbidities. WHO also notes continuing uncertainty from reduced surveillance, viral evolution, reinfections, and long COVID. World Health Organization\nThis is a change from WHO’s December 31, 2024 assessment, when the global risk was rated high. World Health Organization"
+    },
+    {
+      "id": "chatgpt_real_variant_xfg_direct",
+      "question": "Does WHO still monitor XFG?",
+      "response": "Yes. WHO still monitors XFG. As of WHO’s July 2026 reporting, XFG remains classified as a Variant Under Monitoring (VUM). datadot+1\nWHO’s available evidence indicates that XFG does not currently pose an additional public-health risk compared with other circulating SARS-CoV-2 variants. datadot"
+    },
+    {
+      "id": "chatgpt_real_mixed_claims",
+      "question": "COVID-19 is caused by SARS-CoV-2. Vaccines reduce hospitalization risk. COVID spreads only through contaminated surfaces. Remdesivir treats COVID-19. 5G cures COVID-19.",
+      "response": "COVID-19 is caused by SARS-CoV-2. — True\n\nVaccines reduce hospitalization risk. — True\n\nCOVID spreads only through contaminated surfaces. — False; it spreads mainly through respiratory particles in the air.\n\nRemdesivir treats COVID-19. — True\n\n5G cures COVID-19. — False"
+    },
+    {
+      "id": "chatgpt_real_vaccine_measles",
+      "question": "Is a measles vaccine effective against severe COVID-19?",
+      "response": "No. A measles-containing vaccine such as MMR is not an established or recommended vaccine for preventing severe COVID-19.\nThere were early hypotheses that MMR vaccination might provide some nonspecific immune benefit, but the evidence has not shown it to be a reliable substitute for COVID-19 vaccination, which is specifically designed to reduce the risk of severe COVID-19, hospitalization, and death."
+    },
+    {
+      "id": "chatgpt_real_multi_topic_bullets",
+      "question": "Give me the answer as bullet points: what causes COVID, how it spreads, whether vaccines help, and whether remdesivir is a treatment.",
+      "response": "Cause: COVID-19 is caused by the SARS-CoV-2 virus.\n\nSpread: It spreads mainly through respiratory particles in the air released when infected people breathe, talk, cough, or sneeze.\n\nVaccines: Yes. COVID vaccines help reduce the risk of severe illness, hospitalization, and death, though they do not guarantee prevention of infection.\n\nRemdesivir: Yes. Remdesivir is an antiviral treatment for COVID-19 used in certain patients."
+    },
+    {
+      "id": "chatgpt_real_cause_basic_second",
+      "question": "What causes COVID-19?",
+      "response": "COVID-19 is caused by infection with SARS-CoV-2, a coronavirus."
+    },
+    {
+      "id": "chatgpt_real_cause_context_disease",
+      "question": "What about the disease itself?",
+      "response": "COVID-19 is the disease itself—the illness caused by infection with the SARS-CoV-2 virus."
+    },
+    {
+      "id": "chatgpt_real_cause_context_pronoun",
+      "question": "Are you sure that's the virus responsible for it?",
+      "response": "Yes. SARS-CoV-2 is the virus that causes COVID-19.\n“COVID-19” is the disease; SARS-CoV-2 is the virus responsible for that disease."
+    },
+    {
+      "id": "chatgpt_real_variant_context_why_tracking",
+      "question": "Why are they still tracking it?",
+      "response": "WHO still tracks XFG because “Variant Under Monitoring” (VUM) is essentially a watchlist category, not a declaration that the variant is especially dangerous. WHO uses it to watch whether a variant develops characteristics that could change its public-health impact—such as faster spread, greater disease severity, immune escape, or reduced effectiveness of vaccines, treatments, or diagnostic tests. World Health Organization+1\nXFG is also still circulating substantially. In WHO’s latest available circulation data, it represented about 28% of submitted global sequences for the week ending July 12, 2026. datadot\nImportantly, WHO currently says the evidence does not indicate that XFG poses additional public-health risk compared with other circulating SARS-CoV-2 variants. So they’re tracking it to catch a meaningful change early, not because they presently think XFG is unusually severe. datadot\nI can also keep an eye on WHO’s XFG classification and tell you if it gets upgraded, downgraded, or dropped from monitoring."
+    },
+    {
+      "id": "chatgpt_real_variant_xfg_detailed",
+      "question": "Does WHO still monitor XFG?",
+      "response": "Yes. As of July 27, 2026, WHO still lists XFG as a “Variant Under Monitoring” (VUM). WHO is tracking it alongside variants including NB.1.8.1, PQ.16.1.1, and BA.3.2. World Health Organization+1\nWHO’s current assessment is that XFG does not appear to pose an additional public-health risk compared with other circulating SARS-CoV-2 variants. data.who.int"
+    },
+    {
+      "id": "chatgpt_real_origin_lab_possible",
+      "question": "Could SARS-CoV-2 have originated through a laboratory-associated event?",
+      "response": "Yes. A laboratory-associated event remains a possible origin and has not been completely ruled out.\nWHO’s 2025 expert assessment said it could not adequately evaluate that hypothesis because important information about Wuhan laboratory activities, biosafety practices, and staff health records was not available. As a result, WHO says a laboratory-related event cannot currently be confirmed or excluded. World Health Organization+1\nAt the same time, WHO concluded that the weight of currently available scientific evidence favors zoonotic spillover from animals to humans. World Health Organization\nAlso, a “laboratory-associated event” does not necessarily mean the virus was engineered. It could hypothetically involve accidental exposure to a naturally occurring virus during collection or research. WHO says claims of intentional manipulation are not supported by the available scientific evidence. World Health Organization"
+    },
+    {
+      "id": "chatgpt_real_origin_context_proven",
+      "question": "So has that possibility been proven?",
+      "response": "No. A laboratory-associated origin has not been proven.\nIt remains a possibility that has not been completely ruled out, but there is currently no definitive evidence establishing that SARS-CoV-2 originated through a laboratory-associated event. The available scientific evidence overall still favors zoonotic spillover as the more likely explanation."
+    },
+    {
+      "id": "chatgpt_real_long_covid_context_direct",
+      "question": "Can COVID lead to long COVID?",
+      "response": "Yes. COVID-19 can lead to long COVID, where symptoms or health problems persist or appear after the initial infection, sometimes for months or longer."
+    },
+    {
+      "id": "chatgpt_real_origin_context_ruled_out",
+      "question": "Has it been ruled out?",
+      "response": "No. A laboratory-associated origin has not been ruled out.\nIt also has not been proven. WHO’s position is that available evidence currently favors zoonotic spillover, while a lab-associated event remains unresolved because key data needed to fully assess it are still unavailable."
+    },
+    {
+      "id": "chatgpt_real_cause_adenovirus",
+      "question": "Adenovirus infection gives rise to COVID-19.",
+      "response": "No. Adenoviruses do not cause COVID-19. COVID-19 is caused by SARS-CoV-2.\nAdenoviruses can cause other illnesses, including respiratory infections, but they are a different group of viruses."
+    },
+    {
+      "id": "chatgpt_real_long_covid_context_pronoun",
+      "question": "Can that condition happen afterward?",
+      "response": "Yes. Long COVID can develop after the initial COVID-19 infection, including after the acute illness has improved or resolved."
+    },
+    {
+      "id": "chatgpt_real_vaccine_zero_hospitalization",
+      "question": "COVID vaccination provides zero protection against hospitalization.",
+      "response": "That statement is false. COVID-19 vaccination provides meaningful protection against hospitalization and severe disease, although the amount of protection varies with factors such as age, time since vaccination, prior infection, and circulating variants. WHO’s August 2026 assessment states that available vaccines remain effective against severe disease and death. who.int+1"
+    },
+    {
+      "id": "chatgpt_real_cause_incapable",
+      "question": "SARS-CoV-2 is incapable of producing COVID-19.",
+      "response": "That statement is false. SARS-CoV-2 is the virus that causes COVID-19."
+    },
+    {
+      "id": "chatgpt_real_variant_stopped_xfg",
+      "question": "WHO has stopped monitoring XFG.",
+      "response": "That statement is false. WHO still monitors XFG.\nAs of July 27, 2026, WHO lists XFG as a Variant Under Monitoring (VUM). WHO’s July 2026 surveillance data also identified XFG as the most prevalent globally among submitted sequences, at about 28% for the week ending July 12. World Health Organization+1\nWHO currently says XFG does not appear to pose additional public-health risk compared with other circulating variants. datadot"
+    },
+    {
+      "id": "chatgpt_real_variant_ba32_stopped",
+      "question": "BA.3.2 is no longer monitored by WHO.",
+      "response": "That statement is false. As of July 27, 2026, WHO still lists BA.3.2 as a Variant Under Monitoring (VUM). World Health Organization+1\nWHO’s latest assessment says BA.3.2 does not currently appear to pose additional public-health risk compared with other circulating SARS-CoV-2 variants. datadot"
+    },
+    {
+      "id": "chatgpt_real_treatment_no_connection",
+      "question": "There is no connection between remdesivir and treatment of COVID-19.",
+      "response": "That statement is false. Remdesivir is an antiviral medication used to treat COVID-19 in certain patients by inhibiting replication of SARS-CoV-2."
+    },
+    {
+      "id": "chatgpt_real_long_covid_recovery",
+      "question": "Recovering from COVID-19 makes later long COVID impossible.",
+      "response": "That statement is false. Long COVID can develop or persist after the initial COVID-19 illness has resolved, including after someone appears to have recovered from the acute infection."
+    },
+    {
+      "id": "chatgpt_real_natural_explainer",
+      "question": "Explain COVID-19 to someone who knows basically nothing about it.",
+      "response": "COVID-19 is an infectious disease caused by a virus called SARS-CoV-2.\nThe virus mainly spreads from person to person through tiny respiratory particles in the air when an infected person breathes, talks, coughs, or sneezes. People can sometimes spread it even if they have mild symptoms or no symptoms.\nCOVID-19 can cause symptoms such as fever, cough, sore throat, fatigue, congestion, body aches, and loss of taste or smell. Some people become seriously ill, especially older adults and people with certain health conditions, while others have mild or no symptoms.\nVaccines help reduce the risk of severe illness, hospitalization, and death, although vaccinated people can still become infected.\nThere are also treatments for certain people with COVID-19. For example, remdesivir is an antiviral medication used to treat COVID-19 in some patients.\nMost people recover, but some develop long COVID, where symptoms or health problems continue or appear after the initial infection.\nIn short: SARS-CoV-2 is the virus, COVID-19 is the disease it causes, and it spreads mainly through the air."
+    },
+    {
+      "id": "chatgpt_real_natural_transmission_prevention",
+      "question": "How do people catch COVID and what lowers the risk of severe illness?",
+      "response": "People usually catch COVID-19 by breathing in respiratory particles containing SARS-CoV-2, especially during close or prolonged contact with an infected person indoors or in poorly ventilated spaces.\nThings that lower the risk of severe illness include staying up to date with COVID vaccination, and for people at higher risk, starting an appropriate antiviral treatment early if they become infected. Measures such as good ventilation, masking in higher-risk settings, and avoiding close contact with someone who is infectious can also reduce the chance of getting infected in the first place."
+    },
+    {
+      "id": "chatgpt_real_vaccine_summary",
+      "question": "Can you summarize what COVID vaccines do and don't do?",
+      "response": "COVID vaccines do:\n\nReduce the risk of severe COVID-19\n\nReduce the risk of hospitalization and death\n\nProvide some protection against infection, although that protection is less complete and tends to wane over time\n\nWork best when the vaccine is reasonably matched to circulating variants and when people stay up to date as recommended\n\nCOVID vaccines do not:\n\nGuarantee that you won’t get infected\n\nCompletely stop transmission\n\nMake severe illness impossible\n\nTreat an infection you already have\n\nSo the main benefit is making COVID much less likely to become severe, not making infection impossible."
+    },
+    {
+      "id": "chatgpt_real_natural_summary_5bullet",
+      "question": "Give me a 5 bullet summary of COVID-19.",
+      "response": "Cause: COVID-19 is the disease caused by the SARS-CoV-2 virus.\n\nSpread: It spreads mainly through respiratory particles in the air, especially during close or prolonged indoor contact.\n\nSymptoms: It can range from no symptoms or mild illness to severe pneumonia and other complications.\n\nPrevention: Vaccination lowers the risk of severe illness, hospitalization, and death, though it does not guarantee prevention of infection.\n\nTreatment and recovery: Antiviral treatments such as remdesivir are used for some patients, and some people can develop long COVID after the initial infection."
+    }
+  ]
+}
