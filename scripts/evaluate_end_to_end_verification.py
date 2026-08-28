@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CASES = (
     ROOT
     / "evaluation"
-    / "end_to_end_verification_cases.json"
+    / "end_to_end_verification_blind_v4_cases.json"
 )
 
 DEFAULT_OUTPUT = (

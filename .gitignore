@@ -1,7 +1,16 @@
-neo4j
-plugins
-.DS_Store
+neo4j/
+plugins/
 .venv/
+.DS_Store
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+.regression-output/
+evaluation/chatgpt_real_response_results.json
 
 resources/monarch-kg/*
 !resources/monarch-kg/.gitkeep
@@ -22,11 +31,14 @@ resources/who-covid-history/*
 !resources/who-covid-history/.gitkeep
 
 resources/who-covid-kg/*
-!resources/who-covid-kg/.gitkeep.regression-output/
-.regression-output/
-__pycache__/
-*.py[cod]
-evaluation/chatgpt_real_response_results.json
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+!resources/who-covid-kg/.gitkeep
+
+# Generated evaluation artifacts
+evaluation/*_results.json
+evaluation/*_analysis.json
+evaluation/*_audit.json
+evaluation/verification_evaluation_summary.json
+evaluation/semantic_fallback_ablation.json
+
+# Preserve the frozen blind-v4 first-run record
+!evaluation/end_to_end_verification_blind_v4_first_run_results.json
