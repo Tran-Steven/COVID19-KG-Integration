@@ -109,8 +109,7 @@ class PropositionSemantics:
         normalized = text.lower()
 
         normalized = (
-            normalized
-            .replace(
+            normalized.replace(
                 "’",
                 "'",
             )
@@ -146,69 +145,37 @@ class PropositionSemantics:
         self,
         text: str,
     ):
-        return (
-            self.DISCOURSE_ONLY.match(
-                text
-            )
-            is not None
-        )
+        return self.DISCOURSE_ONLY.match(text) is not None
 
     def is_absolute_limitation(
         self,
         text: str,
     ):
-        normalized = self.normalize(
-            text
-        )
+        normalized = self.normalize(text)
 
-        return any(
-            value in normalized
-            for value
-            in self.ABSOLUTE_LIMITATION
-        )
+        return any(value in normalized for value in self.ABSOLUTE_LIMITATION)
 
     def is_relation_negated(
         self,
         text: str,
     ):
-        normalized = self.normalize(
-            text
-        )
+        normalized = self.normalize(text)
 
-        if self.is_no_additional_risk_claim(
-            text
-        ):
+        if self.is_no_additional_risk_claim(text):
             return False
 
-        if self.is_variant_tracking_rationale_claim(
-            text
-        ):
+        if self.is_variant_tracking_rationale_claim(text):
             return False
 
-        if self._is_meta_relation_qualification(
-            normalized
-        ):
+        if self._is_meta_relation_qualification(normalized):
             return False
 
-        scoped_vaccine_clause = (
-            self._scoped_vaccine_relation_clause(
-                normalized
-            )
-        )
+        scoped_vaccine_clause = self._scoped_vaccine_relation_clause(normalized)
 
         if scoped_vaccine_clause is not None:
-            return (
-                self.NEGATION.search(
-                    scoped_vaccine_clause
-                )
-                is not None
-            )
+            return self.NEGATION.search(scoped_vaccine_clause) is not None
 
-        if any(
-            value in normalized
-            for value
-            in self.NON_RELATION_NEGATION
-        ):
+        if any(value in normalized for value in self.NON_RELATION_NEGATION):
             return False
 
         if any(
@@ -227,12 +194,7 @@ class PropositionSemantics:
         ):
             return True
 
-        return (
-            self.NEGATION.search(
-                normalized
-            )
-            is not None
-        )
+        return self.NEGATION.search(normalized) is not None
 
     def _is_meta_relation_qualification(
         self,
@@ -257,9 +219,7 @@ class PropositionSemantics:
         self,
         text: str,
     ):
-        normalized = self.normalize(
-            text
-        )
+        normalized = self.normalize(text)
 
         tracking = any(
             value in normalized
@@ -299,12 +259,7 @@ class PropositionSemantics:
             )
         )
 
-        return (
-            tracking
-            and rationale
-            and severity
-        )
-
+        return tracking and rationale and severity
 
     def _scoped_vaccine_relation_clause(
         self,
@@ -361,23 +316,12 @@ class PropositionSemantics:
                 if position == -1:
                     break
 
-                candidates.append(
-                    text[
-                        position
-                        + len(boundary):
-                    ]
-                )
+                candidates.append(text[position + len(boundary) :])
 
-                start = (
-                    position
-                    + len(boundary)
-                )
+                start = position + len(boundary)
 
         for clause in candidates:
-            if any(
-                value in clause
-                for value in positive_relation
-            ):
+            if any(value in clause for value in positive_relation):
                 return clause
 
         return None
@@ -386,9 +330,7 @@ class PropositionSemantics:
         self,
         text: str,
     ):
-        normalized = self.normalize(
-            text
-        )
+        normalized = self.normalize(text)
 
         return any(
             value in normalized
@@ -419,9 +361,7 @@ class PropositionSemantics:
         self,
         text: str,
     ):
-        normalized = self.normalize(
-            text
-        )
+        normalized = self.normalize(text)
 
         laboratory = any(
             value in normalized
@@ -459,23 +399,15 @@ class PropositionSemantics:
             )
         )
 
-        return (
-            laboratory
-            and uncertainty
-        )
+        return laboratory and uncertainty
 
     def is_no_additional_risk_claim(
         self,
         text: str,
     ):
-        normalized = self.normalize(
-            text
-        )
+        normalized = self.normalize(text)
 
-        if (
-            "no additional public health risk"
-            in normalized
-        ):
+        if "no additional public health risk" in normalized:
             return True
 
         direct = re.search(
@@ -519,8 +451,7 @@ class PropositionSemantics:
     ):
         return [
             int(value)
-            for value
-            in re.findall(
+            for value in re.findall(
                 r"\b(?:19|20)\d{2}\b",
                 text,
             )
@@ -530,9 +461,7 @@ class PropositionSemantics:
         self,
         text: str,
     ):
-        normalized = self.normalize(
-            text
-        )
+        normalized = self.normalize(text)
 
         return any(
             value in normalized
@@ -551,9 +480,7 @@ class PropositionSemantics:
         self,
         text: str,
     ):
-        normalized = self.normalize(
-            text
-        )
+        normalized = self.normalize(text)
 
         return any(
             value in normalized

@@ -10,15 +10,9 @@ class WhoIntentResolver:
     SARS_ID = "NCBITaxon:2697049"
     LONG_COVID_ID = "MONDO:0100320"
 
-    VACCINATION_ID = (
-        "covidkg:who:concept:"
-        "covid-19-vaccination"
-    )
+    VACCINATION_ID = "covidkg:who:concept:covid-19-vaccination"
 
-    AIRBORNE_ID = (
-        "covidkg:who:transmission:"
-        "infectious-respiratory-particles"
-    )
+    AIRBORNE_ID = "covidkg:who:transmission:infectious-respiratory-particles"
 
     SURFACE_ID = (
         "covidkg:who:transmission:"
@@ -27,40 +21,20 @@ class WhoIntentResolver:
         "nose-or-mouth"
     )
 
-    SEVERE_DISEASE_ID = (
-        "covidkg:who:vaccine-outcome:"
-        "severe-disease"
-    )
+    SEVERE_DISEASE_ID = "covidkg:who:vaccine-outcome:severe-disease"
 
-    HOSPITALIZATION_ID = (
-        "covidkg:who:vaccine-outcome:"
-        "hospitalization"
-    )
+    HOSPITALIZATION_ID = "covidkg:who:vaccine-outcome:hospitalization"
 
-    DEATH_ID = (
-        "covidkg:who:vaccine-outcome:"
-        "death"
-    )
+    DEATH_ID = "covidkg:who:vaccine-outcome:death"
 
-    ORIGIN_STATUS_ID = (
-        "covidkg:who:origin-status:"
-        "origin-remains-inconclusive"
-    )
+    ORIGIN_STATUS_ID = "covidkg:who:origin-status:origin-remains-inconclusive"
 
-    ZOONOTIC_ID = (
-        "covidkg:who:origin-hypothesis:"
-        "natural-zoonotic-spillover"
-    )
+    ZOONOTIC_ID = "covidkg:who:origin-hypothesis:natural-zoonotic-spillover"
 
-    LAB_ID = (
-        "covidkg:who:origin-hypothesis:"
-        "accidental-laboratory-related-event"
-    )
+    LAB_ID = "covidkg:who:origin-hypothesis:accidental-laboratory-related-event"
 
     COLD_CHAIN_ID = (
-        "covidkg:who:origin-hypothesis:"
-        "cold-chain-introduction-"
-        "into-animal-markets"
+        "covidkg:who:origin-hypothesis:cold-chain-introduction-into-animal-markets"
     )
 
     DELIBERATE_ID = (
@@ -74,39 +48,25 @@ class WhoIntentResolver:
         text: str,
     ):
         raw_text = text
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
-        if self._origin_query(
-            normalized
-        ):
-            return self._resolve_origin(
-                normalized
-            )
+        if self._origin_query(normalized):
+            return self._resolve_origin(normalized)
 
         if self._variant_query(
             normalized,
             raw_text,
         ):
-            return self._resolve_variants(
-                normalized
-            )
+            return self._resolve_variants(normalized)
 
-        if self._vaccine_query(
-            normalized
-        ):
+        if self._vaccine_query(normalized):
             object_ids = []
 
             if "severe" in normalized:
-                object_ids.append(
-                    self.SEVERE_DISEASE_ID
-                )
+                object_ids.append(self.SEVERE_DISEASE_ID)
 
             if "hospital" in normalized:
-                object_ids.append(
-                    self.HOSPITALIZATION_ID
-                )
+                object_ids.append(self.HOSPITALIZATION_ID)
 
             if any(
                 value in normalized
@@ -116,18 +76,12 @@ class WhoIntentResolver:
                     "mortality",
                 )
             ):
-                object_ids.append(
-                    self.DEATH_ID
-                )
+                object_ids.append(self.DEATH_ID)
 
             return {
                 "intent": "vaccine_protection",
-                "semanticRoles": [
-                    "protects_against"
-                ],
-                "subjectIds": [
-                    self.VACCINATION_ID
-                ],
+                "semanticRoles": ["protects_against"],
+                "subjectIds": [self.VACCINATION_ID],
                 "objectIds": object_ids,
                 "matchedText": (
                     self._first_match(
@@ -145,23 +99,12 @@ class WhoIntentResolver:
                 "method": "rule",
             }
 
-        if self._long_covid_query(
-            normalized
-        ):
+        if self._long_covid_query(normalized):
             return {
                 "intent": "long_covid_outcome",
-                "semanticRoles": [
-                    (
-                        "can_lead_to_"
-                        "post_covid_condition"
-                    )
-                ],
-                "subjectIds": [
-                    self.COVID_ID
-                ],
-                "objectIds": [
-                    self.LONG_COVID_ID
-                ],
+                "semanticRoles": [("can_lead_to_post_covid_condition")],
+                "subjectIds": [self.COVID_ID],
+                "objectIds": [self.LONG_COVID_ID],
                 "matchedText": (
                     self._first_match(
                         normalized,
@@ -178,12 +121,8 @@ class WhoIntentResolver:
                 "method": "rule",
             }
 
-        if self._transmission_query(
-            normalized
-        ):
-            roles = [
-                "transmitted_via"
-            ]
+        if self._transmission_query(normalized):
+            roles = ["transmitted_via"]
 
             object_ids = []
 
@@ -196,50 +135,36 @@ class WhoIntentResolver:
                 )
             )
 
-            if (
-                not exclusive
-                and any(
-                    phrase in normalized
-                    for phrase in (
-                        "airborne",
-                        "through the air",
-                        "respiratory particles",
-                        "respiratory particle",
-                        "aerosol",
-                        "aerosols",
-                    )
+            if not exclusive and any(
+                phrase in normalized
+                for phrase in (
+                    "airborne",
+                    "through the air",
+                    "respiratory particles",
+                    "respiratory particle",
+                    "aerosol",
+                    "aerosols",
                 )
             ):
-                object_ids = [
-                    self.AIRBORNE_ID
-                ]
+                object_ids = [self.AIRBORNE_ID]
 
-            elif (
-                not exclusive
-                and any(
-                    phrase in normalized
-                    for phrase in (
-                        "surface",
-                        "surfaces",
-                        "contaminated surface",
-                    )
+            elif not exclusive and any(
+                phrase in normalized
+                for phrase in (
+                    "surface",
+                    "surfaces",
+                    "contaminated surface",
                 )
             ):
-                object_ids = [
-                    self.SURFACE_ID
-                ]
+                object_ids = [self.SURFACE_ID]
 
             elif not exclusive:
-                roles.append(
-                    "transmission_risk_context"
-                )
+                roles.append("transmission_risk_context")
 
             return {
                 "intent": "transmission",
                 "semanticRoles": roles,
-                "subjectIds": [
-                    self.SARS_ID
-                ],
+                "subjectIds": [self.SARS_ID],
                 "objectIds": object_ids,
                 "matchedText": (
                     self._first_match(
@@ -263,9 +188,7 @@ class WhoIntentResolver:
                 "method": "rule",
             }
 
-        if self._cause_query(
-            normalized
-        ):
+        if self._cause_query(normalized):
             return self._cause_interpretation(
                 method="rule",
                 matched_text=(
@@ -289,30 +212,19 @@ class WhoIntentResolver:
                 ),
             )
 
-        if self._current_risk_query(
-            normalized
-        ):
+        if self._current_risk_query(normalized):
             return {
                 "intent": "current_global_risk",
-                "semanticRoles": [
-                    (
-                        "global_public_health_"
-                        "risk_level"
-                    )
-                ],
-                "subjectIds": [
-                    self.COVID_ID
-                ],
+                "semanticRoles": [("global_public_health_risk_level")],
+                "subjectIds": [self.COVID_ID],
                 "objectIds": [],
                 "matchedText": "risk",
                 "method": "rule",
             }
 
-        semantic_cause = (
-            self._semantic_cause_fallback(
-                raw_text,
-                normalized,
-            )
+        semantic_cause = self._semantic_cause_fallback(
+            raw_text,
+            normalized,
         )
 
         if semantic_cause:
@@ -325,17 +237,10 @@ class WhoIntentResolver:
         raw_text: str,
         normalized: str,
     ):
-        if not self._covid_context(
-            normalized
-        ):
+        if not self._covid_context(normalized):
             return None
 
-        result = (
-            get_verification_semantic_matcher()
-            .resolve(
-                raw_text
-            )
-        )
+        result = get_verification_semantic_matcher().resolve(raw_text)
 
         if not result:
             return None
@@ -343,20 +248,14 @@ class WhoIntentResolver:
         if result["label"] != "cause":
             return None
 
-        if (
-            result["embeddingScore"]
-            < 0.70
-        ):
+        if result["embeddingScore"] < 0.70:
             return None
 
         plausible_cause_subject = any(
             value in normalized
             for value in (
                 "sars cov 2",
-                (
-                    "severe acute respiratory "
-                    "syndrome coronavirus 2"
-                ),
+                ("severe acute respiratory syndrome coronavirus 2"),
                 "virus",
                 "viral",
                 "pathogen",
@@ -382,10 +281,7 @@ class WhoIntentResolver:
             )
         )
 
-        if not (
-            plausible_cause_subject
-            or open_cause_question
-        ):
+        if not (plausible_cause_subject or open_cause_question):
             return None
 
         return self._cause_interpretation(
@@ -400,15 +296,9 @@ class WhoIntentResolver:
     ):
         return {
             "intent": "cause",
-            "semanticRoles": [
-                "causes"
-            ],
-            "subjectIds": [
-                self.SARS_ID
-            ],
-            "objectIds": [
-                self.COVID_ID
-            ],
+            "semanticRoles": ["causes"],
+            "subjectIds": [self.SARS_ID],
+            "objectIds": [self.COVID_ID],
             "matchedText": matched_text,
             "method": method,
         }
@@ -482,9 +372,7 @@ class WhoIntentResolver:
                 "origin_hypothesis_assessment",
                 "overall_origin_status",
             ],
-            "subjectIds": [
-                self.SARS_ID
-            ],
+            "subjectIds": [self.SARS_ID],
             "objectIds": object_ids,
             "matchedText": (
                 self._first_match(
@@ -520,9 +408,7 @@ class WhoIntentResolver:
                 "monitor list",
             )
         ):
-            roles = [
-                "variant_under_monitoring"
-            ]
+            roles = ["variant_under_monitoring"]
 
         elif any(
             value in text
@@ -532,9 +418,7 @@ class WhoIntentResolver:
                 "voi",
             )
         ):
-            roles = [
-                "variant_of_interest"
-            ]
+            roles = ["variant_of_interest"]
 
         else:
             roles = [
@@ -545,9 +429,7 @@ class WhoIntentResolver:
         return {
             "intent": "variants",
             "semanticRoles": roles,
-            "subjectIds": [
-                self.SARS_ID
-            ],
+            "subjectIds": [self.SARS_ID],
             "objectIds": [],
             "matchedText": (
                 self._first_match(
@@ -597,22 +479,14 @@ class WhoIntentResolver:
             )
         )
 
-        return (
-            origin_language
-            and self._covid_context(
-                text
-            )
-        )
+        return origin_language and self._covid_context(text)
 
     def _variant_query(
         self,
         text: str,
         raw_text: str,
     ):
-        has_variant_word = (
-            "variant" in text
-            or "lineage" in text
-        )
+        has_variant_word = "variant" in text or "lineage" in text
 
         monitoring_language = any(
             value in text
@@ -636,29 +510,17 @@ class WhoIntentResolver:
             )
         )
 
-        identifier = (
-            self._has_variant_identifier(
-                raw_text
-            )
-        )
+        identifier = self._has_variant_identifier(raw_text)
 
-        if (
-            has_variant_word
-            and (
-                self._covid_context(
-                    text
-                )
-                or monitoring_language
-                or interest_language
-                or "current" in text
-            )
+        if has_variant_word and (
+            self._covid_context(text)
+            or monitoring_language
+            or interest_language
+            or "current" in text
         ):
             return True
 
-        if (
-            identifier
-            and monitoring_language
-        ):
+        if identifier and monitoring_language:
             return True
 
         return False
@@ -722,12 +584,8 @@ class WhoIntentResolver:
         return (
             vaccine
             and outcome
-            and self._covid_vaccine_context(
-                text
-            )
-            and not self._non_covid_vaccine_context(
-                text
-            )
+            and self._covid_vaccine_context(text)
+            and not self._non_covid_vaccine_context(text)
         )
 
     def _covid_vaccine_context(
@@ -803,21 +661,13 @@ class WhoIntentResolver:
             )
         )
 
-        return (
-            long_covid
-            and relation
-            and self._covid_context(
-                text
-            )
-        )
+        return long_covid and relation and self._covid_context(text)
 
     def _transmission_query(
         self,
         text: str,
     ):
-        if not self._covid_context(
-            text
-        ):
+        if not self._covid_context(text):
             return False
 
         direct_relation = any(
@@ -835,34 +685,26 @@ class WhoIntentResolver:
             )
         )
 
-        risk_context = (
-            "catch" in text
-            and any(
-                value in text
-                for value in (
-                    "indoor",
-                    "indoors",
-                    "shared space",
-                    "shared spaces",
-                    "close contact",
-                    "crowded",
-                    "ventilation",
-                )
+        risk_context = "catch" in text and any(
+            value in text
+            for value in (
+                "indoor",
+                "indoors",
+                "shared space",
+                "shared spaces",
+                "close contact",
+                "crowded",
+                "ventilation",
             )
         )
 
-        return (
-            direct_relation
-            or risk_context
-        )
+        return direct_relation or risk_context
 
     def _cause_query(
         self,
         text: str,
     ):
-        if not self._covid_context(
-            text
-        ):
+        if not self._covid_context(text):
             return False
 
         causal_language = any(
@@ -890,10 +732,7 @@ class WhoIntentResolver:
             value in text
             for value in (
                 "sars cov 2",
-                (
-                    "severe acute respiratory "
-                    "syndrome coronavirus 2"
-                ),
+                ("severe acute respiratory syndrome coronavirus 2"),
             )
         )
 
@@ -918,10 +757,7 @@ class WhoIntentResolver:
                 "what cause covid",
                 "what is covid caused by",
                 "what causes coronavirus disease 2019",
-                (
-                    "what is coronavirus disease "
-                    "2019 caused by"
-                ),
+                ("what is coronavirus disease 2019 caused by"),
                 "which virus causes covid",
                 "what virus causes covid",
                 "which pathogen causes covid",
@@ -934,11 +770,7 @@ class WhoIntentResolver:
             )
         )
 
-        return (
-            canonical_reference
-            or biological_cause
-            or open_question
-        )
+        return canonical_reference or biological_cause or open_question
 
     def _current_risk_query(
         self,
@@ -956,9 +788,7 @@ class WhoIntentResolver:
                     "now",
                 )
             )
-            and self._covid_context(
-                text
-            )
+            and self._covid_context(text)
         )
 
     def _covid_context(

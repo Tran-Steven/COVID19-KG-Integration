@@ -208,42 +208,27 @@ class ResponseClaimExtractor:
         claims = []
         seen = set()
 
-        for block in self._logical_blocks(
-            text
-        ):
-            doc = self.nlp(
-                block["text"]
-            )
+        for block in self._logical_blocks(text):
+            doc = self.nlp(block["text"])
 
             for sentence in doc.sents:
-                prepared = (
-                    self._prepare_sentence(
-                        sentence.text,
-                        (
-                            block["start"]
-                            + sentence.start_char
-                        ),
-                    )
+                prepared = self._prepare_sentence(
+                    sentence.text,
+                    (block["start"] + sentence.start_char),
                 )
 
                 if not prepared["text"]:
                     continue
 
-                segments = (
-                    self._sentence_segments(
-                        prepared["text"],
-                        prepared["start"],
-                    )
+                segments = self._sentence_segments(
+                    prepared["text"],
+                    prepared["start"],
                 )
 
                 for segment in segments:
-                    claim_text = segment[
-                        "text"
-                    ]
+                    claim_text = segment["text"]
 
-                    claim_doc = self.nlp(
-                        claim_text
-                    )
+                    claim_doc = self.nlp(claim_text)
 
                     if not self._is_factual(
                         claim_doc,
@@ -251,33 +236,20 @@ class ResponseClaimExtractor:
                     ):
                         continue
 
-                    key = self._normalize(
-                        claim_text
-                    )
+                    key = self._normalize(claim_text)
 
                     if key in seen:
                         continue
 
-                    seen.add(
-                        key
-                    )
+                    seen.add(key)
 
                     claims.append(
                         {
-                            "index": (
-                                len(claims)
-                                + 1
-                            ),
+                            "index": (len(claims) + 1),
                             "text": claim_text,
-                            "start": segment[
-                                "start"
-                            ],
-                            "end": segment[
-                                "end"
-                            ],
-                            "method": segment[
-                                "method"
-                            ],
+                            "start": segment["start"],
+                            "end": segment["end"],
+                            "method": segment["method"],
                         }
                     )
 
@@ -293,40 +265,22 @@ class ResponseClaimExtractor:
             r"[^\r\n]+",
             text,
         ):
-            raw_text = match.group(
-                0
-            )
+            raw_text = match.group(0)
 
-            list_prefix = (
-                self.LIST_PREFIX.match(
-                    raw_text
-                )
-            )
+            list_prefix = self.LIST_PREFIX.match(raw_text)
 
-            prefix_end = (
-                list_prefix.end()
-                if list_prefix
-                else 0
-            )
+            prefix_end = list_prefix.end() if list_prefix else 0
 
-            remaining = raw_text[
-                prefix_end:
-            ]
+            remaining = raw_text[prefix_end:]
 
             leading = re.match(
                 r"^\s+",
                 remaining,
             )
 
-            leading_end = (
-                leading.end()
-                if leading
-                else 0
-            )
+            leading_end = leading.end() if leading else 0
 
-            cleaned = remaining[
-                leading_end:
-            ].rstrip()
+            cleaned = remaining[leading_end:].rstrip()
 
             if not cleaned:
                 continue
@@ -334,11 +288,7 @@ class ResponseClaimExtractor:
             blocks.append(
                 {
                     "text": cleaned,
-                    "start": (
-                        match.start()
-                        + prefix_end
-                        + leading_end
-                    ),
+                    "start": (match.start() + prefix_end + leading_end),
                 }
             )
 
@@ -356,9 +306,7 @@ class ResponseClaimExtractor:
             method="sentence_rule",
         )
 
-        text = trimmed[
-            "text"
-        ]
+        text = trimmed["text"]
 
         if not text:
             return trimmed
@@ -371,25 +319,14 @@ class ResponseClaimExtractor:
         if not label_match:
             return trimmed
 
-        label = label_match.group(
-            1
-        )
+        label = label_match.group(1)
 
-        if not self._is_topic_label(
-            label
-        ):
+        if not self._is_topic_label(label):
             return trimmed
 
-        content = label_match.group(
-            2
-        )
+        content = label_match.group(2)
 
-        content_start = (
-            trimmed["start"]
-            + label_match.start(
-                2
-            )
-        )
+        content_start = trimmed["start"] + label_match.start(2)
 
         return self._trim_segment(
             content,
@@ -402,30 +339,18 @@ class ResponseClaimExtractor:
         self,
         text: str,
     ):
-        doc = self.nlp(
-            text
-        )
+        doc = self.nlp(text)
 
         meaningful = [
             token
             for token in doc
-            if any(
-                character.isalpha()
-                for character
-                in token.text
-            )
+            if any(character.isalpha() for character in token.text)
         ]
 
-        if (
-            not meaningful
-            or len(meaningful) > 7
-        ):
+        if not meaningful or len(meaningful) > 7:
             return False
 
-        if any(
-            token.pos_ == "AUX"
-            for token in doc
-        ):
+        if any(token.pos_ == "AUX" for token in doc):
             return False
 
         if any(
@@ -448,25 +373,17 @@ class ResponseClaimExtractor:
         raw_text: str,
         absolute_start: int,
     ):
-        unsplit = (
-            self._trim_segment(
-                raw_text,
-                absolute_start,
-                strip_punctuation=False,
-                method="sentence_rule",
-            )
+        unsplit = self._trim_segment(
+            raw_text,
+            absolute_start,
+            strip_punctuation=False,
+            method="sentence_rule",
         )
 
-        separators = list(
-            self.CLAUSE_SEPARATOR.finditer(
-                raw_text
-            )
-        )
+        separators = list(self.CLAUSE_SEPARATOR.finditer(raw_text))
 
         if not separators:
-            return [
-                unsplit
-            ]
+            return [unsplit]
 
         raw_segments = []
         cursor = 0
@@ -474,14 +391,8 @@ class ResponseClaimExtractor:
         for separator in separators:
             raw_segments.append(
                 (
-                    raw_text[
-                        cursor:
-                        separator.start()
-                    ],
-                    (
-                        absolute_start
-                        + cursor
-                    ),
+                    raw_text[cursor : separator.start()],
+                    (absolute_start + cursor),
                 )
             )
 
@@ -489,13 +400,8 @@ class ResponseClaimExtractor:
 
         raw_segments.append(
             (
-                raw_text[
-                    cursor:
-                ],
-                (
-                    absolute_start
-                    + cursor
-                ),
+                raw_text[cursor:],
+                (absolute_start + cursor),
             )
         )
 
@@ -509,76 +415,37 @@ class ResponseClaimExtractor:
             for (
                 segment_text,
                 segment_start,
-            )
-            in raw_segments
+            ) in raw_segments
         ]
 
-        if any(
-            not segment[
-                "text"
-            ]
-            for segment in segments
-        ):
-            return [
-                unsplit
-            ]
+        if any(not segment["text"] for segment in segments):
+            return [unsplit]
 
         resolved_segments = []
         previous_subject = None
 
         for segment in segments:
-            resolved = (
-                self._resolve_segment_subject(
-                    segment,
-                    previous_subject,
-                )
+            resolved = self._resolve_segment_subject(
+                segment,
+                previous_subject,
             )
 
-            resolved_doc = self.nlp(
-                resolved[
-                    "text"
-                ]
-            )
+            resolved_doc = self.nlp(resolved["text"])
 
             if not self._is_factual(
                 resolved_doc,
-                resolved[
-                    "text"
-                ],
+                resolved["text"],
             ):
-                return [
-                    unsplit
-                ]
+                return [unsplit]
 
-            subject = (
-                self._subject_phrase(
-                    resolved_doc
-                )
-            )
+            subject = self._subject_phrase(resolved_doc)
 
-            if (
-                subject
-                and not self._is_pronoun_phrase(
-                    subject
-                )
-            ):
-                previous_subject = (
-                    subject
-                )
-            elif (
-                previous_subject is None
-            ):
-                previous_subject = (
-                    self._lexical_subject_phrase(
-                        resolved[
-                            "text"
-                        ]
-                    )
-                )
+            if subject and not self._is_pronoun_phrase(subject):
+                previous_subject = subject
+            elif previous_subject is None:
+                previous_subject = self._lexical_subject_phrase(resolved["text"])
 
-            resolved_segments.append(
-                resolved
-            )
+            resolved_segments.append(resolved)
 
         return resolved_segments
 
@@ -590,39 +457,16 @@ class ResponseClaimExtractor:
         if not previous_subject:
             return segment
 
-        doc = self.nlp(
-            segment[
-                "text"
-            ]
-        )
+        doc = self.nlp(segment["text"])
 
-        subject_token = (
-            self._subject_token(
-                doc
-            )
-        )
+        subject_token = self._subject_token(doc)
 
-        if (
-            subject_token
-            and subject_token.lower_
-            in self.SUBJECT_PRONOUNS
-        ):
+        if subject_token and subject_token.lower_ in self.SUBJECT_PRONOUNS:
             start = subject_token.idx
-            end = (
-                subject_token.idx
-                + len(
-                    subject_token.text
-                )
-            )
+            end = subject_token.idx + len(subject_token.text)
 
             resolved_text = (
-                segment["text"][
-                    :start
-                ]
-                + previous_subject
-                + segment["text"][
-                    end:
-                ]
+                segment["text"][:start] + previous_subject + segment["text"][end:]
             )
 
             return {
@@ -633,72 +477,43 @@ class ResponseClaimExtractor:
         if subject_token:
             return segment
 
-        if self._has_lexical_subject(
-            segment[
-                "text"
-            ]
-        ):
+        if self._has_lexical_subject(segment["text"]):
             return segment
 
-        if not self._can_inherit_subject(
-            doc
-        ):
+        if not self._can_inherit_subject(doc):
             return segment
 
         return {
             **segment,
-            "text": (
-                f"{previous_subject} "
-                f"{segment['text']}"
-            ),
+            "text": (f"{previous_subject} {segment['text']}"),
         }
 
     def _can_inherit_subject(
         self,
         doc,
     ):
-        if self._subject_token(
-            doc
-        ):
+        if self._subject_token(doc):
             return False
 
         meaningful = [
-            token
-            for token in doc
-            if not token.is_space
-            and not token.is_punct
+            token for token in doc if not token.is_space and not token.is_punct
         ]
 
         if not meaningful:
             return False
 
-        first = meaningful[
-            0
-        ]
+        first = meaningful[0]
 
-        if (
-            first.lower_
-            in self.INHERITABLE_STARTS
-        ):
+        if first.lower_ in self.INHERITABLE_STARTS:
             return True
 
-        return any(
-            token.pos_ == "VERB"
-            for token in meaningful[
-                :2
-            ]
-        )
+        return any(token.pos_ == "VERB" for token in meaningful[:2])
 
     def _subject_token(
         self,
         doc,
     ):
-        subjects = [
-            token
-            for token in doc
-            if token.dep_
-            in self.SUBJECT_DEPS
-        ]
+        subjects = [token for token in doc if token.dep_ in self.SUBJECT_DEPS]
 
         if not subjects:
             return None
@@ -712,68 +527,37 @@ class ResponseClaimExtractor:
         self,
         doc,
     ):
-        subject = (
-            self._subject_token(
-                doc
-            )
-        )
+        subject = self._subject_token(doc)
 
         if not subject:
             return None
 
-        subtree = list(
-            subject.subtree
-        )
+        subtree = list(subject.subtree)
 
         if not subtree:
             return subject.text
 
-        start = min(
-            token.i
-            for token in subtree
-        )
+        start = min(token.i for token in subtree)
 
-        end = (
-            max(
-                token.i
-                for token in subtree
-            )
-            + 1
-        )
+        end = max(token.i for token in subtree) + 1
 
-        if (
-            end - start
-            > 8
-        ):
+        if end - start > 8:
             return subject.text
 
-        return doc[
-            start:end
-        ].text.strip()
+        return doc[start:end].text.strip()
 
     def _lexical_subject_phrase(
         self,
         text: str,
     ):
-        normalized = (
-            self._normalize(
-                text
-            )
-        )
+        normalized = self._normalize(text)
 
-        match = (
-            self.FACTUAL_PREDICATE_PATTERN
-            .search(
-                normalized
-            )
-        )
+        match = self.FACTUAL_PREDICATE_PATTERN.search(normalized)
 
         if not match:
             return None
 
-        prefix = normalized[
-            :match.start()
-        ].strip()
+        prefix = normalized[: match.start()].strip()
 
         if not prefix:
             return None
@@ -781,49 +565,30 @@ class ResponseClaimExtractor:
         words = prefix.split()
 
         content_words = [
-            word
-            for word in words
-            if word
-            not in self.NON_SUBJECT_PREFIX_WORDS
+            word for word in words if word not in self.NON_SUBJECT_PREFIX_WORDS
         ]
 
         if not content_words:
             return None
 
-        if len(
-            content_words
-        ) > 8:
+        if len(content_words) > 8:
             return None
 
-        return " ".join(
-            content_words
-        )
+        return " ".join(content_words)
 
     def _has_lexical_subject(
         self,
         text: str,
     ):
-        return (
-            self._lexical_subject_phrase(
-                text
-            )
-            is not None
-        )
+        return self._lexical_subject_phrase(text) is not None
 
     def _is_pronoun_phrase(
         self,
         text: str,
     ):
-        normalized = (
-            self._normalize(
-                text
-            )
-        )
+        normalized = self._normalize(text)
 
-        return (
-            normalized
-            in self.SUBJECT_PRONOUNS
-        )
+        return normalized in self.SUBJECT_PRONOUNS
 
     def _trim_segment(
         self,
@@ -853,39 +618,18 @@ class ResponseClaimExtractor:
                 raw_text,
             )
 
-        left_trim = (
-            leading.end()
-            if leading
-            else 0
-        )
+        left_trim = leading.end() if leading else 0
 
-        right_trim = (
-            len(raw_text)
-            - trailing.start()
-            if trailing
-            else 0
-        )
+        right_trim = len(raw_text) - trailing.start() if trailing else 0
 
-        end_index = (
-            len(raw_text)
-            - right_trim
-        )
+        end_index = len(raw_text) - right_trim
 
-        claim_text = raw_text[
-            left_trim:
-            end_index
-        ]
+        claim_text = raw_text[left_trim:end_index]
 
         return {
             "text": claim_text,
-            "start": (
-                absolute_start
-                + left_trim
-            ),
-            "end": (
-                absolute_start
-                + end_index
-            ),
+            "start": (absolute_start + left_trim),
+            "end": (absolute_start + end_index),
             "method": method,
         }
 
@@ -894,27 +638,15 @@ class ResponseClaimExtractor:
         sentence,
         text: str,
     ):
-        normalized = (
-            self._normalize(
-                text
-            )
-        )
+        normalized = self._normalize(text)
 
         if not normalized:
             return False
 
-        if text.rstrip().endswith(
-            "?"
-        ):
+        if text.rstrip().endswith("?"):
             return False
 
-        if any(
-            normalized.startswith(
-                prefix
-            )
-            for prefix
-            in self.NON_FACTUAL_PREFIXES
-        ):
+        if any(normalized.startswith(prefix) for prefix in self.NON_FACTUAL_PREFIXES):
             return False
 
         if self._is_meta_discourse(
@@ -926,16 +658,10 @@ class ResponseClaimExtractor:
         meaningful_tokens = [
             token
             for token in sentence
-            if any(
-                character.isalpha()
-                for character
-                in token.text
-            )
+            if any(character.isalpha() for character in token.text)
         ]
 
-        if len(
-            meaningful_tokens
-        ) < 2:
+        if len(meaningful_tokens) < 2:
             return False
 
         if not self._has_subject(
@@ -954,49 +680,23 @@ class ResponseClaimExtractor:
         normalized: str,
         text: str,
     ):
-        words = set(
-            normalized.split()
-        )
+        words = set(normalized.split())
 
         if any(
-            normalized.startswith(
-                prefix
-            )
-            for prefix
-            in self.PRESENTATIONAL_PREFIXES
+            normalized.startswith(prefix) for prefix in self.PRESENTATIONAL_PREFIXES
         ):
-            if (
-                words
-                & self.META_TERMS
-            ):
+            if words & self.META_TERMS:
                 return True
 
         if (
-            (
-                normalized.startswith(
-                    "here "
-                )
-                or normalized.startswith(
-                    "the following "
-                )
-                or normalized.startswith(
-                    "below "
-                )
-            )
-            and (
-                words
-                & self.META_TERMS
-            )
-        ):
+            normalized.startswith("here ")
+            or normalized.startswith("the following ")
+            or normalized.startswith("below ")
+        ) and (words & self.META_TERMS):
             return True
 
-        if text.rstrip().endswith(
-            ":"
-        ):
-            if (
-                words
-                & self.META_TERMS
-            ):
+        if text.rstrip().endswith(":"):
+            if words & self.META_TERMS:
                 return True
 
         return False
@@ -1006,9 +706,7 @@ class ResponseClaimExtractor:
         sentence,
         normalized: str,
     ):
-        if self._subject_token(
-            sentence
-        ):
+        if self._subject_token(sentence):
             return True
 
         if re.match(
@@ -1020,9 +718,7 @@ class ResponseClaimExtractor:
         ):
             return True
 
-        return self._has_lexical_subject(
-            normalized
-        )
+        return self._has_lexical_subject(normalized)
 
     def _has_predicate(
         self,
@@ -1041,13 +737,7 @@ class ResponseClaimExtractor:
         if syntactic_predicate:
             return True
 
-        return (
-            self.FACTUAL_PREDICATE_PATTERN
-            .search(
-                normalized
-            )
-            is not None
-        )
+        return self.FACTUAL_PREDICATE_PATTERN.search(normalized) is not None
 
     def _normalize(
         self,

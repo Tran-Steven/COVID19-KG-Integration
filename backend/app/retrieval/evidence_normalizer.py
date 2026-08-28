@@ -15,52 +15,24 @@ class EvidenceNormalizer:
             "subject": {
                 "id": fact["subjectId"],
                 "name": fact["subject"],
-                "categories": fact[
-                    "subjectCategories"
-                ],
+                "categories": fact["subjectCategories"],
             },
             "predicate": fact["predicate"],
             "object": {
                 "id": fact["objectId"],
                 "name": fact["object"],
-                "categories": fact[
-                    "objectCategories"
-                ],
+                "categories": fact["objectCategories"],
             },
             "evidence": {
-                "edgeId": properties.get(
-                    "id"
-                ),
-                "primaryKnowledgeSource": (
-                    properties.get(
-                        "primary_knowledge_source"
-                    )
-                ),
-                "providedBy": self._to_list(
-                    properties.get(
-                        "providedBy"
-                    )
-                ),
-                "sourceDataset": properties.get(
-                    "source_dataset"
-                ),
-                "references": self._references(
-                    properties.get(
-                        "publications"
-                    )
-                ),
+                "edgeId": properties.get("id"),
+                "primaryKnowledgeSource": (properties.get("primary_knowledge_source")),
+                "providedBy": self._to_list(properties.get("providedBy")),
+                "sourceDataset": properties.get("source_dataset"),
+                "references": self._references(properties.get("publications")),
                 "maxPhaseForIndication": (
-                    self._to_float(
-                        properties.get(
-                            "max_phase_for_ind"
-                        )
-                    )
+                    self._to_float(properties.get("max_phase_for_ind"))
                 ),
-                "attributes": (
-                    self._additional_attributes(
-                        properties
-                    )
-                ),
+                "attributes": (self._additional_attributes(properties)),
             },
         }
 
@@ -68,42 +40,28 @@ class EvidenceNormalizer:
         self,
         value: Any,
     ):
-        values = self._to_list(
-            value
-        )
+        values = self._to_list(value)
 
         references = []
 
         for value in values:
-            if (
-                value.startswith(
-                    "ClinicalTrials:"
-                )
-                and "," in value
-            ):
-                prefix, identifiers = (
-                    value.split(
-                        ":",
-                        1,
-                    )
+            if value.startswith("ClinicalTrials:") and "," in value:
+                prefix, identifiers = value.split(
+                    ":",
+                    1,
                 )
 
                 references.extend(
                     f"{prefix}:{identifier.strip()}"
-                    for identifier
-                    in identifiers.split(",")
+                    for identifier in identifiers.split(",")
                     if identifier.strip()
                 )
 
                 continue
 
-            references.append(
-                value
-            )
+            references.append(value)
 
-        return self._unique(
-            references
-        )
+        return self._unique(references)
 
     def _to_list(
         self,
@@ -117,11 +75,7 @@ class EvidenceNormalizer:
             (list, tuple, set),
         ):
             return self._unique(
-                [
-                    str(item).strip()
-                    for item in value
-                    if str(item).strip()
-                ]
+                [str(item).strip() for item in value if str(item).strip()]
             )
 
         text = str(value).strip()
@@ -129,25 +83,16 @@ class EvidenceNormalizer:
         if not text:
             return []
 
-        if (
-            text.startswith("[")
-            and text.endswith("]")
-        ):
+        if text.startswith("[") and text.endswith("]"):
             try:
-                parsed = ast.literal_eval(
-                    text
-                )
+                parsed = ast.literal_eval(text)
 
                 if isinstance(
                     parsed,
                     (list, tuple, set),
                 ):
                     return self._unique(
-                        [
-                            str(item).strip()
-                            for item in parsed
-                            if str(item).strip()
-                        ]
+                        [str(item).strip() for item in parsed if str(item).strip()]
                     )
             except (
                 ValueError,
@@ -157,11 +102,7 @@ class EvidenceNormalizer:
 
         if "|" in text:
             return self._unique(
-                [
-                    item.strip()
-                    for item in text.split("|")
-                    if item.strip()
-                ]
+                [item.strip() for item in text.split("|") if item.strip()]
             )
 
         return [text]
@@ -197,12 +138,7 @@ class EvidenceNormalizer:
             "max_phase_for_ind",
         }
 
-        return {
-            key: value
-            for key, value
-            in properties.items()
-            if key not in excluded
-        }
+        return {key: value for key, value in properties.items() if key not in excluded}
 
     def _unique(
         self,

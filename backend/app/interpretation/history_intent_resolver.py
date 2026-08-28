@@ -75,115 +75,55 @@ class HistoryIntentResolver:
         self,
         text: str,
     ):
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
-        has_covid = (
-            self._has_covid_reference(
-                normalized
-            )
-        )
+        has_covid = self._has_covid_reference(normalized)
 
-        has_initial_context = (
-            self._has_initial_report_context(
-                normalized
-            )
-        )
+        has_initial_context = self._has_initial_report_context(normalized)
 
-        if (
-            "pandemic" in normalized
-            and has_covid
-        ):
+        if "pandemic" in normalized and has_covid:
             if (
-                self._is_date_question(
-                    normalized
-                )
-                or self._has_date_expression(
-                    normalized
-                )
-                or self._has_pandemic_assertion(
-                    normalized
-                )
+                self._is_date_question(normalized)
+                or self._has_date_expression(normalized)
+                or self._has_pandemic_assertion(normalized)
             ):
                 return {
-                    "intent": (
-                        "pandemic_characterization_date"
-                    ),
-                    "canonicalSubject": (
-                        "COVID-19"
-                    ),
-                    "eventType": (
-                        "pandemic_characterization"
-                    ),
+                    "intent": ("pandemic_characterization_date"),
+                    "canonicalSubject": ("COVID-19"),
+                    "eventType": ("pandemic_characterization"),
                     "semanticRole": None,
                     "requestedField": "date",
                     "matchedText": "pandemic",
                     "method": "rule",
                 }
 
-        initial_phrase = (
-            self._find_phrase(
-                normalized,
-                self.INITIAL_EVENT_PHRASES,
-            )
+        initial_phrase = self._find_phrase(
+            normalized,
+            self.INITIAL_EVENT_PHRASES,
         )
 
-        if (
-            initial_phrase is None
-            and not has_initial_context
-        ):
+        if initial_phrase is None and not has_initial_context:
             return None
 
-        if (
-            not has_covid
-            and not has_initial_context
-        ):
+        if not has_covid and not has_initial_context:
             return None
 
-        matched_text = (
-            initial_phrase
-            or self._find_phrase(
-                normalized,
-                self.INITIAL_REPORT_CONTEXT,
-            )
+        matched_text = initial_phrase or self._find_phrase(
+            normalized,
+            self.INITIAL_REPORT_CONTEXT,
         )
 
-        if self._is_location_question(
-            normalized
-        ):
-            return (
-                self._initial_location(
-                    matched_text
-                )
-            )
+        if self._is_location_question(normalized):
+            return self._initial_location(matched_text)
 
-        if self._is_date_question(
-            normalized
-        ):
-            return (
-                self._initial_date(
-                    matched_text
-                )
-            )
+        if self._is_date_question(normalized):
+            return self._initial_date(matched_text)
 
-        if self._has_date_expression(
-            normalized
-        ):
-            return (
-                self._initial_date(
-                    matched_text
-                )
-            )
+        if self._has_date_expression(normalized):
+            return self._initial_date(matched_text)
 
-        if self._has_initial_location_assertion(
-            normalized
-        ):
-            return (
-                self._initial_location(
-                    matched_text
-                )
-            )
+        if self._has_initial_location_assertion(normalized):
+            return self._initial_location(matched_text)
 
         return None
 
@@ -192,16 +132,10 @@ class HistoryIntentResolver:
         matched_text: str | None,
     ):
         return {
-            "intent": (
-                "initial_outbreak_location"
-            ),
+            "intent": ("initial_outbreak_location"),
             "canonicalSubject": "COVID-19",
-            "eventType": (
-                "initial_outbreak_report"
-            ),
-            "semanticRole": (
-                "reported_case_location"
-            ),
+            "eventType": ("initial_outbreak_report"),
+            "semanticRole": ("reported_case_location"),
             "requestedField": "location",
             "matchedText": matched_text,
             "method": "rule",
@@ -212,13 +146,9 @@ class HistoryIntentResolver:
         matched_text: str | None,
     ):
         return {
-            "intent": (
-                "initial_outbreak_date"
-            ),
+            "intent": ("initial_outbreak_date"),
             "canonicalSubject": "COVID-19",
-            "eventType": (
-                "initial_outbreak_report"
-            ),
+            "eventType": ("initial_outbreak_report"),
             "semanticRole": None,
             "requestedField": "date",
             "matchedText": matched_text,
@@ -261,66 +191,41 @@ class HistoryIntentResolver:
                 text,
             )
             is not None
-            for pattern
-            in self.COVID_PATTERNS
+            for pattern in self.COVID_PATTERNS
         )
 
     def _has_initial_report_context(
         self,
         text: str,
     ):
-        return any(
-            phrase in text
-            for phrase
-            in self.INITIAL_REPORT_CONTEXT
-        )
+        return any(phrase in text for phrase in self.INITIAL_REPORT_CONTEXT)
 
     def _has_pandemic_assertion(
         self,
         text: str,
     ):
-        return any(
-            phrase in text
-            for phrase
-            in self.PANDEMIC_ASSERTION_PHRASES
-        )
+        return any(phrase in text for phrase in self.PANDEMIC_ASSERTION_PHRASES)
 
     def _is_location_question(
         self,
         text: str,
     ):
-        return any(
-            phrase in text
-            for phrase
-            in self.LOCATION_QUESTION_PHRASES
-        )
+        return any(phrase in text for phrase in self.LOCATION_QUESTION_PHRASES)
 
     def _is_date_question(
         self,
         text: str,
     ):
-        return any(
-            phrase in text
-            for phrase
-            in self.DATE_QUESTION_PHRASES
-        )
+        return any(phrase in text for phrase in self.DATE_QUESTION_PHRASES)
 
     def _has_date_expression(
         self,
         text: str,
     ):
-        month_pattern = (
-            "|".join(
-                self.MONTHS
-            )
-        )
+        month_pattern = "|".join(self.MONTHS)
 
         if re.search(
-            (
-                r"\b(?:"
-                + month_pattern
-                + r")\b"
-            ),
+            (r"\b(?:" + month_pattern + r")\b"),
             text,
         ):
             return True

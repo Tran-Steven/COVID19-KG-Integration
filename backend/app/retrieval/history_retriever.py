@@ -64,80 +64,45 @@ class HistoryRetriever:
     def __init__(
         self,
         database: Neo4jClient,
-        intent_resolver: (
-            HistoryIntentResolver
-        ),
+        intent_resolver: (HistoryIntentResolver),
     ):
         self.database = database
-        self.intent_resolver = (
-            intent_resolver
-        )
+        self.intent_resolver = intent_resolver
 
     def retrieve(
         self,
         text: str,
     ):
-        interpretation = (
-            self.intent_resolver.resolve(
-                text
-            )
-        )
+        interpretation = self.intent_resolver.resolve(text)
 
         if interpretation is None:
             return {
                 "text": text,
-                "status": (
-                    "NOT_VERIFIABLE_WITH_CURRENT_KG"
-                ),
+                "status": ("NOT_VERIFIABLE_WITH_CURRENT_KG"),
                 "interpretation": None,
                 "answer": None,
                 "evidence": [],
             }
 
-        event_type = interpretation[
-            "eventType"
-        ]
+        event_type = interpretation["eventType"]
 
-        semantic_role = interpretation[
-            "semanticRole"
-        ]
+        semantic_role = interpretation["semanticRole"]
 
-        requested_field = (
-            interpretation[
-                "requestedField"
-            ]
-        )
+        requested_field = interpretation["requestedField"]
 
-        if (
-            requested_field
-            == "location"
-        ):
-            rows = (
-                self.database
-                .find_history_event_relations(
-                    event_type=event_type,
-                    semantic_role=(
-                        semantic_role
-                    ),
-                )
+        if requested_field == "location":
+            rows = self.database.find_history_event_relations(
+                event_type=event_type,
+                semantic_role=(semantic_role),
             )
         else:
-            rows = (
-                self.database
-                .find_history_events(
-                    event_type=event_type
-                )
-            )
+            rows = self.database.find_history_events(event_type=event_type)
 
         if not rows:
             return {
                 "text": text,
-                "status": (
-                    "INSUFFICIENT_EVIDENCE"
-                ),
-                "interpretation": (
-                    interpretation
-                ),
+                "status": ("INSUFFICIENT_EVIDENCE"),
+                "interpretation": (interpretation),
                 "answer": None,
                 "evidence": [],
             }
@@ -147,27 +112,18 @@ class HistoryRetriever:
             rows,
         )
 
-        evidence = [
-            self._normalize_evidence(
-                row
-            )
-            for row in rows
-        ]
+        evidence = [self._normalize_evidence(row) for row in rows]
 
         status = self._resolve_status(
             text=text,
-            interpretation=(
-                interpretation
-            ),
+            interpretation=(interpretation),
             rows=rows,
         )
 
         return {
             "text": text,
             "status": status,
-            "interpretation": (
-                interpretation
-            ),
+            "interpretation": (interpretation),
             "answer": answer,
             "evidence": evidence,
         }
@@ -178,51 +134,30 @@ class HistoryRetriever:
         interpretation: dict,
         rows: list[dict],
     ):
-        if self._is_question(
-            text
-        ):
+        if self._is_question(text):
             return "SUPPORTED"
 
-        requested_field = (
-            interpretation[
-                "requestedField"
-            ]
-        )
+        requested_field = interpretation["requestedField"]
 
         if requested_field == "date":
-            claimed_date = (
-                self._extract_date_claim(
-                    text
-                )
-            )
+            claimed_date = self._extract_date_claim(text)
 
             if claimed_date is None:
-                return (
-                    "INSUFFICIENT_EVIDENCE"
-                )
+                return "INSUFFICIENT_EVIDENCE"
 
             evidence_dates = [
-                row.get(
-                    "dateStart"
-                )
-                for row in rows
-                if row.get(
-                    "dateStart"
-                )
+                row.get("dateStart") for row in rows if row.get("dateStart")
             ]
 
             if not evidence_dates:
-                return (
-                    "INSUFFICIENT_EVIDENCE"
-                )
+                return "INSUFFICIENT_EVIDENCE"
 
             if any(
                 self._date_matches(
                     claimed_date,
                     evidence_date,
                 )
-                for evidence_date
-                in evidence_dates
+                for evidence_date in evidence_dates
             ):
                 return "SUPPORTED"
 
@@ -230,25 +165,15 @@ class HistoryRetriever:
 
         if requested_field == "location":
             evidence_locations = [
-                row.get(
-                    "relatedEntityName"
-                )
+                row.get("relatedEntityName")
                 for row in rows
-                if row.get(
-                    "relatedEntityName"
-                )
+                if row.get("relatedEntityName")
             ]
 
             if not evidence_locations:
-                return (
-                    "INSUFFICIENT_EVIDENCE"
-                )
+                return "INSUFFICIENT_EVIDENCE"
 
-            claimed_location = (
-                self._extract_location_claim(
-                    text
-                )
-            )
+            claimed_location = self._extract_location_claim(text)
 
             if claimed_location:
                 if any(
@@ -256,69 +181,49 @@ class HistoryRetriever:
                         claimed_location,
                         evidence_location,
                     )
-                    for evidence_location
-                    in evidence_locations
+                    for evidence_location in evidence_locations
                 ):
                     return "SUPPORTED"
 
                 return "CONTRADICTED"
 
-            normalized_text = (
-                self._normalize(
-                    text
-                )
-            )
+            normalized_text = self._normalize(text)
 
             if any(
                 self._location_mentioned(
                     normalized_text,
                     evidence_location,
                 )
-                for evidence_location
-                in evidence_locations
+                for evidence_location in evidence_locations
             ):
                 return "SUPPORTED"
 
-            return (
-                "INSUFFICIENT_EVIDENCE"
-            )
+            return "INSUFFICIENT_EVIDENCE"
 
-        return (
-            "INSUFFICIENT_EVIDENCE"
-        )
+        return "INSUFFICIENT_EVIDENCE"
 
     def _extract_date_claim(
         self,
         text: str,
     ):
-        normalized = (
-            self._normalize(
-                text
-            )
-        )
+        normalized = self._normalize(text)
 
-        month_names = (
-            "|".join(
-                sorted(
-                    self.MONTHS,
-                    key=len,
-                    reverse=True,
-                )
+        month_names = "|".join(
+            sorted(
+                self.MONTHS,
+                key=len,
+                reverse=True,
             )
         )
 
         full_date_patterns = (
             (
-                r"\b("
-                + month_names
-                + r")\s+"
+                r"\b(" + month_names + r")\s+"
                 r"(\d{1,2})\s+"
                 r"((?:19|20)\d{2})\b"
             ),
             (
-                r"\b(\d{1,2})\s+("
-                + month_names
-                + r")\s+"
+                r"\b(\d{1,2})\s+(" + month_names + r")\s+"
                 r"((?:19|20)\d{2})\b"
             ),
         )
@@ -331,17 +236,9 @@ class HistoryRetriever:
         if match:
             return {
                 "precision": "day",
-                "year": int(
-                    match.group(3)
-                ),
-                "month": (
-                    self.MONTHS[
-                        match.group(1)
-                    ]
-                ),
-                "day": int(
-                    match.group(2)
-                ),
+                "year": int(match.group(3)),
+                "month": (self.MONTHS[match.group(1)]),
+                "day": int(match.group(2)),
             }
 
         match = re.search(
@@ -352,24 +249,14 @@ class HistoryRetriever:
         if match:
             return {
                 "precision": "day",
-                "year": int(
-                    match.group(3)
-                ),
-                "month": (
-                    self.MONTHS[
-                        match.group(2)
-                    ]
-                ),
-                "day": int(
-                    match.group(1)
-                ),
+                "year": int(match.group(3)),
+                "month": (self.MONTHS[match.group(2)]),
+                "day": int(match.group(1)),
             }
 
         month_year = re.search(
             (
-                r"\b("
-                + month_names
-                + r")\s+"
+                r"\b(" + month_names + r")\s+"
                 r"((?:19|20)\d{2})\b"
             ),
             normalized,
@@ -378,14 +265,8 @@ class HistoryRetriever:
         if month_year:
             return {
                 "precision": "month",
-                "year": int(
-                    month_year.group(2)
-                ),
-                "month": (
-                    self.MONTHS[
-                        month_year.group(1)
-                    ]
-                ),
+                "year": int(month_year.group(2)),
+                "month": (self.MONTHS[month_year.group(1)]),
                 "day": None,
             }
 
@@ -397,9 +278,7 @@ class HistoryRetriever:
         if year:
             return {
                 "precision": "year",
-                "year": int(
-                    year.group(1)
-                ),
+                "year": int(year.group(1)),
                 "month": None,
                 "day": None,
             }
@@ -422,54 +301,25 @@ class HistoryRetriever:
         ):
             return False
 
-        if (
-            claimed[
-                "year"
-            ]
-            != parsed.year
-        ):
+        if claimed["year"] != parsed.year:
             return False
 
-        if (
-            claimed[
-                "precision"
-            ]
-            == "year"
-        ):
+        if claimed["precision"] == "year":
             return True
 
-        if (
-            claimed[
-                "month"
-            ]
-            != parsed.month
-        ):
+        if claimed["month"] != parsed.month:
             return False
 
-        if (
-            claimed[
-                "precision"
-            ]
-            == "month"
-        ):
+        if claimed["precision"] == "month":
             return True
 
-        return (
-            claimed[
-                "day"
-            ]
-            == parsed.day
-        )
+        return claimed["day"] == parsed.day
 
     def _extract_location_claim(
         self,
         text: str,
     ):
-        normalized = (
-            self._normalize(
-                text
-            )
-        )
+        normalized = self._normalize(text)
 
         patterns = (
             r"\bfirst reported in ([a-z][a-z\s-]*)$",
@@ -486,10 +336,7 @@ class HistoryRetriever:
             )
 
             if match:
-                return (
-                    match.group(1)
-                    .strip()
-                )
+                return match.group(1).strip()
 
         return None
 
@@ -498,13 +345,9 @@ class HistoryRetriever:
         claimed_location: str,
         evidence_location: str,
     ):
-        claimed = self._normalize(
-            claimed_location
-        )
+        claimed = self._normalize(claimed_location)
 
-        evidence = self._normalize(
-            evidence_location
-        )
+        evidence = self._normalize(evidence_location)
 
         if not claimed or not evidence:
             return False
@@ -512,27 +355,17 @@ class HistoryRetriever:
         if claimed == evidence:
             return True
 
-        primary_location = (
-            evidence_location
-            .split(
-                ",",
-                1,
-            )[0]
-        )
+        primary_location = evidence_location.split(
+            ",",
+            1,
+        )[0]
 
-        primary = self._normalize(
-            primary_location
-        )
+        primary = self._normalize(primary_location)
 
-        if (
-            primary
-            and claimed == primary
-        ):
+        if primary and claimed == primary:
             return True
 
-        if evidence.startswith(
-            claimed + " "
-        ):
+        if evidence.startswith(claimed + " "):
             return True
 
         return False
@@ -542,41 +375,24 @@ class HistoryRetriever:
         normalized_text: str,
         evidence_location: str,
     ):
-        evidence = self._normalize(
-            evidence_location
-        )
+        evidence = self._normalize(evidence_location)
 
-        if (
-            evidence
-            and evidence
-            in normalized_text
-        ):
+        if evidence and evidence in normalized_text:
             return True
 
-        primary_location = (
-            evidence_location
-            .split(
-                ",",
-                1,
-            )[0]
-        )
+        primary_location = evidence_location.split(
+            ",",
+            1,
+        )[0]
 
-        primary = self._normalize(
-            primary_location
-        )
+        primary = self._normalize(primary_location)
 
         if not primary:
             return False
 
         return (
             re.search(
-                (
-                    r"\b"
-                    + re.escape(
-                        primary
-                    )
-                    + r"\b"
-                ),
+                (r"\b" + re.escape(primary) + r"\b"),
                 normalized_text,
             )
             is not None
@@ -586,25 +402,15 @@ class HistoryRetriever:
         self,
         text: str,
     ):
-        stripped = (
-            text.strip()
-        )
+        stripped = text.strip()
 
-        if stripped.endswith(
-            "?"
-        ):
+        if stripped.endswith("?"):
             return True
 
-        normalized = (
-            self._normalize(
-                stripped
-            )
-        )
+        normalized = self._normalize(stripped)
 
         return any(
-            normalized.startswith(
-                value
-            )
+            normalized.startswith(value)
             for value in (
                 "when ",
                 "where ",
@@ -624,23 +430,12 @@ class HistoryRetriever:
     ):
         first = rows[0]
 
-        requested_field = (
-            interpretation[
-                "requestedField"
-            ]
-        )
+        requested_field = interpretation["requestedField"]
 
-        if (
-            requested_field
-            == "location"
-        ):
-            value = first.get(
-                "relatedEntityName"
-            )
+        if requested_field == "location":
+            value = first.get("relatedEntityName")
         else:
-            value = first.get(
-                "dateStart"
-            )
+            value = first.get("dateStart")
 
         if not value:
             return None
@@ -648,13 +443,7 @@ class HistoryRetriever:
         return {
             "field": requested_field,
             "value": value,
-            "qualification": (
-                self.QUALIFICATIONS.get(
-                    interpretation[
-                        "intent"
-                    ]
-                )
-            ),
+            "qualification": (self.QUALIFICATIONS.get(interpretation["intent"])),
         }
 
     def _normalize_evidence(
@@ -662,47 +451,17 @@ class HistoryRetriever:
         row: dict,
     ):
         return {
-            "eventId": row.get(
-                "eventId"
-            ),
-            "eventName": row.get(
-                "eventName"
-            ),
-            "eventType": row.get(
-                "eventType"
-            ),
-            "dateStart": row.get(
-                "dateStart"
-            ),
-            "dateEnd": row.get(
-                "dateEnd"
-            ),
-            "sourceText": row.get(
-                "sourceText"
-            ),
-            "sourceUrl": row.get(
-                "sourceUrl"
-            ),
-            "sourceLinks": (
-                self._parse_links(
-                    row.get(
-                        "sourceLinks"
-                    )
-                )
-            ),
-            "semanticRole": row.get(
-                "semanticRole"
-            ),
-            "relatedEntityId": (
-                row.get(
-                    "relatedEntityId"
-                )
-            ),
-            "relatedEntityName": (
-                row.get(
-                    "relatedEntityName"
-                )
-            ),
+            "eventId": row.get("eventId"),
+            "eventName": row.get("eventName"),
+            "eventType": row.get("eventType"),
+            "dateStart": row.get("dateStart"),
+            "dateEnd": row.get("dateEnd"),
+            "sourceText": row.get("sourceText"),
+            "sourceUrl": row.get("sourceUrl"),
+            "sourceLinks": (self._parse_links(row.get("sourceLinks"))),
+            "semanticRole": row.get("semanticRole"),
+            "relatedEntityId": (row.get("relatedEntityId")),
+            "relatedEntityName": (row.get("relatedEntityName")),
         }
 
     def _parse_links(
@@ -722,47 +481,32 @@ class HistoryRetriever:
             value,
             str,
         ):
-            return [
-                str(value)
-            ]
+            return [str(value)]
 
         value = value.strip()
 
         if not value:
             return []
 
-        if (
-            value.startswith("[")
-            and value.endswith("]")
-        ):
+        if value.startswith("[") and value.endswith("]"):
             try:
-                parsed = json.loads(
-                    value
-                )
+                parsed = json.loads(value)
 
                 if isinstance(
                     parsed,
                     list,
                 ):
-                    return [
-                        str(item)
-                        for item
-                        in parsed
-                    ]
+                    return [str(item) for item in parsed]
             except json.JSONDecodeError:
                 pass
 
-        return [
-            value
-        ]
+        return [value]
 
     def _normalize(
         self,
         text: str,
     ):
-        lowered = (
-            text.lower()
-        )
+        lowered = text.lower()
 
         lowered = re.sub(
             r"[_/]+",

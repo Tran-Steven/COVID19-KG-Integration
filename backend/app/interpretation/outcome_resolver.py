@@ -53,23 +53,15 @@ class OutcomeResolver:
         self,
         text: str,
     ):
-        normalized_text = self._normalize(
-            text
-        )
+        normalized_text = self._normalize(text)
 
         matches = []
 
-        for outcome, aliases in (
-            self.OUTCOME_ALIASES.items()
-        ):
+        for outcome, aliases in self.OUTCOME_ALIASES.items():
             best_match = None
 
             for alias in aliases:
-                normalized_alias = (
-                    self._normalize(
-                        alias
-                    )
-                )
+                normalized_alias = self._normalize(alias)
 
                 position = self._find_phrase(
                     normalized_text,
@@ -85,30 +77,18 @@ class OutcomeResolver:
                     "position": position,
                 }
 
-                if (
-                    best_match is None
-                    or candidate["position"]
-                    < best_match["position"]
-                ):
+                if best_match is None or candidate["position"] < best_match["position"]:
                     best_match = candidate
 
             if best_match:
-                matches.append(
-                    best_match
-                )
+                matches.append(best_match)
 
-        matches.sort(
-            key=lambda match: match[
-                "position"
-            ]
-        )
+        matches.sort(key=lambda match: match["position"])
 
         return [
             {
                 "outcome": match["outcome"],
-                "matchedText": match[
-                    "matchedText"
-                ],
+                "matchedText": match["matchedText"],
             }
             for match in matches
         ]

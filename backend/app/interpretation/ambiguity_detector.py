@@ -60,31 +60,19 @@ class AmbiguityDetector:
         outcomes: list[dict],
         resolved_intent: str | None = None,
     ):
-        normalized_text = self._normalize(
-            text
-        )
+        normalized_text = self._normalize(text)
 
-        normalized_relation = (
-            self._normalize(
-                relation
-            )
-            if relation
-            else None
-        )
+        normalized_relation = self._normalize(relation) if relation else None
 
         broad_relation = (
-            normalized_relation
-            in self.BROAD_RELATIONS
-            or resolved_intent
-            == "broad_effect"
+            normalized_relation in self.BROAD_RELATIONS
+            or resolved_intent == "broad_effect"
         )
 
         ambiguities = []
 
         if not outcomes:
-            for term, possibilities in (
-                self.OUTCOME_TERMS.items()
-            ):
+            for term, possibilities in self.OUTCOME_TERMS.items():
                 if self._contains_term(
                     normalized_text,
                     term,
@@ -93,35 +81,21 @@ class AmbiguityDetector:
                         {
                             "term": term,
                             "type": "outcome",
-                            "possibleInterpretations": (
-                                possibilities
-                            ),
+                            "possibleInterpretations": (possibilities),
                         }
                     )
 
-        if (
-            broad_relation
-            and not outcomes
-            and not ambiguities
-        ):
+        if broad_relation and not outcomes and not ambiguities:
             ambiguities.append(
                 {
-                    "term": (
-                        normalized_relation
-                        or resolved_intent
-                        or "relationship"
-                    ),
+                    "term": (normalized_relation or resolved_intent or "relationship"),
                     "type": "relation",
-                    "possibleInterpretations": (
-                        self.DEFAULT_OUTCOME_INTERPRETATIONS
-                    ),
+                    "possibleInterpretations": (self.DEFAULT_OUTCOME_INTERPRETATIONS),
                 }
             )
 
         return {
-            "ambiguous": bool(
-                ambiguities
-            ),
+            "ambiguous": bool(ambiguities),
             "broadRelation": broad_relation,
             "outcomes": outcomes,
             "ambiguities": ambiguities,

@@ -26,13 +26,9 @@ class KGXImporter:
 
         self.database.ensure_kg_constraints()
 
-        node_count = self._import_nodes(
-            Path(nodes_path)
-        )
+        node_count = self._import_nodes(Path(nodes_path))
 
-        edge_count = self._import_edges(
-            Path(edges_path)
-        )
+        edge_count = self._import_edges(Path(edges_path))
 
         return {
             "nodes": node_count,
@@ -44,9 +40,7 @@ class KGXImporter:
         batch = []
 
         for row in self._read_tsv(path):
-            node = self._normalize_node(
-                row
-            )
+            node = self._normalize_node(row)
 
             if node is None:
                 continue
@@ -54,18 +48,12 @@ class KGXImporter:
             batch.append(node)
 
             if len(batch) >= self.batch_size:
-                total += (
-                    self.database
-                    .upsert_kg_nodes(batch)
-                )
+                total += self.database.upsert_kg_nodes(batch)
 
                 batch = []
 
         if batch:
-            total += (
-                self.database
-                .upsert_kg_nodes(batch)
-            )
+            total += self.database.upsert_kg_nodes(batch)
 
         return total
 
@@ -74,9 +62,7 @@ class KGXImporter:
         batch = []
 
         for row in self._read_tsv(path):
-            edge = self._normalize_edge(
-                row
-            )
+            edge = self._normalize_edge(row)
 
             if edge is None:
                 continue
@@ -84,18 +70,12 @@ class KGXImporter:
             batch.append(edge)
 
             if len(batch) >= self.batch_size:
-                total += (
-                    self.database
-                    .upsert_kg_edges(batch)
-                )
+                total += self.database.upsert_kg_edges(batch)
 
                 batch = []
 
         if batch:
-            total += (
-                self.database
-                .upsert_kg_edges(batch)
-            )
+            total += self.database.upsert_kg_edges(batch)
 
         return total
 
@@ -112,9 +92,7 @@ class KGXImporter:
 
             for row in reader:
                 yield {
-                    key: value.strip()
-                    if isinstance(value, str)
-                    else value
+                    key: value.strip() if isinstance(value, str) else value
                     for key, value in row.items()
                 }
 
@@ -124,15 +102,9 @@ class KGXImporter:
         if not node_id:
             return None
 
-        name = (
-            row.get("name")
-            or node_id
-        )
+        name = row.get("name") or node_id
 
-        categories = self._parse_list(
-            row.get("category")
-            or row.get("categories")
-        )
+        categories = self._parse_list(row.get("category") or row.get("categories"))
 
         aliases = self._parse_list(
             row.get("aliases")
@@ -141,10 +113,7 @@ class KGXImporter:
             or row.get("synonyms")
         )
 
-        provided_by = self._parse_list(
-            row.get("provided_by")
-            or row.get("providedBy")
-        )
+        provided_by = self._parse_list(row.get("provided_by") or row.get("providedBy"))
 
         excluded = {
             "id",
@@ -159,11 +128,9 @@ class KGXImporter:
             "providedBy",
         }
 
-        properties = (
-            self._additional_properties(
-                row,
-                excluded,
-            )
+        properties = self._additional_properties(
+            row,
+            excluded,
         )
 
         return {
@@ -189,15 +156,9 @@ class KGXImporter:
             or "biolink:related_to"
         )
 
-        relation = (
-            row.get("relation")
-            or predicate
-        )
+        relation = row.get("relation") or predicate
 
-        provided_by = self._parse_list(
-            row.get("provided_by")
-            or row.get("providedBy")
-        )
+        provided_by = self._parse_list(row.get("provided_by") or row.get("providedBy"))
 
         edge_id = row.get("id")
 
@@ -223,11 +184,9 @@ class KGXImporter:
             "providedBy",
         }
 
-        properties = (
-            self._additional_properties(
-                row,
-                excluded,
-            )
+        properties = self._additional_properties(
+            row,
+            excluded,
         )
 
         return {
@@ -268,37 +227,20 @@ class KGXImporter:
 
         value = value.strip()
 
-        if (
-            value.startswith("[")
-            and value.endswith("]")
-        ):
+        if value.startswith("[") and value.endswith("]"):
             try:
-                parsed = json.loads(
-                    value
-                )
+                parsed = json.loads(value)
 
                 if isinstance(parsed, list):
-                    return [
-                        str(item)
-                        for item in parsed
-                        if item is not None
-                    ]
+                    return [str(item) for item in parsed if item is not None]
             except json.JSONDecodeError:
                 pass
 
         if "|" in value:
-            return [
-                item.strip()
-                for item in value.split("|")
-                if item.strip()
-            ]
+            return [item.strip() for item in value.split("|") if item.strip()]
 
         if ";" in value:
-            return [
-                item.strip()
-                for item in value.split(";")
-                if item.strip()
-            ]
+            return [item.strip() for item in value.split(";") if item.strip()]
 
         return [value]
 
@@ -316,12 +258,8 @@ class KGXImporter:
                 predicate,
                 object_id,
                 relation,
-                ",".join(
-                    sorted(provided_by)
-                ),
+                ",".join(sorted(provided_by)),
             ]
         )
 
-        return hashlib.sha256(
-            value.encode("utf-8")
-        ).hexdigest()
+        return hashlib.sha256(value.encode("utf-8")).hexdigest()

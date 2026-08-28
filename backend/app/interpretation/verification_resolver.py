@@ -11,21 +11,15 @@ from app.interpretation.verification_resolver_base import (
 )
 
 
-class VerificationResolver(
-    BaseVerificationResolver
-):
+class VerificationResolver(BaseVerificationResolver):
     def __init__(
         self,
     ):
         super().__init__()
 
-        self.semantics = (
-            PropositionSemantics()
-        )
+        self.semantics = PropositionSemantics()
 
-        self.proposition_guard = (
-            PropositionGuard()
-        )
+        self.proposition_guard = PropositionGuard()
 
     def _who_result(
         self,
@@ -33,18 +27,8 @@ class VerificationResolver(
         entities: list[dict],
         facts: list[dict],
     ):
-        if (
-            self.semantics
-            .is_no_additional_risk_claim(
-                text
-            )
-        ):
-            if (
-                facts
-                and self._facts_support_no_additional_risk(
-                    facts
-                )
-            ):
+        if self.semantics.is_no_additional_risk_claim(text):
+            if facts and self._facts_support_no_additional_risk(facts):
                 return self._result(
                     status=self.SUPPORTED,
                     reason=(
@@ -53,9 +37,7 @@ class VerificationResolver(
                         "additional public-health risk "
                         "for the referenced variant."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
@@ -68,18 +50,11 @@ class VerificationResolver(
                     "the claimed no-additional-risk "
                     "assessment."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
-        if (
-            self.semantics
-            .is_variant_tracking_rationale_claim(
-                text
-            )
-        ):
+        if self.semantics.is_variant_tracking_rationale_claim(text):
             return self._result(
                 status=self.INSUFFICIENT_EVIDENCE,
                 reason=(
@@ -89,9 +64,7 @@ class VerificationResolver(
                     "the claimed rationale for why the "
                     "variant is being monitored."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
@@ -106,46 +79,26 @@ class VerificationResolver(
         text: str,
         facts: list[dict],
     ):
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
         assessments = {
-            self._assessment(
-                fact
-            )
-            for fact in facts
-            if self._assessment(
-                fact
-            )
+            self._assessment(fact) for fact in facts if self._assessment(fact)
         }
 
         overall_inconclusive = (
             "inconclusive_pending_additional_"
-            "information_or_scientific_data"
-            in assessments
+            "information_or_scientific_data" in assessments
         )
 
         lab_uncertain = (
-            "cannot_be_ruled_out_or_"
-            "proven_with_available_"
-            "information"
-            in assessments
+            "cannot_be_ruled_out_or_proven_with_available_information" in assessments
         )
 
         zoonotic_supported = (
-            "best_supported_by_available_"
-            "scientific_data"
-            in assessments
+            "best_supported_by_available_scientific_data" in assessments
         )
 
-        if (
-            overall_inconclusive
-            and self.semantics
-            .is_origin_inconclusive(
-                text
-            )
-        ):
+        if overall_inconclusive and self.semantics.is_origin_inconclusive(text):
             return self._result(
                 status=self.SUPPORTED,
                 reason=(
@@ -154,19 +107,11 @@ class VerificationResolver(
                     "origin remains unresolved or "
                     "inconclusive."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
-        if (
-            lab_uncertain
-            and self.semantics
-            .is_lab_uncertainty(
-                text
-            )
-        ):
+        if lab_uncertain and self.semantics.is_lab_uncertainty(text):
             return self._result(
                 status=self.SUPPORTED,
                 reason=(
@@ -177,9 +122,7 @@ class VerificationResolver(
                     "or proven with available "
                     "information."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
@@ -200,9 +143,7 @@ class VerificationResolver(
                     "best supported scientific explanation",
                 )
             )
-            and not self.origin_qualifiers.is_certainty_overclaim(
-                normalized
-            )
+            and not self.origin_qualifiers.is_certainty_overclaim(normalized)
         ):
             return self._result(
                 status=self.SUPPORTED,
@@ -214,9 +155,7 @@ class VerificationResolver(
                     "while the overall origin "
                     "remains unresolved."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
@@ -230,37 +169,18 @@ class VerificationResolver(
         text: str,
         facts: list[dict],
     ):
-        claim_years = (
-            self.semantics
-            .explicit_years(
-                text
-            )
-        )
+        claim_years = self.semantics.explicit_years(text)
 
-        fact_years = (
-            self._fact_source_years(
-                facts
-            )
-        )
+        fact_years = self._fact_source_years(facts)
 
         if (
             claim_years
             and fact_years
-            and not self.semantics
-            .has_current_language(
-                text
-            )
-            and max(
-                claim_years
-            )
-            < max(
-                fact_years
-            )
+            and not self.semantics.has_current_language(text)
+            and max(claim_years) < max(fact_years)
         ):
             return self._result(
-                status=(
-                    self.INSUFFICIENT_EVIDENCE
-                ),
+                status=(self.INSUFFICIENT_EVIDENCE),
                 reason=(
                     "The claim refers to a "
                     "historical risk assessment, "
@@ -284,16 +204,9 @@ class VerificationResolver(
         text: str,
         facts: list[dict],
     ):
-        if (
-            self.semantics
-            .is_non_covid_vaccine(
-                text
-            )
-        ):
+        if self.semantics.is_non_covid_vaccine(text):
             return self._result(
-                status=(
-                    self.INSUFFICIENT_EVIDENCE
-                ),
+                status=(self.INSUFFICIENT_EVIDENCE),
                 reason=(
                     "The claim refers to a "
                     "non-COVID vaccine, so "
@@ -305,16 +218,9 @@ class VerificationResolver(
                 method="who_semantic",
             )
 
-        if (
-            self.semantics
-            .is_absolute_limitation(
-                text
-            )
-        ):
+        if self.semantics.is_absolute_limitation(text):
             return self._result(
-                status=(
-                    self.INSUFFICIENT_EVIDENCE
-                ),
+                status=(self.INSUFFICIENT_EVIDENCE),
                 reason=(
                     "The claim limits an absolute "
                     "vaccine-effect interpretation. "
@@ -323,9 +229,7 @@ class VerificationResolver(
                     "relationships but does not "
                     "model an absolute guarantee."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
@@ -341,17 +245,9 @@ class VerificationResolver(
         relationships: list[dict],
         facts: list[dict],
     ):
-        if (
-            self.semantics
-            .is_non_covid_vaccine(
-                text
-            )
-            and facts
-        ):
+        if self.semantics.is_non_covid_vaccine(text) and facts:
             return self._result(
-                status=(
-                    self.INSUFFICIENT_EVIDENCE
-                ),
+                status=(self.INSUFFICIENT_EVIDENCE),
                 reason=(
                     "Retrieved vaccine evidence "
                     "does not establish the "
@@ -374,18 +270,11 @@ class VerificationResolver(
         self,
         text: str,
     ):
-        targets = (
-            super()._vaccine_targets(
-                text
-            )
-        )
+        targets = super()._vaccine_targets(text)
 
         if (
-            "infection"
-            in targets
-            and len(
-                targets
-            ) > 1
+            "infection" in targets
+            and len(targets) > 1
             and any(
                 value in text
                 for value in (
@@ -398,12 +287,7 @@ class VerificationResolver(
                 )
             )
         ):
-            targets = [
-                target
-                for target in targets
-                if target
-                != "infection"
-            ]
+            targets = [target for target in targets if target != "infection"]
 
         return targets
 
@@ -411,20 +295,13 @@ class VerificationResolver(
         self,
         text: str,
     ):
-        return (
-            self.semantics
-            .is_relation_negated(
-                text
-            )
-        )
+        return self.semantics.is_relation_negated(text)
 
     def _is_unrelated_claim(
         self,
         text: str,
     ):
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
         if any(
             value in normalized
@@ -436,19 +313,13 @@ class VerificationResolver(
         ):
             return True
 
-        return super()._is_unrelated_claim(
-            text
-        )
+        return super()._is_unrelated_claim(text)
 
     def _facts_support_no_additional_risk(
         self,
         facts: list[dict],
     ):
-        evidence_text = (
-            self._facts_text(
-                facts
-            )
-        )
+        evidence_text = self._facts_text(facts)
 
         return any(
             value in evidence_text
@@ -501,19 +372,15 @@ class VerificationResolver(
                 )
             )
 
-            attributes = (
-                fact.get(
-                    "evidence",
-                    {},
-                ).get(
-                    "attributes",
-                    {},
-                )
+            attributes = fact.get(
+                "evidence",
+                {},
+            ).get(
+                "attributes",
+                {},
             )
 
-            for value in (
-                attributes.values()
-            ):
+            for value in attributes.values():
                 if isinstance(
                     value,
                     (
@@ -523,17 +390,9 @@ class VerificationResolver(
                         bool,
                     ),
                 ):
-                    values.append(
-                        str(
-                            value
-                        )
-                    )
+                    values.append(str(value))
 
-        return self._normalize(
-            " ".join(
-                values
-            )
-        )
+        return self._normalize(" ".join(values))
 
     def _fact_source_years(
         self,
@@ -542,14 +401,12 @@ class VerificationResolver(
         years = []
 
         for fact in facts:
-            attributes = (
-                fact.get(
-                    "evidence",
-                    {},
-                ).get(
-                    "attributes",
-                    {},
-                )
+            attributes = fact.get(
+                "evidence",
+                {},
+            ).get(
+                "attributes",
+                {},
             )
 
             source_date = str(
@@ -565,12 +422,6 @@ class VerificationResolver(
             )
 
             if match:
-                years.append(
-                    int(
-                        match.group(
-                            1
-                        )
-                    )
-                )
+                years.append(int(match.group(1)))
 
         return years

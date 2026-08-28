@@ -18,13 +18,9 @@ class ConfidenceScorer:
         "variant_under_monitoring",
     }
 
-    NOT_VERIFIABLE = (
-        "NOT_VERIFIABLE_WITH_CURRENT_KG"
-    )
+    NOT_VERIFIABLE = "NOT_VERIFIABLE_WITH_CURRENT_KG"
 
-    INSUFFICIENT_EVIDENCE = (
-        "INSUFFICIENT_EVIDENCE"
-    )
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
 
     def score(
         self,
@@ -80,33 +76,20 @@ class ConfidenceScorer:
             ),
         }
 
-        raw_score = sum(
-            components[name]
-            * self.WEIGHTS[name]
-            for name
-            in self.WEIGHTS
-        )
+        raw_score = sum(components[name] * self.WEIGHTS[name] for name in self.WEIGHTS)
 
-        status = verification[
-            "status"
-        ]
+        status = verification["status"]
 
-        if (
-            status
-            == self.NOT_VERIFIABLE
-        ):
+        if status == self.NOT_VERIFIABLE:
             raw_score = min(
                 raw_score,
                 0.45,
             )
 
         if (
-            status
-            == self.INSUFFICIENT_EVIDENCE
+            status == self.INSUFFICIENT_EVIDENCE
             and not facts
-            and not self._history_evidence(
-                history
-            )
+            and not self._history_evidence(history)
         ):
             raw_score = min(
                 raw_score,
@@ -126,24 +109,17 @@ class ConfidenceScorer:
 
         return {
             "score": final_score,
-            "level": self._level(
-                final_score
-            ),
-            "target": (
-                "verification_outcome"
-            ),
+            "level": self._level(final_score),
+            "target": ("verification_outcome"),
             "calibrated": False,
             "components": {
                 key: round(
                     value,
                     3,
                 )
-                for key, value
-                in components.items()
+                for key, value in components.items()
             },
-            "weights": dict(
-                self.WEIGHTS
-            ),
+            "weights": dict(self.WEIGHTS),
             "explanation": (
                 "Heuristic evidence-grounding "
                 "confidence for the verification "
@@ -196,111 +172,42 @@ class ConfidenceScorer:
             )
 
             checks = [
+                bool(evidence.get("edgeId")),
                 bool(
-                    evidence.get(
-                        "edgeId"
-                    )
+                    evidence.get("primaryKnowledgeSource")
+                    or evidence.get("sourceDataset")
                 ),
+                bool(evidence.get("references") or attributes.get("source_url")),
                 bool(
-                    evidence.get(
-                        "primaryKnowledgeSource"
-                    )
-                    or evidence.get(
-                        "sourceDataset"
-                    )
-                ),
-                bool(
-                    evidence.get(
-                        "references"
-                    )
-                    or attributes.get(
-                        "source_url"
-                    )
-                ),
-                bool(
-                    attributes.get(
-                        "source_text"
-                    )
-                    or attributes.get(
-                        "source_date"
-                    )
-                    or evidence.get(
-                        "maxPhaseForIndication"
-                    )
-                    is not None
+                    attributes.get("source_text")
+                    or attributes.get("source_date")
+                    or evidence.get("maxPhaseForIndication") is not None
                 ),
             ]
 
-            scores.append(
-                sum(
-                    checks
-                )
-                / len(
-                    checks
-                )
-            )
+            scores.append(sum(checks) / len(checks))
 
-        for item in (
-            self._history_evidence(
-                history
-            )
-        ):
+        for item in self._history_evidence(history):
             checks = [
-                bool(
-                    item.get(
-                        "eventId"
-                    )
-                ),
-                bool(
-                    item.get(
-                        "sourceUrl"
-                    )
-                ),
-                bool(
-                    item.get(
-                        "sourceText"
-                    )
-                ),
-                bool(
-                    item.get(
-                        "dateStart"
-                    )
-                    or item.get(
-                        "sourceLinks"
-                    )
-                ),
+                bool(item.get("eventId")),
+                bool(item.get("sourceUrl")),
+                bool(item.get("sourceText")),
+                bool(item.get("dateStart") or item.get("sourceLinks")),
             ]
 
-            scores.append(
-                sum(
-                    checks
-                )
-                / len(
-                    checks
-                )
-            )
+            scores.append(sum(checks) / len(checks))
 
         if not scores:
             return 0.0
 
-        return (
-            sum(
-                scores
-            )
-            / len(
-                scores
-            )
-        )
+        return sum(scores) / len(scores)
 
     def _relation_certainty(
         self,
         verification_type: str,
         relationships: list[dict],
     ):
-        if (
-            verification_type
-            == "history"
-        ):
+        if verification_type == "history":
             return 1.0
 
         scores = [
@@ -310,8 +217,7 @@ class ConfidenceScorer:
                     0.0,
                 )
             )
-            for relationship
-            in relationships
+            for relationship in relationships
         ]
 
         if not scores:
@@ -319,9 +225,7 @@ class ConfidenceScorer:
 
         return min(
             max(
-                max(
-                    scores
-                ),
+                max(scores),
                 0.0,
             ),
             1.0,
@@ -350,17 +254,13 @@ class ConfidenceScorer:
             )
 
             if not candidates:
-                scores.append(
-                    0.0
-                )
+                scores.append(0.0)
 
                 continue
 
             scores.append(
                 float(
-                    candidates[
-                        0
-                    ].get(
+                    candidates[0].get(
                         "score",
                         0.0,
                     )
@@ -369,12 +269,7 @@ class ConfidenceScorer:
 
         return min(
             max(
-                sum(
-                    scores
-                )
-                / len(
-                    scores
-                ),
+                sum(scores) / len(scores),
                 0.0,
             ),
             1.0,
@@ -385,16 +280,7 @@ class ConfidenceScorer:
         facts: list[dict],
         history: dict | None,
     ):
-        evidence_count = (
-            len(
-                facts
-            )
-            + len(
-                self._history_evidence(
-                    history
-                )
-            )
-        )
+        evidence_count = len(facts) + len(self._history_evidence(history))
 
         if evidence_count == 0:
             return 0.0
@@ -402,15 +288,12 @@ class ConfidenceScorer:
         stances = set()
 
         for fact in facts:
-            attributes = (
-                fact.get(
-                    "evidence",
-                    {},
-                )
-                .get(
-                    "attributes",
-                    {},
-                )
+            attributes = fact.get(
+                "evidence",
+                {},
+            ).get(
+                "attributes",
+                {},
             )
 
             for key in (
@@ -419,18 +302,10 @@ class ConfidenceScorer:
                 "stance",
                 "verification_status",
             ):
-                value = attributes.get(
-                    key
-                )
+                value = attributes.get(key)
 
                 if value:
-                    stances.add(
-                        str(
-                            value
-                        )
-                        .strip()
-                        .lower()
-                    )
+                    stances.add(str(value).strip().lower())
 
         if not stances:
             return 1.0
@@ -451,12 +326,7 @@ class ConfidenceScorer:
             "negative",
         }
 
-        if (
-            stances
-            & positive
-            and stances
-            & negative
-        ):
+        if stances & positive and stances & negative:
             return 0.30
 
         return 1.0
@@ -480,51 +350,22 @@ class ConfidenceScorer:
             )
 
             source = (
-                attributes.get(
-                    "source_id"
-                )
-                or attributes.get(
-                    "source_url"
-                )
-                or evidence.get(
-                    "primaryKnowledgeSource"
-                )
-                or evidence.get(
-                    "sourceDataset"
-                )
+                attributes.get("source_id")
+                or attributes.get("source_url")
+                or evidence.get("primaryKnowledgeSource")
+                or evidence.get("sourceDataset")
             )
 
             if source:
-                sources.add(
-                    str(
-                        source
-                    )
-                )
+                sources.add(str(source))
 
-        for item in (
-            self._history_evidence(
-                history
-            )
-        ):
-            source = (
-                item.get(
-                    "sourceUrl"
-                )
-                or item.get(
-                    "eventId"
-                )
-            )
+        for item in self._history_evidence(history):
+            source = item.get("sourceUrl") or item.get("eventId")
 
             if source:
-                sources.add(
-                    str(
-                        source
-                    )
-                )
+                sources.add(str(source))
 
-        count = len(
-            sources
-        )
+        count = len(sources)
 
         if count == 0:
             return 0.0
@@ -542,70 +383,38 @@ class ConfidenceScorer:
         relationships: list[dict],
         facts: list[dict],
     ):
-        roles = {
-            relationship.get(
-                "relationship"
-            )
-            for relationship
-            in relationships
-        }
+        roles = {relationship.get("relationship") for relationship in relationships}
 
-        if not (
-            roles
-            & self.TEMPORAL_ROLES
-        ):
+        if not (roles & self.TEMPORAL_ROLES):
             return 1.0
 
         dates = []
 
         for fact in facts:
-            attributes = (
-                fact.get(
-                    "evidence",
-                    {},
-                )
-                .get(
-                    "attributes",
-                    {},
-                )
+            attributes = fact.get(
+                "evidence",
+                {},
+            ).get(
+                "attributes",
+                {},
             )
 
-            value = (
-                attributes.get(
-                    "as_of_date"
-                )
-                or attributes.get(
-                    "source_date"
-                )
-            )
+            value = attributes.get("as_of_date") or attributes.get("source_date")
 
-            parsed = (
-                self._parse_date(
-                    value
-                )
-            )
+            parsed = self._parse_date(value)
 
             if parsed is not None:
-                dates.append(
-                    parsed
-                )
+                dates.append(parsed)
 
         if not dates:
             return 0.40
 
-        latest = max(
-            dates
-        )
+        latest = max(dates)
 
-        today = datetime.now(
-            timezone.utc
-        ).date()
+        today = datetime.now(timezone.utc).date()
 
         age_days = max(
-            (
-                today
-                - latest
-            ).days,
+            (today - latest).days,
             0,
         )
 
@@ -631,14 +440,7 @@ class ConfidenceScorer:
             return None
 
         try:
-            return date.fromisoformat(
-                str(
-                    value
-                )
-                .strip()[
-                    :10
-                ]
-            )
+            return date.fromisoformat(str(value).strip()[:10])
 
         except ValueError:
             return None
@@ -650,41 +452,16 @@ class ConfidenceScorer:
     ):
         identifiers = set()
 
-        for index, fact in enumerate(
-            facts
-        ):
-            edge_id = (
-                fact.get(
-                    "evidence",
-                    {},
-                )
-                .get(
-                    "edgeId"
-                )
-            )
+        for index, fact in enumerate(facts):
+            edge_id = fact.get(
+                "evidence",
+                {},
+            ).get("edgeId")
 
-            identifiers.add(
-                edge_id
-                or (
-                    f"fact:"
-                    f"{index}"
-                )
-            )
+            identifiers.add(edge_id or (f"fact:{index}"))
 
-        for index, item in enumerate(
-            self._history_evidence(
-                history
-            )
-        ):
-            identifiers.add(
-                item.get(
-                    "eventId"
-                )
-                or (
-                    f"history:"
-                    f"{index}"
-                )
-            )
+        for index, item in enumerate(self._history_evidence(history)):
+            identifiers.add(item.get("eventId") or (f"history:{index}"))
 
         return identifiers
 

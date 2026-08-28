@@ -52,14 +52,9 @@ class Neo4jClient:
         """
 
         with self.driver.session() as session:
-            result = session.run(
-                query
-            )
+            result = session.run(query)
 
-            return [
-                record.data()
-                for record in result
-            ]
+            return [record.data() for record in result]
 
     def get_entity_context(
         self,
@@ -99,10 +94,7 @@ class Neo4jClient:
                 entity=entity,
             )
 
-            return [
-                record.data()
-                for record in result
-            ]
+            return [record.data() for record in result]
 
     def find_history_events(
         self,
@@ -142,10 +134,7 @@ class Neo4jClient:
                 limit=limit,
             )
 
-            return [
-                record.data()
-                for record in result
-            ]
+            return [record.data() for record in result]
 
     def find_history_event_relations(
         self,
@@ -194,10 +183,7 @@ class Neo4jClient:
                 limit=limit,
             )
 
-            return [
-                record.data()
-                for record in result
-            ]
+            return [record.data() for record in result]
 
     def find_entity_candidates(
         self,
@@ -270,10 +256,7 @@ class Neo4jClient:
                 limit=limit,
             )
 
-            return [
-                record.data()
-                for record in result
-            ]
+            return [record.data() for record in result]
 
     def get_relationship_types(self):
         query = """
@@ -289,16 +272,9 @@ class Neo4jClient:
         """
 
         with self.driver.session() as session:
-            result = session.run(
-                query
-            )
+            result = session.run(query)
 
-            return [
-                record[
-                    "relationship"
-                ]
-                for record in result
-            ]
+            return [record["relationship"] for record in result]
 
     def find_related_facts(
         self,
@@ -373,10 +349,7 @@ class Neo4jClient:
                 limit=limit,
             )
 
-            return [
-                record.data()
-                for record in result
-            ]
+            return [record.data() for record in result]
 
     def find_relationship_between_entities(
         self,
@@ -457,10 +430,7 @@ class Neo4jClient:
                 limit=limit,
             )
 
-            return [
-                record.data()
-                for record in result
-            ]
+            return [record.data() for record in result]
 
     def find_semantic_facts(
         self,
@@ -519,21 +489,12 @@ class Neo4jClient:
             result = session.run(
                 query,
                 semanticRoles=semantic_roles,
-                subjectIds=(
-                    subject_ids
-                    or []
-                ),
-                objectIds=(
-                    object_ids
-                    or []
-                ),
+                subjectIds=(subject_ids or []),
+                objectIds=(object_ids or []),
                 limit=limit,
             )
 
-            return [
-                record.data()
-                for record in result
-            ]
+            return [record.data() for record in result]
 
     def clear_graph(self):
         query = """
@@ -542,9 +503,7 @@ class Neo4jClient:
         """
 
         with self.driver.session() as session:
-            session.run(
-                query
-            ).consume()
+            session.run(query).consume()
 
     def ensure_kg_constraints(self):
         query = """
@@ -558,9 +517,7 @@ class Neo4jClient:
         """
 
         with self.driver.session() as session:
-            session.run(
-                query
-            ).consume()
+            session.run(query).consume()
 
     def upsert_kg_nodes(
         self,
@@ -592,11 +549,7 @@ class Neo4jClient:
 
             record = result.single()
 
-            return (
-                record["count"]
-                if record
-                else 0
-            )
+            return record["count"] if record else 0
 
     def upsert_kg_edges(
         self,
@@ -639,8 +592,4 @@ class Neo4jClient:
 
             record = result.single()
 
-            return (
-                record["count"]
-                if record
-                else 0
-            )
+            return record["count"] if record else 0

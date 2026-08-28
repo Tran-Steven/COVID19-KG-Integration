@@ -153,21 +153,13 @@ class RelationIntentResolver:
         text: str,
         extracted_relation: str | None,
     ):
-        normalized_text = self._normalize(
-            text
-        )
+        normalized_text = self._normalize(text)
 
         matches = []
 
-        for rule_index, rule in enumerate(
-            self.RULES
-        ):
+        for rule_index, rule in enumerate(self.RULES):
             for phrase in rule["phrases"]:
-                normalized_phrase = (
-                    self._normalize(
-                        phrase
-                    )
-                )
+                normalized_phrase = self._normalize(phrase)
 
                 position = self._find_phrase(
                     normalized_text,
@@ -179,20 +171,12 @@ class RelationIntentResolver:
 
                 matches.append(
                     {
-                        "intent": rule[
-                            "intent"
-                        ],
-                        "direction": rule[
-                            "direction"
-                        ],
+                        "intent": rule["intent"],
+                        "direction": rule["direction"],
                         "matchedText": phrase,
-                        "specific": rule[
-                            "specific"
-                        ],
+                        "specific": rule["specific"],
                         "position": position,
-                        "phraseLength": len(
-                            normalized_phrase
-                        ),
+                        "phraseLength": len(normalized_phrase),
                         "ruleIndex": rule_index,
                     }
                 )
@@ -200,9 +184,7 @@ class RelationIntentResolver:
         if matches:
             matches.sort(
                 key=lambda match: (
-                    -match[
-                        "phraseLength"
-                    ],
+                    -match["phraseLength"],
                     match["position"],
                     match["ruleIndex"],
                 )
@@ -212,55 +194,28 @@ class RelationIntentResolver:
 
             return {
                 "intent": best["intent"],
-                "direction": best[
-                    "direction"
-                ],
-                "matchedText": best[
-                    "matchedText"
-                ],
-                "specific": best[
-                    "specific"
-                ],
+                "direction": best["direction"],
+                "matchedText": best["matchedText"],
+                "specific": best["specific"],
             }
 
         if extracted_relation:
-            normalized_relation = (
-                self._normalize(
-                    extracted_relation
-                )
-            )
+            normalized_relation = self._normalize(extracted_relation)
 
             for rule in self.RULES:
-                for phrase in rule[
-                    "phrases"
-                ]:
-                    if (
-                        normalized_relation
-                        == self._normalize(
-                            phrase
-                        )
-                    ):
+                for phrase in rule["phrases"]:
+                    if normalized_relation == self._normalize(phrase):
                         return {
-                            "intent": rule[
-                                "intent"
-                            ],
-                            "direction": rule[
-                                "direction"
-                            ],
-                            "matchedText": (
-                                extracted_relation
-                            ),
-                            "specific": rule[
-                                "specific"
-                            ],
+                            "intent": rule["intent"],
+                            "direction": rule["direction"],
+                            "matchedText": (extracted_relation),
+                            "specific": rule["specific"],
                         }
 
         return {
             "intent": "unknown",
             "direction": None,
-            "matchedText": (
-                extracted_relation
-            ),
+            "matchedText": (extracted_relation),
             "specific": False,
         }
 

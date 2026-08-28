@@ -13,9 +13,7 @@ class OriginQualifierResolver:
         self,
         text: str,
     ):
-        if self._positive_certainty_assertion(
-            text
-        ):
+        if self._positive_certainty_assertion(text):
             return False
 
         lexical = any(
@@ -66,19 +64,13 @@ class OriginQualifierResolver:
         self,
         text: str,
     ):
-        if self._positive_certainty_assertion(
-            text
-        ):
+        if self._positive_certainty_assertion(text):
             return False
 
-        if self._lexical_lab_uncertainty(
-            text
-        ):
+        if self._lexical_lab_uncertainty(text):
             return True
 
-        if self._lexical_ruled_out(
-            text
-        ):
+        if self._lexical_ruled_out(text):
             return False
 
         return (
@@ -93,14 +85,10 @@ class OriginQualifierResolver:
         self,
         text: str,
     ):
-        if self._lexical_uncertainty_guard(
-            text
-        ):
+        if self._lexical_uncertainty_guard(text):
             return False
 
-        if self._lexical_ruled_out(
-            text
-        ):
+        if self._lexical_ruled_out(text):
             return True
 
         return (
@@ -142,41 +130,26 @@ class OriginQualifierResolver:
         if lexical:
             return True
 
-        if self._is_question(
-            text
-        ):
+        if self._is_question(text):
             return False
 
-        negative = (
-            self._semantic_score(
-                text,
-                "origin_negative_support",
-            )
+        negative = self._semantic_score(
+            text,
+            "origin_negative_support",
         )
 
-        positive = (
-            self._semantic_score(
-                text,
-                "origin_positive_support",
-            )
+        positive = self._semantic_score(
+            text,
+            "origin_positive_support",
         )
 
-        return (
-            negative >= 0.68
-            and (
-                negative
-                - positive
-            )
-            >= 0.04
-        )
+        return negative >= 0.68 and (negative - positive) >= 0.04
 
     def is_positive_support_claim(
         self,
         text: str,
     ):
-        if self.is_negative_support_claim(
-            text
-        ):
+        if self.is_negative_support_claim(text):
             return False
 
         distinction = any(
@@ -235,115 +208,72 @@ class OriginQualifierResolver:
         if lexical:
             return True
 
-        if self._is_question(
-            text
-        ):
+        if self._is_question(text):
             return False
 
-        positive = (
-            self._semantic_score(
-                text,
-                "origin_positive_support",
-            )
+        positive = self._semantic_score(
+            text,
+            "origin_positive_support",
         )
 
-        negative = (
-            self._semantic_score(
-                text,
-                "origin_negative_support",
-            )
+        negative = self._semantic_score(
+            text,
+            "origin_negative_support",
         )
 
-        return (
-            positive >= 0.63
-            and (
-                positive
-                - negative
-            )
-            >= 0.04
-        )
+        return positive >= 0.63 and (positive - negative) >= 0.04
 
     def is_certainty_overclaim(
         self,
         text: str,
     ):
-        if self._negative_establishment(
-            text
-        ):
+        if self._negative_establishment(text):
             return False
 
-        if self._positive_certainty_assertion(
-            text
-        ):
+        if self._positive_certainty_assertion(text):
             return True
 
-        certainty_score = (
-            self._semantic_score(
-                text,
-                "origin_certainty",
-            )
+        certainty_score = self._semantic_score(
+            text,
+            "origin_certainty",
         )
 
-        inconclusive_score = (
-            self._semantic_score(
-                text,
-                "origin_inconclusive",
-            )
+        inconclusive_score = self._semantic_score(
+            text,
+            "origin_inconclusive",
         )
 
         return (
-            certainty_score >= 0.70
-            and (
-                certainty_score
-                - inconclusive_score
-            )
-            >= 0.03
+            certainty_score >= 0.70 and (certainty_score - inconclusive_score) >= 0.03
         )
 
     def is_broad_certainty_claim(
         self,
         text: str,
     ):
-        if self._negative_establishment(
-            text
-        ):
+        if self._negative_establishment(text):
             return False
 
-        if self._positive_certainty_assertion(
-            text
-        ):
+        if self._positive_certainty_assertion(text):
             return True
 
-        broad_score = (
-            self._semantic_score(
-                text,
-                "origin_broad_certainty",
-            )
+        broad_score = self._semantic_score(
+            text,
+            "origin_broad_certainty",
         )
 
-        inconclusive_score = (
-            self._semantic_score(
-                text,
-                "origin_inconclusive",
-            )
+        inconclusive_score = self._semantic_score(
+            text,
+            "origin_inconclusive",
         )
 
-        return (
-            broad_score >= 0.74
-            and (
-                broad_score
-                - inconclusive_score
-            )
-            >= 0.03
-        )
+        return broad_score >= 0.74 and (broad_score - inconclusive_score) >= 0.03
 
     def _positive_certainty_assertion(
         self,
         text: str,
     ):
-        if self._negative_establishment(
-            text
-        ):
+        if self._negative_establishment(text):
             return False
 
         certainty = any(
@@ -415,14 +345,8 @@ class OriginQualifierResolver:
 
         return (
             direct_certainty
-            or (
-                certainty
-                and establishment
-            )
-            or (
-                exactness
-                and establishment
-            )
+            or (certainty and establishment)
+            or (exactness and establishment)
         )
 
     def _lexical_lab_uncertainty(
@@ -509,28 +433,13 @@ class OriginQualifierResolver:
             )
         )
 
-        paired_uncertainty = (
-            cannot
-            and exclusion
-            and establishment
-        )
+        paired_uncertainty = cannot and exclusion and establishment
 
-        possibility_uncertainty = (
-            possibility
-            and non_establishment
-        )
+        possibility_uncertainty = possibility and non_establishment
 
-        neither_pattern = (
-            "neither" in text
-            and establishment
-            and exclusion
-        )
+        neither_pattern = "neither" in text and establishment and exclusion
 
-        return (
-            paired_uncertainty
-            or possibility_uncertainty
-            or neither_pattern
-        )
+        return paired_uncertainty or possibility_uncertainty or neither_pattern
 
     def _lexical_uncertainty_guard(
         self,
@@ -645,14 +554,10 @@ class OriginQualifierResolver:
     ):
         stripped = text.strip()
 
-        if stripped.endswith(
-            "?"
-        ):
+        if stripped.endswith("?"):
             return True
 
-        normalized = (
-            stripped.lower()
-        )
+        normalized = stripped.lower()
 
         return normalized.startswith(
             (
@@ -686,11 +591,7 @@ class OriginQualifierResolver:
         text: str,
         label: str,
     ):
-        scores = (
-            self._semantic_scores(
-                text
-            )
-        )
+        scores = self._semantic_scores(text)
 
         return scores.get(
             label,
@@ -702,34 +603,17 @@ class OriginQualifierResolver:
         text: str,
     ):
         if text in self.semantic_cache:
-            return self.semantic_cache[
-                text
-            ]
+            return self.semantic_cache[text]
 
-        matcher = (
-            get_verification_semantic_matcher()
-        )
+        matcher = get_verification_semantic_matcher()
 
-        rankings = (
-            matcher.rank_origin_propositions(
-                text
-            )
-        )
+        rankings = matcher.rank_origin_propositions(text)
 
-        scores = {
-            item["label"]: item[
-                "score"
-            ]
-            for item in rankings
-        }
+        scores = {item["label"]: item["score"] for item in rankings}
 
-        if len(
-            self.semantic_cache
-        ) >= 256:
+        if len(self.semantic_cache) >= 256:
             self.semantic_cache.clear()
 
-        self.semantic_cache[
-            text
-        ] = scores
+        self.semantic_cache[text] = scores
 
         return scores

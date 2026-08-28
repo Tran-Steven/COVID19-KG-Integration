@@ -9,9 +9,7 @@ from fastembed.rerank.cross_encoder import (
 class SemanticInterpreter:
     MODEL_NAME = "BAAI/bge-small-en-v1.5"
 
-    RERANK_MODEL_NAME = (
-        "Xenova/ms-marco-MiniLM-L-6-v2"
-    )
+    RERANK_MODEL_NAME = "Xenova/ms-marco-MiniLM-L-6-v2"
 
     INTENT_PROTOTYPES = {
         "treatment": [
@@ -181,60 +179,38 @@ class SemanticInterpreter:
         self.intent_margin = intent_margin
         self.outcome_threshold = outcome_threshold
         self.outcome_margin = outcome_margin
-        self.direction_threshold = (
-            direction_threshold
-        )
-        self.direction_margin = (
-            direction_margin
-        )
+        self.direction_threshold = direction_threshold
+        self.direction_margin = direction_margin
 
-        self.intent_rerank_floor = (
-            intent_rerank_floor
-        )
+        self.intent_rerank_floor = intent_rerank_floor
 
-        self.outcome_rerank_floor = (
-            outcome_rerank_floor
-        )
+        self.outcome_rerank_floor = outcome_rerank_floor
 
-        self.direction_rerank_floor = (
-            direction_rerank_floor
-        )
+        self.direction_rerank_floor = direction_rerank_floor
 
         self.rerank_top_k = rerank_top_k
 
-        self.model = TextEmbedding(
-            model_name=self.MODEL_NAME
+        self.model = TextEmbedding(model_name=self.MODEL_NAME)
+
+        self.reranker = TextCrossEncoder(model_name=self.RERANK_MODEL_NAME)
+
+        self.intent_embeddings = self._build_prototype_embeddings(
+            self.INTENT_PROTOTYPES
         )
 
-        self.reranker = TextCrossEncoder(
-            model_name=self.RERANK_MODEL_NAME
+        self.outcome_embeddings = self._build_prototype_embeddings(
+            self.OUTCOME_PROTOTYPES
         )
 
-        self.intent_embeddings = (
-            self._build_prototype_embeddings(
-                self.INTENT_PROTOTYPES
-            )
-        )
-
-        self.outcome_embeddings = (
-            self._build_prototype_embeddings(
-                self.OUTCOME_PROTOTYPES
-            )
-        )
-
-        self.direction_embeddings = (
-            self._build_prototype_embeddings(
-                self.DIRECTION_PROTOTYPES
-            )
+        self.direction_embeddings = self._build_prototype_embeddings(
+            self.DIRECTION_PROTOTYPES
         )
 
     def resolve_intent(
         self,
         text: str,
     ):
-        rankings = self.rank_intents(
-            text
-        )
+        rankings = self.rank_intents(text)
 
         match = self._select(
             rankings=rankings,
@@ -247,10 +223,7 @@ class SemanticInterpreter:
                 "intent": match["label"],
                 "direction": None,
                 "matchedText": None,
-                "specific": (
-                    match["label"]
-                    != "broad_effect"
-                ),
+                "specific": (match["label"] != "broad_effect"),
                 "method": "semantic",
                 "score": match["score"],
             }
@@ -258,9 +231,7 @@ class SemanticInterpreter:
         reranked = self._rerank(
             text=text,
             rankings=rankings,
-            descriptions=(
-                self.INTENT_DESCRIPTIONS
-            ),
+            descriptions=(self.INTENT_DESCRIPTIONS),
             floor=self.intent_rerank_floor,
         )
 
@@ -271,10 +242,7 @@ class SemanticInterpreter:
             "intent": reranked["label"],
             "direction": None,
             "matchedText": None,
-            "specific": (
-                reranked["label"]
-                != "broad_effect"
-            ),
+            "specific": (reranked["label"] != "broad_effect"),
             "method": "semantic_rerank",
             "score": reranked["score"],
         }
@@ -283,9 +251,7 @@ class SemanticInterpreter:
         self,
         text: str,
     ):
-        rankings = self.rank_outcomes(
-            text
-        )
+        rankings = self.rank_outcomes(text)
 
         match = self._select(
             rankings=rankings,
@@ -304,9 +270,7 @@ class SemanticInterpreter:
         reranked = self._rerank(
             text=text,
             rankings=rankings,
-            descriptions=(
-                self.OUTCOME_DESCRIPTIONS
-            ),
+            descriptions=(self.OUTCOME_DESCRIPTIONS),
             floor=self.outcome_rerank_floor,
         )
 
@@ -324,9 +288,7 @@ class SemanticInterpreter:
         self,
         text: str,
     ):
-        rankings = self.rank_directions(
-            text
-        )
+        rankings = self.rank_directions(text)
 
         match = self._select(
             rankings=rankings,
@@ -344,9 +306,7 @@ class SemanticInterpreter:
         reranked = self._rerank(
             text=text,
             rankings=rankings,
-            descriptions=(
-                self.DIRECTION_DESCRIPTIONS
-            ),
+            descriptions=(self.DIRECTION_DESCRIPTIONS),
             floor=self.direction_rerank_floor,
         )
 
@@ -365,9 +325,7 @@ class SemanticInterpreter:
     ):
         return self._rank(
             text=text,
-            prototype_embeddings=(
-                self.intent_embeddings
-            ),
+            prototype_embeddings=(self.intent_embeddings),
         )
 
     def rank_outcomes(
@@ -376,9 +334,7 @@ class SemanticInterpreter:
     ):
         return self._rank(
             text=text,
-            prototype_embeddings=(
-                self.outcome_embeddings
-            ),
+            prototype_embeddings=(self.outcome_embeddings),
         )
 
     def rank_directions(
@@ -387,9 +343,7 @@ class SemanticInterpreter:
     ):
         return self._rank(
             text=text,
-            prototype_embeddings=(
-                self.direction_embeddings
-            ),
+            prototype_embeddings=(self.direction_embeddings),
         )
 
     def _build_prototype_embeddings(
@@ -399,11 +353,7 @@ class SemanticInterpreter:
         result = {}
 
         for label, phrases in prototypes.items():
-            vectors = list(
-                self.model.embed(
-                    phrases
-                )
-            )
+            vectors = list(self.model.embed(phrases))
 
             result[label] = vectors
 
@@ -414,11 +364,7 @@ class SemanticInterpreter:
         text: str,
         prototype_embeddings: dict,
     ):
-        query_vectors = list(
-            self.model.embed(
-                [text]
-            )
-        )
+        query_vectors = list(self.model.embed([text]))
 
         if not query_vectors:
             return []
@@ -427,9 +373,7 @@ class SemanticInterpreter:
 
         scores = []
 
-        for label, vectors in (
-            prototype_embeddings.items()
-        ):
+        for label, vectors in prototype_embeddings.items():
             similarities = [
                 self._cosine_similarity(
                     query_vector,
@@ -475,11 +419,7 @@ class SemanticInterpreter:
         if len(rankings) > 1:
             second = rankings[1]
 
-            if (
-                best["score"]
-                - second["score"]
-                < margin
-            ):
+            if best["score"] - second["score"] < margin:
                 return None
 
         return best
@@ -497,16 +437,9 @@ class SemanticInterpreter:
         if rankings[0]["score"] < floor:
             return None
 
-        candidates = rankings[
-            :self.rerank_top_k
-        ]
+        candidates = rankings[: self.rerank_top_k]
 
-        documents = [
-            descriptions[
-                candidate["label"]
-            ]
-            for candidate in candidates
-        ]
+        documents = [descriptions[candidate["label"]] for candidate in candidates]
 
         rerank_scores = list(
             self.reranker.rerank(
@@ -526,9 +459,7 @@ class SemanticInterpreter:
         ):
             reranked.append(
                 {
-                    "label": candidate[
-                        "label"
-                    ],
+                    "label": candidate["label"],
                     "score": round(
                         float(score),
                         4,
@@ -548,32 +479,13 @@ class SemanticInterpreter:
         first,
         second,
     ):
-        dot_product = float(
-            first @ second
-        )
+        dot_product = float(first @ second)
 
-        first_norm = math.sqrt(
-            float(
-                first @ first
-            )
-        )
+        first_norm = math.sqrt(float(first @ first))
 
-        second_norm = math.sqrt(
-            float(
-                second @ second
-            )
-        )
+        second_norm = math.sqrt(float(second @ second))
 
-        if (
-            first_norm == 0
-            or second_norm == 0
-        ):
+        if first_norm == 0 or second_norm == 0:
             return 0.0
 
-        return (
-            dot_product
-            / (
-                first_norm
-                * second_norm
-            )
-        )
+        return dot_product / (first_norm * second_norm)

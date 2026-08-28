@@ -80,23 +80,14 @@ class RelationshipResolver:
         if not relation:
             return []
 
-        query_relation = self._normalize(
-            relation
-        )
+        query_relation = self._normalize(relation)
 
-        relationship_types = (
-            self.database
-            .get_relationship_types()
-        )
+        relationship_types = self.database.get_relationship_types()
 
         candidates = []
 
         for relationship_type in relationship_types:
-            normalized_relationship = (
-                self._normalize(
-                    relationship_type
-                )
-            )
+            normalized_relationship = self._normalize(relationship_type)
 
             score = self._relationship_score(
                 query_relation,
@@ -180,11 +171,7 @@ class RelationshipResolver:
 
         doc = self.nlp(text)
 
-        return " ".join(
-            token.lemma_.lower()
-            for token in doc
-            if not token.is_space
-        )
+        return " ".join(token.lemma_.lower() for token in doc if not token.is_space)
 
     def _score(
         self,
@@ -194,39 +181,20 @@ class RelationshipResolver:
         if query == candidate:
             return 1.0
 
-        query_tokens = set(
-            query.split()
-        )
+        query_tokens = set(query.split())
 
-        candidate_tokens = set(
-            candidate.split()
-        )
+        candidate_tokens = set(candidate.split())
 
-        if (
-            not query_tokens
-            or not candidate_tokens
-        ):
+        if not query_tokens or not candidate_tokens:
             return 0.0
 
-        intersection = (
-            query_tokens
-            & candidate_tokens
-        )
+        intersection = query_tokens & candidate_tokens
 
-        union = (
-            query_tokens
-            | candidate_tokens
-        )
+        union = query_tokens | candidate_tokens
 
-        token_score = (
-            len(intersection)
-            / len(union)
-        )
+        token_score = len(intersection) / len(union)
 
-        if (
-            query in candidate
-            or candidate in query
-        ):
+        if query in candidate or candidate in query:
             return max(
                 token_score,
                 0.8,

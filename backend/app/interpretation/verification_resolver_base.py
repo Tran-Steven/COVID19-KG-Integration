@@ -11,17 +11,11 @@ from app.interpretation.proposition_guard import (
 class VerificationResolver:
     SUPPORTED = "SUPPORTED"
 
-    CONTRADICTED = (
-        "CONTRADICTED"
-    )
+    CONTRADICTED = "CONTRADICTED"
 
-    INSUFFICIENT_EVIDENCE = (
-        "INSUFFICIENT_EVIDENCE"
-    )
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
 
-    NOT_VERIFIABLE = (
-        "NOT_VERIFIABLE_WITH_CURRENT_KG"
-    )
+    NOT_VERIFIABLE = "NOT_VERIFIABLE_WITH_CURRENT_KG"
 
     VALID_STATUSES = {
         SUPPORTED,
@@ -33,13 +27,9 @@ class VerificationResolver:
     def __init__(
         self,
     ):
-        self.origin_qualifiers = (
-            OriginQualifierResolver()
-        )
+        self.origin_qualifiers = OriginQualifierResolver()
 
-        self.proposition_guard = (
-            PropositionGuard()
-        )
+        self.proposition_guard = PropositionGuard()
 
     def resolve(
         self,
@@ -50,12 +40,7 @@ class VerificationResolver:
         facts: list[dict],
         history: dict | None,
     ):
-        scoped = (
-            self.proposition_guard
-            .scope_decision(
-                text
-            )
-        )
+        scoped = self.proposition_guard.scope_decision(text)
 
         if scoped is not None:
             return self._guard_result(
@@ -64,9 +49,7 @@ class VerificationResolver:
             )
 
         if verification_type == "history":
-            return self._history_result(
-                history
-            )
+            return self._history_result(history)
 
         if verification_type == "who":
             return self._who_result(
@@ -89,17 +72,12 @@ class VerificationResolver:
         if not history:
             return self._result(
                 status=self.NOT_VERIFIABLE,
-                reason=(
-                    "No supported history "
-                    "interpretation was resolved."
-                ),
+                reason=("No supported history interpretation was resolved."),
                 evidence_count=0,
                 method="history",
             )
 
-        status = history.get(
-            "status"
-        )
+        status = history.get("status")
 
         evidence = history.get(
             "evidence",
@@ -109,28 +87,16 @@ class VerificationResolver:
         if status in self.VALID_STATUSES:
             return self._result(
                 status=status,
-                reason=(
-                    self._history_reason(
-                        status
-                    )
-                ),
-                evidence_count=len(
-                    evidence
-                ),
+                reason=(self._history_reason(status)),
+                evidence_count=len(evidence),
                 method="history",
             )
 
         if evidence:
             return self._result(
                 status=self.SUPPORTED,
-                reason=(
-                    "Matching source-backed "
-                    "historical evidence was "
-                    "retrieved."
-                ),
-                evidence_count=len(
-                    evidence
-                ),
+                reason=("Matching source-backed historical evidence was retrieved."),
+                evidence_count=len(evidence),
                 method="history",
             )
 
@@ -153,9 +119,7 @@ class VerificationResolver:
     ):
         if not facts:
             return self._result(
-                status=(
-                    self.INSUFFICIENT_EVIDENCE
-                ),
+                status=(self.INSUFFICIENT_EVIDENCE),
                 reason=(
                     "The query maps to a WHO "
                     "verification relation, but "
@@ -166,41 +130,25 @@ class VerificationResolver:
                 method="who_semantic",
             )
 
-        roles = {
-            fact.get(
-                "predicate"
-            )
-            for fact in facts
-        }
+        roles = {fact.get("predicate") for fact in facts}
 
-        if (
-            "origin_hypothesis_assessment"
-            in roles
-            or "overall_origin_status"
-            in roles
-        ):
+        if "origin_hypothesis_assessment" in roles or "overall_origin_status" in roles:
             return self._origin_result(
                 text=text,
                 facts=facts,
             )
 
-        if (
-            "global_public_health_risk_level"
-            in roles
-        ):
+        if "global_public_health_risk_level" in roles:
             return self._risk_result(
                 text=text,
                 facts=facts,
             )
 
         if "causes" in roles:
-            guarded = (
-                self.proposition_guard
-                .cause_decision(
-                    text=text,
-                    entities=entities,
-                    facts=facts,
-                )
+            guarded = self.proposition_guard.cause_decision(
+                text=text,
+                entities=entities,
+                facts=facts,
             )
 
             if guarded is not None:
@@ -221,12 +169,9 @@ class VerificationResolver:
             )
 
         if "transmitted_via" in roles:
-            guarded = (
-                self.proposition_guard
-                .transmission_decision(
-                    text=text,
-                    facts=facts,
-                )
+            guarded = self.proposition_guard.transmission_decision(
+                text=text,
+                facts=facts,
             )
 
             if guarded is not None:
@@ -240,25 +185,17 @@ class VerificationResolver:
                 facts=facts,
             )
 
-        if self._has_explicit_contradiction(
-            facts
-        ):
+        if self._has_explicit_contradiction(facts):
             return self._result(
                 status=self.CONTRADICTED,
                 reason=(
-                    "Retrieved WHO evidence "
-                    "explicitly contradicts the "
-                    "requested claim."
+                    "Retrieved WHO evidence explicitly contradicts the requested claim."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
-        if self._is_negated_claim(
-            text
-        ):
+        if self._is_negated_claim(text):
             return self._result(
                 status=self.CONTRADICTED,
                 reason=(
@@ -267,9 +204,7 @@ class VerificationResolver:
                     "is directly supported by "
                     "retrieved WHO evidence."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
@@ -280,9 +215,7 @@ class VerificationResolver:
                 "directly supports the "
                 "requested semantic relation."
             ),
-            evidence_count=len(
-                facts
-            ),
+            evidence_count=len(facts),
             method="who_semantic",
         )
 
@@ -291,18 +224,9 @@ class VerificationResolver:
         text: str,
         facts: list[dict],
     ):
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
-        if (
-            self._canonical_cause_reference(
-                normalized
-            )
-            and self._is_negated_claim(
-                text
-            )
-        ):
+        if self._canonical_cause_reference(normalized) and self._is_negated_claim(text):
             return self._result(
                 status=self.CONTRADICTED,
                 reason=(
@@ -312,15 +236,11 @@ class VerificationResolver:
                     "the claim negates that "
                     "relationship."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
-        if self._is_question(
-            text
-        ):
+        if self._is_question(text):
             return self._result(
                 status=self.SUPPORTED,
                 reason=(
@@ -328,22 +248,14 @@ class VerificationResolver:
                     "SARS-CoV-2 as the virus "
                     "that causes COVID-19."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
-        claimed_cause = (
-            self._claimed_cause(
-                normalized
-            )
-        )
+        claimed_cause = self._claimed_cause(normalized)
 
         if claimed_cause:
-            if self._canonical_cause_reference(
-                claimed_cause
-            ):
+            if self._canonical_cause_reference(claimed_cause):
                 return self._result(
                     status=self.SUPPORTED,
                     reason=(
@@ -352,15 +264,11 @@ class VerificationResolver:
                         "identifying SARS-CoV-2 "
                         "as the cause of COVID-19."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
-            if self._generic_virus_reference(
-                claimed_cause
-            ):
+            if self._generic_virus_reference(claimed_cause):
                 return self._result(
                     status=self.SUPPORTED,
                     reason=(
@@ -370,9 +278,7 @@ class VerificationResolver:
                         "as the virus that causes "
                         "COVID-19."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
@@ -385,22 +291,14 @@ class VerificationResolver:
                     "the virus that causes "
                     "COVID-19."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
         return self._result(
             status=self.SUPPORTED,
-            reason=(
-                "Retrieved WHO evidence "
-                "supports the modeled causal "
-                "relationship."
-            ),
-            evidence_count=len(
-                facts
-            ),
+            reason=("Retrieved WHO evidence supports the modeled causal relationship."),
+            evidence_count=len(facts),
             method="who_semantic",
         )
 
@@ -409,30 +307,15 @@ class VerificationResolver:
         text: str,
         facts: list[dict],
     ):
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
-        claimed_level = (
-            self._risk_level(
-                normalized
-            )
-        )
+        claimed_level = self._risk_level(normalized)
 
-        evidence_text = " ".join(
-            self._fact_object_names(
-                facts
-            )
-        )
+        evidence_text = " ".join(self._fact_object_names(facts))
 
         if claimed_level:
-            if (
-                claimed_level
-                in evidence_text
-            ):
-                if self._is_negated_claim(
-                    text
-                ):
+            if claimed_level in evidence_text:
+                if self._is_negated_claim(text):
                     return self._result(
                         status=self.CONTRADICTED,
                         reason=(
@@ -442,9 +325,7 @@ class VerificationResolver:
                             "by the current WHO "
                             "assessment."
                         ),
-                        evidence_count=len(
-                            facts
-                        ),
+                        evidence_count=len(facts),
                         method="who_semantic",
                     )
 
@@ -457,9 +338,7 @@ class VerificationResolver:
                         "represented in the "
                         "knowledge graph."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
@@ -471,22 +350,14 @@ class VerificationResolver:
                     "WHO risk level represented "
                     "in the knowledge graph."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
         return self._result(
             status=self.SUPPORTED,
-            reason=(
-                "Current WHO global public "
-                "health risk evidence was "
-                "retrieved."
-            ),
-            evidence_count=len(
-                facts
-            ),
+            reason=("Current WHO global public health risk evidence was retrieved."),
+            evidence_count=len(facts),
             method="who_semantic",
         )
 
@@ -495,32 +366,15 @@ class VerificationResolver:
         text: str,
         facts: list[dict],
     ):
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
-        targets = (
-            self._vaccine_targets(
-                normalized
-            )
-        )
+        targets = self._vaccine_targets(normalized)
 
-        evidence_objects = (
-            self._fact_object_names(
-                facts
-            )
-        )
+        evidence_objects = self._fact_object_names(facts)
 
-        if (
-            self._absolute_positive_claim(
-                normalized
-            )
-            and targets
-        ):
+        if self._absolute_positive_claim(normalized) and targets:
             return self._result(
-                status=(
-                    self.INSUFFICIENT_EVIDENCE
-                ),
+                status=(self.INSUFFICIENT_EVIDENCE),
                 reason=(
                     "The claim makes an absolute "
                     "vaccine-effect statement "
@@ -529,35 +383,23 @@ class VerificationResolver:
                     "represented in the current "
                     "WHO knowledge graph."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
         if targets:
             matched_targets = [
                 target
-                for target
-                in targets
+                for target in targets
                 if self._target_in_objects(
                     target,
                     evidence_objects,
                 )
             ]
 
-            if (
-                len(
-                    matched_targets
-                )
-                != len(
-                    targets
-                )
-            ):
+            if len(matched_targets) != len(targets):
                 return self._result(
-                    status=(
-                        self.INSUFFICIENT_EVIDENCE
-                    ),
+                    status=(self.INSUFFICIENT_EVIDENCE),
                     reason=(
                         "WHO vaccine evidence was "
                         "retrieved, but the "
@@ -566,15 +408,11 @@ class VerificationResolver:
                         "the retrieved protection "
                         "relationships."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
-            if self._is_negated_claim(
-                text
-            ):
+            if self._is_negated_claim(text):
                 return self._result(
                     status=self.CONTRADICTED,
                     reason=(
@@ -584,9 +422,7 @@ class VerificationResolver:
                         "represented by WHO "
                         "evidence."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
@@ -598,25 +434,15 @@ class VerificationResolver:
                     "relationship represented by "
                     "WHO evidence."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
-        if self._is_negated_claim(
-            text
-        ):
+        if self._is_negated_claim(text):
             return self._result(
                 status=self.CONTRADICTED,
-                reason=(
-                    "The claim negates retrieved "
-                    "WHO vaccine-protection "
-                    "evidence."
-                ),
-                evidence_count=len(
-                    facts
-                ),
+                reason=("The claim negates retrieved WHO vaccine-protection evidence."),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
@@ -627,9 +453,7 @@ class VerificationResolver:
                 "supports the requested vaccine "
                 "protection relationship."
             ),
-            evidence_count=len(
-                facts
-            ),
+            evidence_count=len(facts),
             method="who_semantic",
         )
 
@@ -638,13 +462,9 @@ class VerificationResolver:
         text: str,
         facts: list[dict],
     ):
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
-        if self._exclusive_claim(
-            normalized
-        ):
+        if self._exclusive_claim(normalized):
             transmitted_objects = {
                 self._normalize(
                     fact.get(
@@ -656,23 +476,14 @@ class VerificationResolver:
                     )
                 )
                 for fact in facts
-                if (
-                    fact.get(
-                        "predicate"
-                    )
-                    == "transmitted_via"
-                )
+                if (fact.get("predicate") == "transmitted_via")
                 and fact.get(
                     "object",
                     {},
-                ).get(
-                    "name"
-                )
+                ).get("name")
             }
 
-            if len(
-                transmitted_objects
-            ) > 1:
+            if len(transmitted_objects) > 1:
                 return self._result(
                     status=self.CONTRADICTED,
                     reason=(
@@ -683,31 +494,23 @@ class VerificationResolver:
                         "represents multiple "
                         "transmission routes."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
             return self._result(
-                status=(
-                    self.INSUFFICIENT_EVIDENCE
-                ),
+                status=(self.INSUFFICIENT_EVIDENCE),
                 reason=(
                     "The retrieved evidence "
                     "supports a transmission "
                     "route but does not establish "
                     "the claim's exclusivity."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
-        if self._is_negated_claim(
-            text
-        ):
+        if self._is_negated_claim(text):
             return self._result(
                 status=self.CONTRADICTED,
                 reason=(
@@ -716,9 +519,7 @@ class VerificationResolver:
                     "directly represented by "
                     "WHO evidence."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
@@ -729,9 +530,7 @@ class VerificationResolver:
                 "relationship is represented "
                 "by WHO evidence."
             ),
-            evidence_count=len(
-                facts
-            ),
+            evidence_count=len(facts),
             method="who_semantic",
         )
 
@@ -740,27 +539,16 @@ class VerificationResolver:
         text: str,
         facts: list[dict],
     ):
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
         assessments = {
-            self._assessment(
-                fact
-            )
-            for fact in facts
-            if self._assessment(
-                fact
-            )
+            self._assessment(fact) for fact in facts if self._assessment(fact)
         }
 
-        if self.origin_qualifiers.is_inconclusive(
-            normalized
-        ):
+        if self.origin_qualifiers.is_inconclusive(normalized):
             if (
                 "inconclusive_pending_additional_"
-                "information_or_scientific_data"
-                in assessments
+                "information_or_scientific_data" in assessments
             ):
                 return self._result(
                     status=self.SUPPORTED,
@@ -771,23 +559,16 @@ class VerificationResolver:
                         "inconclusive pending "
                         "additional information."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
-        if self._deliberate_origin_query(
-            normalized
-        ):
+        if self._deliberate_origin_query(normalized):
             if (
                 "no_scientific_evidence_"
-                "supporting_over_natural_processes"
-                in assessments
+                "supporting_over_natural_processes" in assessments
             ):
-                if self.origin_qualifiers.is_negative_support_claim(
-                    normalized
-                ):
+                if self.origin_qualifiers.is_negative_support_claim(normalized):
                     return self._result(
                         status=self.SUPPORTED,
                         reason=(
@@ -796,15 +577,11 @@ class VerificationResolver:
                             "evidence represented by "
                             "WHO SAGO."
                         ),
-                        evidence_count=len(
-                            facts
-                        ),
+                        evidence_count=len(facts),
                         method="who_semantic",
                     )
 
-                if self.origin_qualifiers.is_positive_support_claim(
-                    normalized
-                ):
+                if self.origin_qualifiers.is_positive_support_claim(normalized):
                     return self._result(
                         status=self.CONTRADICTED,
                         reason=(
@@ -814,16 +591,12 @@ class VerificationResolver:
                             "laboratory manipulation "
                             "over natural processes."
                         ),
-                        evidence_count=len(
-                            facts
-                        ),
+                        evidence_count=len(facts),
                         method="who_semantic",
                     )
 
                 return self._result(
-                    status=(
-                        self.INSUFFICIENT_EVIDENCE
-                    ),
+                    status=(self.INSUFFICIENT_EVIDENCE),
                     reason=(
                         "WHO SAGO reports no "
                         "scientific evidence "
@@ -833,24 +606,17 @@ class VerificationResolver:
                         "while the overall origin "
                         "remains inconclusive."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
-        if self._laboratory_origin_query(
-            normalized
-        ):
+        if self._laboratory_origin_query(normalized):
             if (
                 "cannot_be_ruled_out_or_"
                 "proven_with_available_"
-                "information"
-                in assessments
+                "information" in assessments
             ):
-                if self.origin_qualifiers.is_uncertain_lab_claim(
-                    normalized
-                ):
+                if self.origin_qualifiers.is_uncertain_lab_claim(normalized):
                     return self._result(
                         status=self.SUPPORTED,
                         reason=(
@@ -862,15 +628,11 @@ class VerificationResolver:
                             "with available "
                             "information."
                         ),
-                        evidence_count=len(
-                            facts
-                        ),
+                        evidence_count=len(facts),
                         method="who_semantic",
                     )
 
-                if self.origin_qualifiers.is_ruled_out(
-                    normalized
-                ):
+                if self.origin_qualifiers.is_ruled_out(normalized):
                     return self._result(
                         status=self.CONTRADICTED,
                         reason=(
@@ -882,16 +644,12 @@ class VerificationResolver:
                             "currently be ruled out "
                             "or proven."
                         ),
-                        evidence_count=len(
-                            facts
-                        ),
+                        evidence_count=len(facts),
                         method="who_semantic",
                     )
 
                 return self._result(
-                    status=(
-                        self.INSUFFICIENT_EVIDENCE
-                    ),
+                    status=(self.INSUFFICIENT_EVIDENCE),
                     reason=(
                         "WHO SAGO states that a "
                         "laboratory-related event "
@@ -899,23 +657,13 @@ class VerificationResolver:
                         "proven with the available "
                         "information."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
-        if self._cold_chain_query(
-            normalized
-        ):
-            if (
-                "no_additional_evidence_"
-                "supporting"
-                in assessments
-            ):
-                if self.origin_qualifiers.is_negative_support_claim(
-                    normalized
-                ):
+        if self._cold_chain_query(normalized):
+            if "no_additional_evidence_supporting" in assessments:
+                if self.origin_qualifiers.is_negative_support_claim(normalized):
                     return self._result(
                         status=self.SUPPORTED,
                         reason=(
@@ -925,15 +673,11 @@ class VerificationResolver:
                             "supports the cold-chain "
                             "hypothesis."
                         ),
-                        evidence_count=len(
-                            facts
-                        ),
+                        evidence_count=len(facts),
                         method="who_semantic",
                     )
 
-                if self.origin_qualifiers.is_positive_support_claim(
-                    normalized
-                ):
+                if self.origin_qualifiers.is_positive_support_claim(normalized):
                     return self._result(
                         status=self.CONTRADICTED,
                         reason=(
@@ -944,43 +688,27 @@ class VerificationResolver:
                             "no additional evidence "
                             "supporting it."
                         ),
-                        evidence_count=len(
-                            facts
-                        ),
+                        evidence_count=len(facts),
                         method="who_semantic",
                     )
 
                 return self._result(
-                    status=(
-                        self.INSUFFICIENT_EVIDENCE
-                    ),
+                    status=(self.INSUFFICIENT_EVIDENCE),
                     reason=(
                         "WHO SAGO reports no "
                         "additional evidence "
                         "supporting the cold-chain "
                         "hypothesis."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
-        if self._zoonotic_origin_query(
-            normalized
-        ):
-            if (
-                "best_supported_by_available_"
-                "scientific_data"
-                in assessments
-            ):
-                if self.origin_qualifiers.is_certainty_overclaim(
-                    normalized
-                ):
+        if self._zoonotic_origin_query(normalized):
+            if "best_supported_by_available_scientific_data" in assessments:
+                if self.origin_qualifiers.is_certainty_overclaim(normalized):
                     return self._result(
-                        status=(
-                            self.INSUFFICIENT_EVIDENCE
-                        ),
+                        status=(self.INSUFFICIENT_EVIDENCE),
                         reason=(
                             "WHO SAGO identifies "
                             "zoonotic spillover as "
@@ -990,9 +718,7 @@ class VerificationResolver:
                             "conclusively proven "
                             "origin."
                         ),
-                        evidence_count=len(
-                            facts
-                        ),
+                        evidence_count=len(facts),
                         method="who_semantic",
                     )
 
@@ -1007,20 +733,15 @@ class VerificationResolver:
                         "the overall origin remains "
                         "inconclusive."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
         if (
             "inconclusive_pending_additional_"
-            "information_or_scientific_data"
-            in assessments
+            "information_or_scientific_data" in assessments
         ):
-            if self.origin_qualifiers.is_broad_certainty_claim(
-                normalized
-            ):
+            if self.origin_qualifiers.is_broad_certainty_claim(normalized):
                 return self._result(
                     status=self.CONTRADICTED,
                     reason=(
@@ -1030,16 +751,12 @@ class VerificationResolver:
                         "overall assessment "
                         "remains inconclusive."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="who_semantic",
                 )
 
             return self._result(
-                status=(
-                    self.INSUFFICIENT_EVIDENCE
-                ),
+                status=(self.INSUFFICIENT_EVIDENCE),
                 reason=(
                     "WHO SAGO can evaluate the "
                     "origin question, but its "
@@ -1048,24 +765,18 @@ class VerificationResolver:
                     "additional information or "
                     "scientific data."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="who_semantic",
             )
 
         return self._result(
-            status=(
-                self.INSUFFICIENT_EVIDENCE
-            ),
+            status=(self.INSUFFICIENT_EVIDENCE),
             reason=(
                 "Origin evidence was retrieved, "
                 "but it does not establish a "
                 "definitive origin conclusion."
             ),
-            evidence_count=len(
-                facts
-            ),
+            evidence_count=len(facts),
             method="who_semantic",
         )
 
@@ -1077,22 +788,16 @@ class VerificationResolver:
         facts: list[dict],
     ):
         if facts:
-            guarded = (
-                self.proposition_guard
-                .cause_decision(
-                    text=text,
-                    entities=entities,
-                    facts=facts,
-                )
+            guarded = self.proposition_guard.cause_decision(
+                text=text,
+                entities=entities,
+                facts=facts,
             )
 
             if guarded is None:
-                guarded = (
-                    self.proposition_guard
-                    .transmission_decision(
-                        text=text,
-                        facts=facts,
-                    )
+                guarded = self.proposition_guard.transmission_decision(
+                    text=text,
+                    facts=facts,
                 )
 
             if guarded is not None:
@@ -1101,9 +806,7 @@ class VerificationResolver:
                     "relationship",
                 )
 
-            if self._has_explicit_contradiction(
-                facts
-            ):
+            if self._has_explicit_contradiction(facts):
                 return self._result(
                     status=self.CONTRADICTED,
                     reason=(
@@ -1112,15 +815,11 @@ class VerificationResolver:
                         "contradicts the requested "
                         "claim."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="relationship",
                 )
 
-            if self._is_unrelated_claim(
-                text
-            ):
+            if self._is_unrelated_claim(text):
                 return self._result(
                     status=self.CONTRADICTED,
                     reason=(
@@ -1130,15 +829,11 @@ class VerificationResolver:
                         "supported by retrieved "
                         "knowledge graph evidence."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="relationship",
                 )
 
-            if self._is_negated_claim(
-                text
-            ):
+            if self._is_negated_claim(text):
                 return self._result(
                     status=self.CONTRADICTED,
                     reason=(
@@ -1148,9 +843,7 @@ class VerificationResolver:
                         "by retrieved knowledge "
                         "graph evidence."
                     ),
-                    evidence_count=len(
-                        facts
-                    ),
+                    evidence_count=len(facts),
                     method="relationship",
                 )
 
@@ -1161,23 +854,13 @@ class VerificationResolver:
                     "evidence directly supports "
                     "the requested relationship."
                 ),
-                evidence_count=len(
-                    facts
-                ),
+                evidence_count=len(facts),
                 method="relationship",
             )
 
-        has_linked_entity = any(
-            entity.get(
-                "candidates"
-            )
-            for entity in entities
-        )
+        has_linked_entity = any(entity.get("candidates") for entity in entities)
 
-        if (
-            not has_linked_entity
-            or not relationships
-        ):
+        if not has_linked_entity or not relationships:
             return self._result(
                 status=self.NOT_VERIFIABLE,
                 reason=(
@@ -1191,9 +874,7 @@ class VerificationResolver:
             )
 
         return self._result(
-            status=(
-                self.INSUFFICIENT_EVIDENCE
-            ),
+            status=(self.INSUFFICIENT_EVIDENCE),
             reason=(
                 "The query maps to known "
                 "knowledge graph concepts and a "
@@ -1239,10 +920,7 @@ class VerificationResolver:
             )
 
             if match:
-                return (
-                    match.group(1)
-                    .strip()
-                )
+                return match.group(1).strip()
 
         return None
 
@@ -1254,10 +932,7 @@ class VerificationResolver:
             value in text
             for value in (
                 "sars cov 2",
-                (
-                    "severe acute respiratory "
-                    "syndrome coronavirus 2"
-                ),
+                ("severe acute respiratory syndrome coronavirus 2"),
             )
         )
 
@@ -1288,13 +963,7 @@ class VerificationResolver:
 
         for level in levels:
             if re.search(
-                (
-                    r"\b"
-                    + re.escape(
-                        level
-                    )
-                    + r"\b"
-                ),
+                (r"\b" + re.escape(level) + r"\b"),
                 text,
             ):
                 return level
@@ -1308,14 +977,10 @@ class VerificationResolver:
         targets = []
 
         if "severe" in text:
-            targets.append(
-                "severe disease"
-            )
+            targets.append("severe disease")
 
         if "hospital" in text:
-            targets.append(
-                "hospitalization"
-            )
+            targets.append("hospitalization")
 
         if any(
             value in text
@@ -1326,9 +991,7 @@ class VerificationResolver:
                 "mortality",
             )
         ):
-            targets.append(
-                "death"
-            )
+            targets.append("death")
 
         if any(
             value in text
@@ -1338,9 +1001,7 @@ class VerificationResolver:
                 "infected",
             )
         ):
-            targets.append(
-                "infection"
-            )
+            targets.append("infection")
 
         if any(
             value in text
@@ -1349,9 +1010,7 @@ class VerificationResolver:
                 "spread",
             )
         ):
-            targets.append(
-                "transmission"
-            )
+            targets.append("transmission")
 
         return targets
 
@@ -1361,30 +1020,15 @@ class VerificationResolver:
         objects: list[str],
     ):
         if target == "severe disease":
-            return any(
-                "severe disease"
-                in value
-                for value in objects
-            )
+            return any("severe disease" in value for value in objects)
 
         if target == "hospitalization":
-            return any(
-                "hospital"
-                in value
-                for value in objects
-            )
+            return any("hospital" in value for value in objects)
 
         if target == "death":
-            return any(
-                value == "death"
-                or "death" in value
-                for value in objects
-            )
+            return any(value == "death" or "death" in value for value in objects)
 
-        return any(
-            target in value
-            for value in objects
-        )
+        return any(target in value for value in objects)
 
     def _fact_object_names(
         self,
@@ -1404,18 +1048,14 @@ class VerificationResolver:
             if fact.get(
                 "object",
                 {},
-            ).get(
-                "name"
-            )
+            ).get("name")
         ]
 
     def _absolute_positive_claim(
         self,
         text: str,
     ):
-        if self._is_negated_claim(
-            text
-        ):
+        if self._is_negated_claim(text):
             return False
 
         return any(
@@ -1439,13 +1079,7 @@ class VerificationResolver:
     ):
         return any(
             re.search(
-                (
-                    r"\b"
-                    + re.escape(
-                        value
-                    )
-                    + r"\b"
-                ),
+                (r"\b" + re.escape(value) + r"\b"),
                 text,
             )
             is not None
@@ -1476,34 +1110,19 @@ class VerificationResolver:
         self,
         text: str,
     ):
-        cannot = (
-            "cannot" in text
-            or "can not" in text
-        )
+        cannot = "cannot" in text or "can not" in text
 
-        ruled_out = (
-            "ruled out" in text
-        )
+        ruled_out = "ruled out" in text
 
-        proven = (
-            "proven" in text
-            or "proved" in text
-        )
+        proven = "proven" in text or "proved" in text
 
-        return (
-            cannot
-            and ruled_out
-            and proven
-        )
+        return cannot and ruled_out and proven
 
     def _ruled_out_claim(
         self,
         text: str,
     ):
-        if (
-            "cannot" in text
-            or "can not" in text
-        ):
+        if "cannot" in text or "can not" in text:
             return False
 
         return any(
@@ -1557,21 +1176,16 @@ class VerificationResolver:
         self,
         text: str,
     ):
-        return (
-            self._certainty_overclaim(
-                text
-            )
-            or any(
-                value in text
-                for value in (
-                    "know exactly how",
-                    "knows exactly how",
-                    "origin is known exactly",
-                    "origin is conclusively known",
-                    "origin has been conclusively proven",
-                    "origin has been definitively proven",
-                    "origin has been proven",
-                )
+        return self._certainty_overclaim(text) or any(
+            value in text
+            for value in (
+                "know exactly how",
+                "knows exactly how",
+                "origin is known exactly",
+                "origin is conclusively known",
+                "origin has been conclusively proven",
+                "origin has been definitively proven",
+                "origin has been proven",
             )
         )
 
@@ -1589,15 +1203,12 @@ class VerificationResolver:
         }
 
         for fact in facts:
-            attributes = (
-                fact.get(
-                    "evidence",
-                    {},
-                )
-                .get(
-                    "attributes",
-                    {},
-                )
+            attributes = fact.get(
+                "evidence",
+                {},
+            ).get(
+                "attributes",
+                {},
             )
 
             for key in (
@@ -1606,23 +1217,14 @@ class VerificationResolver:
                 "stance",
                 "verification_status",
             ):
-                value = attributes.get(
-                    key
-                )
+                value = attributes.get(key)
 
                 if value is None:
                     continue
 
-                normalized = (
-                    self._normalize(
-                        str(value)
-                    )
-                )
+                normalized = self._normalize(str(value))
 
-                if (
-                    normalized
-                    in contradiction_values
-                ):
+                if normalized in contradiction_values:
                     return True
 
         return False
@@ -1640,9 +1242,7 @@ class VerificationResolver:
                 "attributes",
                 {},
             )
-            .get(
-                "assessment"
-            )
+            .get("assessment")
         )
 
     def _is_negated_claim(
@@ -1667,9 +1267,7 @@ class VerificationResolver:
         self,
         text: str,
     ):
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
         return any(
             value in normalized
@@ -1687,19 +1285,13 @@ class VerificationResolver:
     ):
         stripped = text.strip()
 
-        if stripped.endswith(
-            "?"
-        ):
+        if stripped.endswith("?"):
             return True
 
-        normalized = self._normalize(
-            stripped
-        )
+        normalized = self._normalize(stripped)
 
         return any(
-            normalized.startswith(
-                value
-            )
+            normalized.startswith(value)
             for value in (
                 "what ",
                 "which ",
@@ -1759,10 +1351,7 @@ class VerificationResolver:
         self,
         text: str,
     ):
-        return (
-            "cold chain"
-            in text
-        )
+        return "cold chain" in text
 
     def _zoonotic_origin_query(
         self,
@@ -1792,16 +1381,9 @@ class VerificationResolver:
             )
 
         if status == self.CONTRADICTED:
-            return (
-                "Source-backed historical "
-                "evidence contradicts the "
-                "requested claim."
-            )
+            return "Source-backed historical evidence contradicts the requested claim."
 
-        if (
-            status
-            == self.INSUFFICIENT_EVIDENCE
-        ):
+        if status == self.INSUFFICIENT_EVIDENCE:
             return (
                 "The history query is within "
                 "scope, but the available "
@@ -1844,24 +1426,14 @@ class VerificationResolver:
         method: str,
     ):
         result = self._result(
-            status=decision[
-                "status"
-            ],
-            reason=decision[
-                "reason"
-            ],
-            evidence_count=decision[
-                "evidenceCount"
-            ],
+            status=decision["status"],
+            reason=decision["reason"],
+            evidence_count=decision["evidenceCount"],
             method=method,
         )
 
-        if decision.get(
-            "clearFacts"
-        ):
-            result[
-                "_clearFacts"
-            ] = True
+        if decision.get("clearFacts"):
+            result["_clearFacts"] = True
 
         return result
 

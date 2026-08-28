@@ -16,47 +16,25 @@ class WhoRetriever:
         self.database = database
         self.intent_resolver = intent_resolver
 
-        self.evidence_normalizer = (
-            EvidenceNormalizer()
-        )
+        self.evidence_normalizer = EvidenceNormalizer()
 
     def retrieve(
         self,
         text: str,
         interpretation: dict | None = None,
     ):
-        interpretation = (
-            interpretation
-            or self.intent_resolver.resolve(
-                text
-            )
-        )
+        interpretation = interpretation or self.intent_resolver.resolve(text)
 
         if interpretation is None:
             return None
 
-        raw_facts = (
-            self.database
-            .find_semantic_facts(
-                semantic_roles=interpretation[
-                    "semanticRoles"
-                ],
-                subject_ids=interpretation[
-                    "subjectIds"
-                ],
-                object_ids=interpretation[
-                    "objectIds"
-                ],
-            )
+        raw_facts = self.database.find_semantic_facts(
+            semantic_roles=interpretation["semanticRoles"],
+            subject_ids=interpretation["subjectIds"],
+            object_ids=interpretation["objectIds"],
         )
 
-        facts = [
-            self.evidence_normalizer
-            .normalize_fact(
-                fact
-            )
-            for fact in raw_facts
-        ]
+        facts = [self.evidence_normalizer.normalize_fact(fact) for fact in raw_facts]
 
         relationships = [
             {
@@ -67,10 +45,7 @@ class WhoRetriever:
                 ),
                 "score": 1.0,
             }
-            for role
-            in interpretation[
-                "semanticRoles"
-            ]
+            for role in interpretation["semanticRoles"]
         ]
 
         return {

@@ -26,12 +26,7 @@ class KGEntityMatcher:
 
         matches = self.matcher(doc)
 
-        spans = filter_spans(
-            [
-                doc[start:end]
-                for _, start, end in matches
-            ]
-        )
+        spans = filter_spans([doc[start:end] for _, start, end in matches])
 
         return [
             {
@@ -66,10 +61,7 @@ class KGEntityMatcher:
 
                 terms[term.lower()] = term
 
-        patterns = [
-            self.nlp.make_doc(term)
-            for term in terms.values()
-        ]
+        patterns = [self.nlp.make_doc(term) for term in terms.values()]
 
         if patterns:
             self.matcher.add(
@@ -85,10 +77,7 @@ class KGEntityMatcher:
 
         doc = self.nlp.make_doc(term)
 
-        if (
-            len(doc) == 1
-            and doc[0].is_stop
-        ):
+        if len(doc) == 1 and doc[0].is_stop:
             return False
 
         return True

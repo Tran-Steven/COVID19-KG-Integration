@@ -6,9 +6,7 @@ class PromptAugmenter:
         has_evidence: bool,
     ):
         evidence_status = (
-            "EVIDENCE_RETRIEVED"
-            if has_evidence
-            else "NO_MATCHING_EVIDENCE"
+            "EVIDENCE_RETRIEVED" if has_evidence else "NO_MATCHING_EVIDENCE"
         )
 
         return "\n".join(

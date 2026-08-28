@@ -6,38 +6,23 @@ from app.interpretation.who_intent_resolver_base import (
 )
 
 
-class WhoIntentResolver(
-    BaseWhoIntentResolver
-):
+class WhoIntentResolver(BaseWhoIntentResolver):
     def __init__(
         self,
     ):
-        self.semantics = (
-            PropositionSemantics()
-        )
+        self.semantics = PropositionSemantics()
 
     def resolve(
         self,
         text: str,
     ):
-        result = super().resolve(
-            text
-        )
+        result = super().resolve(text)
 
         if not result:
             return result
 
-        if (
-            result.get(
-                "intent"
-            )
-            == "transmission"
-        ):
-            normalized = (
-                self._normalize(
-                    text
-                )
-            )
+        if result.get("intent") == "transmission":
+            normalized = self._normalize(text)
 
             route_language = any(
                 value in normalized
@@ -66,20 +51,13 @@ class WhoIntentResolver(
                 )
             )
 
-            if (
-                route_language
-                and context_language
-            ):
-                result[
-                    "semanticRoles"
-                ] = [
+            if route_language and context_language:
+                result["semanticRoles"] = [
                     "transmitted_via",
                     "transmission_risk_context",
                 ]
 
-                result[
-                    "objectIds"
-                ] = []
+                result["objectIds"] = []
 
         return result
 
@@ -87,9 +65,7 @@ class WhoIntentResolver(
         self,
         text: str,
     ):
-        if super()._origin_query(
-            text
-        ):
+        if super()._origin_query(text):
             return True
 
         return any(
@@ -124,9 +100,7 @@ class WhoIntentResolver(
             return True
 
         variant_reference = (
-            self._has_variant_identifier(
-                raw_text
-            )
+            self._has_variant_identifier(raw_text)
             or "variant" in text
             or "lineage" in text
         )
@@ -141,40 +115,29 @@ class WhoIntentResolver(
             )
         )
 
-        comparative_risk = (
-            "risk" in text
-            and any(
-                value in text
-                for value in (
-                    "additional",
-                    "compared with",
-                    "compared to",
-                    "relative to",
-                    "greater",
-                    "higher",
-                    "lower",
-                    "increased",
-                    "reduced",
-                    "other circulating",
-                )
+        comparative_risk = "risk" in text and any(
+            value in text
+            for value in (
+                "additional",
+                "compared with",
+                "compared to",
+                "relative to",
+                "greater",
+                "higher",
+                "lower",
+                "increased",
+                "reduced",
+                "other circulating",
             )
         )
 
-        return (
-            variant_reference
-            and (
-                surveillance
-                or comparative_risk
-            )
-        )
+        return variant_reference and (surveillance or comparative_risk)
 
     def _cause_query(
         self,
         text: str,
     ):
-        if super()._cause_query(
-            text
-        ):
+        if super()._cause_query(text):
             return True
 
         incapacity = any(
@@ -197,29 +160,13 @@ class WhoIntentResolver(
             )
         )
 
-        return (
-            incapacity
-            and causal_action
-            and self._covid_context(
-                text
-            )
-        )
+        return incapacity and causal_action and self._covid_context(text)
 
     def _non_covid_vaccine_context(
         self,
         text: str,
     ):
-        if (
-            self.semantics
-            .is_non_covid_vaccine(
-                text
-            )
-        ):
+        if self.semantics.is_non_covid_vaccine(text):
             return True
 
-        return (
-            super()
-            ._non_covid_vaccine_context(
-                text
-            )
-        )
+        return super()._non_covid_vaccine_context(text)

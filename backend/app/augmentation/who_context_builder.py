@@ -3,9 +3,7 @@ class WhoGroundingContextBuilder:
         self,
         reference_limit: int = 8,
     ):
-        self.reference_limit = (
-            reference_limit
-        )
+        self.reference_limit = reference_limit
 
     def build(
         self,
@@ -15,26 +13,14 @@ class WhoGroundingContextBuilder:
         facts: list[dict],
     ):
         sections = [
-            self._query_section(
-                text
-            ),
-            self._entity_section(
-                entities
-            ),
-            self._relationship_section(
-                relationships
-            ),
-            self._evidence_section(
-                facts
-            ),
+            self._query_section(text),
+            self._entity_section(entities),
+            self._relationship_section(relationships),
+            self._evidence_section(facts),
             self._rules_section(),
         ]
 
-        return "\n\n".join(
-            section
-            for section in sections
-            if section
-        )
+        return "\n\n".join(section for section in sections if section)
 
     def _query_section(
         self,
@@ -51,9 +37,7 @@ class WhoGroundingContextBuilder:
         self,
         entities: list[dict],
     ):
-        lines = [
-            "LINKED ENTITIES"
-        ]
+        lines = ["LINKED ENTITIES"]
 
         found = False
 
@@ -66,9 +50,7 @@ class WhoGroundingContextBuilder:
             if not candidates:
                 continue
 
-            candidate = candidates[
-                0
-            ]
+            candidate = candidates[0]
 
             categories = ", ".join(
                 candidate.get(
@@ -77,9 +59,7 @@ class WhoGroundingContextBuilder:
                 )
             )
 
-            score = candidate.get(
-                "score"
-            )
+            score = candidate.get("score")
 
             score_text = (
                 f"{score:.2f}"
@@ -100,10 +80,7 @@ class WhoGroundingContextBuilder:
                         candidate["id"],
                         candidate["name"],
                         categories,
-                        (
-                            "link_score="
-                            f"{score_text}"
-                        ),
+                        (f"link_score={score_text}"),
                     ]
                 )
             )
@@ -112,74 +89,47 @@ class WhoGroundingContextBuilder:
 
         if not found:
             lines.append(
-                "No ordinary KG entities were required "
-                "for this WHO evidence route."
+                "No ordinary KG entities were required for this WHO evidence route."
             )
 
-        return "\n".join(
-            lines
-        )
+        return "\n".join(lines)
 
     def _relationship_section(
         self,
         relationships: list[dict],
     ):
-        lines = [
-            "WHO VERIFICATION RELATION"
-        ]
+        lines = ["WHO VERIFICATION RELATION"]
 
         if not relationships:
-            lines.append(
-                "semantic_role=unresolved"
-            )
+            lines.append("semantic_role=unresolved")
 
-            return "\n".join(
-                lines
-            )
+            return "\n".join(lines)
 
         for relationship in relationships:
-            lines.append(
-                "semantic_role="
-                f"{relationship['relationship']}"
-            )
+            lines.append(f"semantic_role={relationship['relationship']}")
 
-        return "\n".join(
-            lines
-        )
+        return "\n".join(lines)
 
     def _evidence_section(
         self,
         facts: list[dict],
     ):
-        lines = [
-            "WHO KNOWLEDGE GRAPH EVIDENCE"
-        ]
+        lines = ["WHO KNOWLEDGE GRAPH EVIDENCE"]
 
         if not facts:
-            lines.append(
-                "No matching WHO evidence "
-                "was retrieved."
-            )
+            lines.append("No matching WHO evidence was retrieved.")
 
-            return "\n".join(
-                lines
-            )
+            return "\n".join(lines)
 
         for index, fact in enumerate(
             facts,
             start=1,
         ):
-            subject = fact[
-                "subject"
-            ]
+            subject = fact["subject"]
 
-            object_entity = fact[
-                "object"
-            ]
+            object_entity = fact["object"]
 
-            evidence = fact[
-                "evidence"
-            ]
+            evidence = fact["evidence"]
 
             attributes = evidence.get(
                 "attributes",
@@ -192,120 +142,67 @@ class WhoGroundingContextBuilder:
                         f"[{index}]",
                         subject["id"],
                         subject["name"],
-                        (
-                            "--"
-                            f"{fact['predicate']}"
-                            "-->"
-                        ),
+                        (f"--{fact['predicate']}-->"),
                         object_entity["id"],
                         object_entity["name"],
                     ]
                 )
             )
 
-            source = evidence.get(
-                "primaryKnowledgeSource"
-            )
+            source = evidence.get("primaryKnowledgeSource")
 
             if source:
-                lines.append(
-                    f"source={source}"
-                )
+                lines.append(f"source={source}")
 
-            dataset = evidence.get(
-                "sourceDataset"
-            )
+            dataset = evidence.get("sourceDataset")
 
             if dataset:
-                lines.append(
-                    f"dataset={dataset}"
-                )
+                lines.append(f"dataset={dataset}")
 
-            source_id = attributes.get(
-                "source_id"
-            )
+            source_id = attributes.get("source_id")
 
             if source_id:
-                lines.append(
-                    f"source_id={source_id}"
-                )
+                lines.append(f"source_id={source_id}")
 
-            source_date = attributes.get(
-                "source_date"
-            )
+            source_date = attributes.get("source_date")
 
             if source_date:
-                lines.append(
-                    f"source_date={source_date}"
-                )
+                lines.append(f"source_date={source_date}")
 
-            source_section = (
-                attributes.get(
-                    "source_section"
-                )
-            )
+            source_section = attributes.get("source_section")
 
             if source_section:
-                lines.append(
-                    "source_section="
-                    f"{source_section}"
-                )
+                lines.append(f"source_section={source_section}")
 
-            source_text = attributes.get(
-                "source_text"
-            )
+            source_text = attributes.get("source_text")
 
             if source_text:
-                lines.append(
-                    f"source_text={source_text}"
-                )
+                lines.append(f"source_text={source_text}")
 
-            source_url = attributes.get(
-                "source_url"
-            )
+            source_url = attributes.get("source_url")
 
             if source_url:
-                lines.append(
-                    f"source_url={source_url}"
-                )
+                lines.append(f"source_url={source_url}")
 
-            assessment = attributes.get(
-                "assessment"
-            )
+            assessment = attributes.get("assessment")
 
             if assessment:
-                lines.append(
-                    f"assessment={assessment}"
-                )
+                lines.append(f"assessment={assessment}")
 
-            as_of_date = attributes.get(
-                "as_of_date"
-            )
+            as_of_date = attributes.get("as_of_date")
 
             if as_of_date:
-                lines.append(
-                    f"as_of_date={as_of_date}"
-                )
+                lines.append(f"as_of_date={as_of_date}")
 
-            earliest = attributes.get(
-                "earliest_documented_sample"
-            )
+            earliest = attributes.get("earliest_documented_sample")
 
             if earliest:
-                lines.append(
-                    "earliest_documented_sample="
-                    f"{earliest}"
-                )
+                lines.append(f"earliest_documented_sample={earliest}")
 
-            designation = attributes.get(
-                "designation_date"
-            )
+            designation = attributes.get("designation_date")
 
             if designation:
-                lines.append(
-                    "designation_date="
-                    f"{designation}"
-                )
+                lines.append(f"designation_date={designation}")
 
             references = evidence.get(
                 "references",
@@ -313,31 +210,16 @@ class WhoGroundingContextBuilder:
             )
 
             if references:
-                selected = references[
-                    :self.reference_limit
-                ]
+                selected = references[: self.reference_limit]
 
-                lines.append(
-                    "references="
-                    + ", ".join(
-                        selected
-                    )
-                )
+                lines.append("references=" + ", ".join(selected))
 
-                remaining = (
-                    len(references)
-                    - len(selected)
-                )
+                remaining = len(references) - len(selected)
 
                 if remaining > 0:
-                    lines.append(
-                        "additional_reference_count="
-                        f"{remaining}"
-                    )
+                    lines.append(f"additional_reference_count={remaining}")
 
-        return "\n".join(
-            lines
-        )
+        return "\n".join(lines)
 
     def _rules_section(self):
         return "\n".join(

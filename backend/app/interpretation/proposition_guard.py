@@ -8,15 +8,11 @@ from app.interpretation.proposition_semantics import (
 )
 
 
-class PropositionGuard(
-    BasePropositionGuard
-):
+class PropositionGuard(BasePropositionGuard):
     def __init__(
         self,
     ):
-        self.semantics = (
-            PropositionSemantics()
-        )
+        self.semantics = PropositionSemantics()
 
     def cause_decision(
         self,
@@ -38,24 +34,14 @@ class PropositionGuard(
         if not cause_facts:
             return None
 
-        normalized = self._normalize(
-            text
-        )
+        normalized = self._normalize(text)
 
-        assertion = (
-            self._cause_assertion_extended(
-                normalized
-            )
-        )
+        assertion = self._cause_assertion_extended(normalized)
 
         if assertion is None:
-            if self._has_cause_language(
-                normalized
-            ):
+            if self._has_cause_language(normalized):
                 return self._decision(
-                    status=(
-                        self.NOT_VERIFIABLE
-                    ),
+                    status=(self.NOT_VERIFIABLE),
                     reason=(
                         "Causal evidence was "
                         "retrieved, but the claim "
@@ -73,9 +59,7 @@ class PropositionGuard(
                 facts=facts,
             )
 
-        claimed_cause = assertion[
-            "cause"
-        ]
+        claimed_cause = assertion["cause"]
 
         evidence_subjects = [
             self._normalize(
@@ -91,26 +75,18 @@ class PropositionGuard(
             if fact.get(
                 "subject",
                 {},
-            ).get(
-                "name"
-            )
+            ).get("name")
         ]
 
-        matches = (
-            self._cause_matches_evidence(
-                claimed_cause,
-                evidence_subjects,
-            )
+        matches = self._cause_matches_evidence(
+            claimed_cause,
+            evidence_subjects,
         )
 
         if matches:
-            if assertion[
-                "negated"
-            ]:
+            if assertion["negated"]:
                 return self._decision(
-                    status=(
-                        self.CONTRADICTED
-                    ),
+                    status=(self.CONTRADICTED),
                     reason=(
                         "The claim negates the "
                         "SARS-CoV-2 causal "
@@ -118,17 +94,13 @@ class PropositionGuard(
                         "represented by WHO "
                         "evidence."
                     ),
-                    evidence_count=len(
-                        cause_facts
-                    ),
+                    evidence_count=len(cause_facts),
                     clear_facts=False,
                 )
 
             return None
 
-        if assertion[
-            "negated"
-        ]:
+        if assertion["negated"]:
             return self._decision(
                 status=self.SUPPORTED,
                 reason=(
@@ -138,9 +110,7 @@ class PropositionGuard(
                     "SARS-CoV-2 as the cause of "
                     "COVID-19."
                 ),
-                evidence_count=len(
-                    cause_facts
-                ),
+                evidence_count=len(cause_facts),
                 clear_facts=False,
             )
 
@@ -152,9 +122,7 @@ class PropositionGuard(
                 "evidence identifies SARS-CoV-2 "
                 "as the cause of COVID-19."
             ),
-            evidence_count=len(
-                cause_facts
-            ),
+            evidence_count=len(cause_facts),
             clear_facts=False,
         )
 
@@ -162,9 +130,7 @@ class PropositionGuard(
         self,
         text: str,
     ):
-        base = self._cause_assertion(
-            text
-        )
+        base = self._cause_assertion(text)
 
         if base is not None:
             return base
@@ -241,15 +207,8 @@ class PropositionGuard(
                 continue
 
             return {
-                "cause": (
-                    match.group(
-                        "cause"
-                    )
-                    .strip()
-                ),
-                "negated": (
-                    negated
-                ),
+                "cause": (match.group("cause").strip()),
+                "negated": (negated),
             }
 
         return None
@@ -258,9 +217,4 @@ class PropositionGuard(
         self,
         text: str,
     ):
-        return (
-            self.semantics
-            .is_relation_negated(
-                text
-            )
-        )
+        return self.semantics.is_relation_negated(text)

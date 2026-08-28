@@ -25,17 +25,12 @@ class EntityExtractor:
     def extract(self, text: str):
         doc = self.nlp(text)
 
-        kg_entities = self.kg_entity_matcher.extract(
-            doc
-        )
+        kg_entities = self.kg_entity_matcher.extract(doc)
 
         entities = list(kg_entities)
 
         for entity in doc.ents:
-            if (
-                entity.label_
-                in self.IGNORED_SPACY_TYPES
-            ):
+            if entity.label_ in self.IGNORED_SPACY_TYPES:
                 continue
 
             if self._overlaps_kg_entity(
@@ -70,7 +65,5 @@ class EntityExtractor:
         kg_entities: list[dict],
     ):
         return any(
-            start < entity["end"]
-            and end > entity["start"]
-            for entity in kg_entities
+            start < entity["end"] and end > entity["start"] for entity in kg_entities
         )

@@ -188,32 +188,18 @@ class VerificationSemanticMatcher:
         self.rerank_top_k = rerank_top_k
 
         self.model = (
-            model
-            if model is not None
-            else TextEmbedding(
-                model_name=self.MODEL_NAME
-            )
+            model if model is not None else TextEmbedding(model_name=self.MODEL_NAME)
         )
 
         self.reranker = (
             reranker
             if reranker is not None
-            else TextCrossEncoder(
-                model_name=self.RERANK_MODEL_NAME
-            )
+            else TextCrossEncoder(model_name=self.RERANK_MODEL_NAME)
         )
 
-        self.prototype_embeddings = (
-            self._build_embeddings(
-                self.PROTOTYPES
-            )
-        )
+        self.prototype_embeddings = self._build_embeddings(self.PROTOTYPES)
 
-        self.origin_embeddings = (
-            self._build_embeddings(
-                self.ORIGIN_PROTOTYPES
-            )
-        )
+        self.origin_embeddings = self._build_embeddings(self.ORIGIN_PROTOTYPES)
 
     def resolve(
         self,
@@ -240,11 +226,7 @@ class VerificationSemanticMatcher:
         self,
         text,
     ):
-        rankings = (
-            self.rank_origin_propositions(
-                text
-            )
-        )
+        rankings = self.rank_origin_propositions(text)
 
         return self._resolve_rankings(
             text=text,
@@ -264,9 +246,7 @@ class VerificationSemanticMatcher:
     ):
         return self._rank(
             text=text,
-            prototype_embeddings=(
-                self.prototype_embeddings
-            ),
+            prototype_embeddings=(self.prototype_embeddings),
             allowed_labels=allowed_labels,
         )
 
@@ -276,9 +256,7 @@ class VerificationSemanticMatcher:
     ):
         return self._rank(
             text=text,
-            prototype_embeddings=(
-                self.origin_embeddings
-            ),
+            prototype_embeddings=(self.origin_embeddings),
             allowed_labels=None,
         )
 
@@ -292,11 +270,7 @@ class VerificationSemanticMatcher:
             label,
             phrases,
         ) in prototypes.items():
-            result[label] = list(
-                self.model.embed(
-                    phrases
-                )
-            )
+            result[label] = list(self.model.embed(phrases))
 
         return result
 
@@ -306,34 +280,20 @@ class VerificationSemanticMatcher:
         prototype_embeddings,
         allowed_labels,
     ):
-        query_vectors = list(
-            self.model.embed(
-                [text]
-            )
-        )
+        query_vectors = list(self.model.embed([text]))
 
         if not query_vectors:
             return []
 
-        query_vector = (
-            query_vectors[0]
-        )
+        query_vector = query_vectors[0]
 
         rankings = []
 
         for (
             label,
             vectors,
-        ) in (
-            prototype_embeddings
-            .items()
-        ):
-            if (
-                allowed_labels
-                is not None
-                and label
-                not in allowed_labels
-            ):
+        ) in prototype_embeddings.items():
+            if allowed_labels is not None and label not in allowed_labels:
                 continue
 
             similarities = [
@@ -341,8 +301,7 @@ class VerificationSemanticMatcher:
                     query_vector,
                     vector,
                 )
-                for vector
-                in vectors
+                for vector in vectors
             ]
 
             if not similarities:
@@ -352,18 +311,14 @@ class VerificationSemanticMatcher:
                 {
                     "label": label,
                     "score": round(
-                        max(
-                            similarities
-                        ),
+                        max(similarities),
                         4,
                     ),
                 }
             )
 
         rankings.sort(
-            key=lambda item: (
-                item["score"]
-            ),
+            key=lambda item: item["score"],
             reverse=True,
         )
 
@@ -388,46 +343,24 @@ class VerificationSemanticMatcher:
 
         if match:
             return {
-                "label": match[
-                    "label"
-                ],
-                "method": (
-                    "semantic_embedding"
-                ),
-                "score": match[
-                    "score"
-                ],
-                "embeddingScore": (
-                    match[
-                        "score"
-                    ]
-                ),
+                "label": match["label"],
+                "method": ("semantic_embedding"),
+                "score": match["score"],
+                "embeddingScore": (match["score"]),
             }
 
-        fallback = (
-            self._select_fallback(
-                rankings,
-                fallback_floor,
-                fallback_margin,
-            )
+        fallback = self._select_fallback(
+            rankings,
+            fallback_floor,
+            fallback_margin,
         )
 
         if fallback:
             return {
-                "label": fallback[
-                    "label"
-                ],
-                "method": (
-                    "semantic_embedding_fallback"
-                ),
-                "score": fallback[
-                    "score"
-                ],
-                "embeddingScore": (
-                    fallback[
-                        "score"
-                    ]
-                ),
+                "label": fallback["label"],
+                "method": ("semantic_embedding_fallback"),
+                "score": fallback["score"],
+                "embeddingScore": (fallback["score"]),
             }
 
         reranked = self._rerank(
@@ -441,20 +374,10 @@ class VerificationSemanticMatcher:
             return None
 
         return {
-            "label": reranked[
-                "label"
-            ],
-            "method": (
-                "semantic_rerank"
-            ),
-            "score": reranked[
-                "score"
-            ],
-            "embeddingScore": (
-                reranked[
-                    "embeddingScore"
-                ]
-            ),
+            "label": reranked["label"],
+            "method": ("semantic_rerank"),
+            "score": reranked["score"],
+            "embeddingScore": (reranked["embeddingScore"]),
         }
 
     def _select(
@@ -468,22 +391,13 @@ class VerificationSemanticMatcher:
 
         best = rankings[0]
 
-        if (
-            best["score"]
-            < threshold
-        ):
+        if best["score"] < threshold:
             return None
 
-        if len(
-            rankings
-        ) > 1:
+        if len(rankings) > 1:
             second = rankings[1]
 
-            if (
-                best["score"]
-                - second["score"]
-                < margin
-            ):
+            if best["score"] - second["score"] < margin:
                 return None
 
         return best
@@ -507,11 +421,7 @@ class VerificationSemanticMatcher:
 
         second = rankings[1]
 
-        if (
-            best["score"]
-            - second["score"]
-            < margin
-        ):
+        if best["score"] - second["score"] < margin:
             return None
 
         return best
@@ -526,31 +436,14 @@ class VerificationSemanticMatcher:
         if not rankings:
             return None
 
-        embedding_winner = (
-            rankings[0]
-        )
+        embedding_winner = rankings[0]
 
-        if (
-            embedding_winner[
-                "score"
-            ]
-            < floor
-        ):
+        if embedding_winner["score"] < floor:
             return None
 
-        candidates = rankings[
-            :self.rerank_top_k
-        ]
+        candidates = rankings[: self.rerank_top_k]
 
-        documents = [
-            descriptions[
-                candidate[
-                    "label"
-                ]
-            ]
-            for candidate
-            in candidates
-        ]
+        documents = [descriptions[candidate["label"]] for candidate in candidates]
 
         scores = list(
             self.reranker.rerank(
@@ -573,42 +466,23 @@ class VerificationSemanticMatcher:
         ):
             reranked.append(
                 {
-                    "label": (
-                        candidate[
-                            "label"
-                        ]
-                    ),
+                    "label": (candidate["label"]),
                     "score": round(
-                        float(
-                            score
-                        ),
+                        float(score),
                         4,
                     ),
-                    "embeddingScore": (
-                        candidate[
-                            "score"
-                        ]
-                    ),
+                    "embeddingScore": (candidate["score"]),
                 }
             )
 
         reranked.sort(
-            key=lambda item: (
-                item["score"]
-            ),
+            key=lambda item: item["score"],
             reverse=True,
         )
 
-        winner = (
-            reranked[0]
-        )
+        winner = reranked[0]
 
-        if (
-            winner["label"]
-            != embedding_winner[
-                "label"
-            ]
-        ):
+        if winner["label"] != embedding_winner["label"]:
             return None
 
         return winner
@@ -618,35 +492,16 @@ class VerificationSemanticMatcher:
         first,
         second,
     ):
-        dot_product = float(
-            first @ second
-        )
+        dot_product = float(first @ second)
 
-        first_norm = math.sqrt(
-            float(
-                first @ first
-            )
-        )
+        first_norm = math.sqrt(float(first @ first))
 
-        second_norm = math.sqrt(
-            float(
-                second @ second
-            )
-        )
+        second_norm = math.sqrt(float(second @ second))
 
-        if (
-            first_norm == 0
-            or second_norm == 0
-        ):
+        if first_norm == 0 or second_norm == 0:
             return 0.0
 
-        return (
-            dot_product
-            / (
-                first_norm
-                * second_norm
-            )
-        )
+        return dot_product / (first_norm * second_norm)
 
 
 _matcher = None
@@ -656,8 +511,6 @@ def get_verification_semantic_matcher():
     global _matcher
 
     if _matcher is None:
-        _matcher = (
-            VerificationSemanticMatcher()
-        )
+        _matcher = VerificationSemanticMatcher()
 
     return _matcher

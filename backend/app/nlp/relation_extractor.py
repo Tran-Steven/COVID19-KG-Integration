@@ -31,27 +31,17 @@ class RelationExtractor:
         self,
         text: str,
     ):
-        normalized_text = (
-            self._normalize_text(
-                text
-            )
+        normalized_text = self._normalize_text(text)
+
+        semantic_result = self._semantic_result(
+            text,
+            normalized_text,
         )
 
-        semantic_result = (
-            self._semantic_result(
-                text,
-                normalized_text,
-            )
-        )
-
-        if self._semantic_out_of_scope(
-            semantic_result
-        ):
+        if self._semantic_out_of_scope(semantic_result):
             return self._empty_result()
 
-        if self._has_treatment_relation(
-            normalized_text
-        ):
+        if self._has_treatment_relation(normalized_text):
             return self._treatment_result()
 
         if self._semantic_treatment_relation(
@@ -60,38 +50,24 @@ class RelationExtractor:
         ):
             return self._treatment_result()
 
-        doc = self.nlp(
-            text
-        )
+        doc = self.nlp(text)
 
         root = next(
-            (
-                token
-                for token in doc
-                if token.dep_
-                == "ROOT"
-            ),
+            (token for token in doc if token.dep_ == "ROOT"),
             None,
         )
 
         if root is None:
             return self._empty_result()
 
-        predicate = (
-            self._resolve_predicate(
-                root
-            )
-        )
+        predicate = self._resolve_predicate(root)
 
-        relation_parts = [
-            predicate.lemma_.lower()
-        ]
+        relation_parts = [predicate.lemma_.lower()]
 
         modifiers = sorted(
             [
                 child
-                for child
-                in predicate.children
+                for child in predicate.children
                 if child.dep_
                 in {
                     "prt",
@@ -101,30 +77,20 @@ class RelationExtractor:
             key=lambda token: token.i,
         )
 
-        relation_parts.extend(
-            modifier.lemma_.lower()
-            for modifier
-            in modifiers
-        )
+        relation_parts.extend(modifier.lemma_.lower() for modifier in modifiers)
 
-        relation_text = " ".join(
-            relation_parts
-        )
+        relation_text = " ".join(relation_parts)
 
         normalized = re.sub(
             r"[^a-z0-9]+",
             "_",
             relation_text,
-        ).strip(
-            "_"
-        )
+        ).strip("_")
 
         return {
             "text": relation_text,
             "normalized": normalized,
-            "root": (
-                predicate.lemma_.lower()
-            ),
+            "root": (predicate.lemma_.lower()),
         }
 
     def _semantic_result(
@@ -132,17 +98,10 @@ class RelationExtractor:
         raw_text: str,
         normalized_text: str,
     ):
-        if not self._covid_context(
-            normalized_text
-        ):
+        if not self._covid_context(normalized_text):
             return None
 
-        return (
-            get_verification_semantic_matcher()
-            .resolve(
-                raw_text
-            )
-        )
+        return get_verification_semantic_matcher().resolve(raw_text)
 
     def _semantic_out_of_scope(
         self,
@@ -151,14 +110,7 @@ class RelationExtractor:
         if not result:
             return False
 
-        return (
-            result["label"]
-            == "out_of_scope"
-            and result[
-                "embeddingScore"
-            ]
-            >= 0.82
-        )
+        return result["label"] == "out_of_scope" and result["embeddingScore"] >= 0.82
 
     def _semantic_treatment_relation(
         self,
@@ -168,19 +120,10 @@ class RelationExtractor:
         if not result:
             return False
 
-        if self._absolute_cure_claim(
-            normalized_text
-        ):
+        if self._absolute_cure_claim(normalized_text):
             return False
 
-        return (
-            result["label"]
-            == "treatment"
-            and result[
-                "embeddingScore"
-            ]
-            >= 0.70
-        )
+        return result["label"] == "treatment" and result["embeddingScore"] >= 0.70
 
     def _treatment_result(
         self,
@@ -245,8 +188,7 @@ class RelationExtractor:
                 text,
             )
             is not None
-            for pattern
-            in self.TREATMENT_PATTERNS
+            for pattern in self.TREATMENT_PATTERNS
         )
 
     def _normalize_text(
@@ -283,8 +225,7 @@ class RelationExtractor:
         candidates = sorted(
             [
                 child
-                for child
-                in root.children
+                for child in root.children
                 if (
                     child.pos_
                     in {

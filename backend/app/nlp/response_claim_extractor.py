@@ -8,9 +8,7 @@ from app.nlp.response_claim_extractor_base import (
 )
 
 
-class ResponseClaimExtractor(
-    BaseResponseClaimExtractor
-):
+class ResponseClaimExtractor(BaseResponseClaimExtractor):
     LIST_SCOPE_HEADER = re.compile(
         (
             r"^\s*"
@@ -81,30 +79,20 @@ class ResponseClaimExtractor(
         self,
         nlp,
     ):
-        super().__init__(
-            nlp
-        )
+        super().__init__(nlp)
 
-        self.semantics = (
-            PropositionSemantics()
-        )
+        self.semantics = PropositionSemantics()
 
     def extract(
         self,
         text: str,
     ):
-        base_claims = (
-            super().extract(
-                text
-            )
-        )
+        base_claims = super().extract(text)
 
         (
             section_ranges,
             section_claims,
-        ) = self._section_claims(
-            text
-        )
+        ) = self._section_claims(text)
 
         candidates = []
 
@@ -115,26 +103,14 @@ class ResponseClaimExtractor(
             ):
                 continue
 
-            cleaned = (
-                self._clean_topic_label(
-                    claim
-                )
-            )
+            cleaned = self._clean_topic_label(claim)
 
-            if self.semantics.is_discourse_only(
-                cleaned["text"]
-            ):
+            if self.semantics.is_discourse_only(cleaned["text"]):
                 continue
 
-            candidates.extend(
-                self._split_contrast_claim(
-                    cleaned
-                )
-            )
+            candidates.extend(self._split_contrast_claim(cleaned))
 
-        candidates.extend(
-            section_claims
-        )
+        candidates.extend(section_claims)
 
         candidates.sort(
             key=lambda value: (
@@ -147,22 +123,15 @@ class ResponseClaimExtractor(
         seen = set()
 
         for claim in candidates:
-            claim_text = (
-                claim["text"]
-                .strip()
-            )
+            claim_text = claim["text"].strip()
 
             if not claim_text:
                 continue
 
-            if self.semantics.is_discourse_only(
-                claim_text
-            ):
+            if self.semantics.is_discourse_only(claim_text):
                 continue
 
-            key = self._normalize(
-                claim_text
-            )
+            key = self._normalize(claim_text)
 
             if not key:
                 continue
@@ -170,26 +139,15 @@ class ResponseClaimExtractor(
             if key in seen:
                 continue
 
-            seen.add(
-                key
-            )
+            seen.add(key)
 
             claims.append(
                 {
-                    "index": (
-                        len(claims)
-                        + 1
-                    ),
+                    "index": (len(claims) + 1),
                     "text": claim_text,
-                    "start": claim[
-                        "start"
-                    ],
-                    "end": claim[
-                        "end"
-                    ],
-                    "method": claim[
-                        "method"
-                    ],
+                    "start": claim["start"],
+                    "end": claim["end"],
+                    "method": claim["method"],
                 }
             )
 
@@ -209,35 +167,19 @@ class ResponseClaimExtractor(
             r"[^\r\n]+",
             text,
         ):
-            raw = match.group(
-                0
-            )
+            raw = match.group(0)
 
             stripped = raw.strip()
 
             if not stripped:
                 continue
 
-            heading = (
-                self.LIST_SCOPE_HEADER
-                .match(
-                    stripped
-                )
-            )
+            heading = self.LIST_SCOPE_HEADER.match(stripped)
 
             if heading:
-                subject = (
-                    heading.group(
-                        "subject"
-                    )
-                    .strip()
-                )
+                subject = heading.group("subject").strip()
 
-                negated = bool(
-                    heading.group(
-                        "neg"
-                    )
-                )
+                negated = bool(heading.group("neg"))
 
                 ranges.append(
                     (
@@ -251,49 +193,29 @@ class ResponseClaimExtractor(
             if subject is None:
                 continue
 
-            if (
-                stripped.endswith(
-                    ":"
-                )
-                or self.TRANSITION_START.match(
-                    stripped
-                )
-            ):
+            if stripped.endswith(":") or self.TRANSITION_START.match(stripped):
                 subject = None
                 negated = False
                 continue
 
-            list_prefix = (
-                self.LIST_PREFIX.match(
-                    stripped
-                )
-            )
+            list_prefix = self.LIST_PREFIX.match(stripped)
 
             if list_prefix:
-                stripped = (
-                    stripped[
-                        list_prefix.end():
-                    ]
-                    .strip()
-                )
+                stripped = stripped[list_prefix.end() :].strip()
 
             if not stripped:
                 continue
 
-            reconstructed = (
-                self._reconstruct_section_claim(
-                    subject=subject,
-                    text=stripped,
-                    negated=negated,
-                )
+            reconstructed = self._reconstruct_section_claim(
+                subject=subject,
+                text=stripped,
+                negated=negated,
             )
 
             if not reconstructed:
                 continue
 
-            if not self._is_factual_text(
-                reconstructed
-            ):
+            if not self._is_factual_text(reconstructed):
                 continue
 
             ranges.append(
@@ -306,15 +228,9 @@ class ResponseClaimExtractor(
             claims.append(
                 {
                     "text": reconstructed,
-                    "start": (
-                        match.start()
-                    ),
-                    "end": (
-                        match.end()
-                    ),
-                    "method": (
-                        "list_scope_rule"
-                    ),
+                    "start": (match.start()),
+                    "end": (match.end()),
+                    "method": ("list_scope_rule"),
                 }
             )
 
@@ -329,193 +245,97 @@ class ResponseClaimExtractor(
         text: str,
         negated: bool,
     ):
-        normalized_subject = (
-            self._normalize(
-                subject
-            )
-        )
+        normalized_subject = self._normalize(subject)
 
-        normalized_text = (
-            self._normalize(
-                text
-            )
-        )
+        normalized_text = self._normalize(text)
 
         if not normalized_text:
             return None
 
-        if normalized_text.startswith(
-            normalized_subject
-        ):
+        if normalized_text.startswith(normalized_subject):
             return text
 
-        first = (
-            text[:1].lower()
-            + text[1:]
-            if text
-            else text
-        )
+        first = text[:1].lower() + text[1:] if text else text
 
         if negated:
-            return (
-                f"{subject} do not "
-                f"{first}"
-            )
+            return f"{subject} do not {first}"
 
-        return (
-            f"{subject} {first}"
-        )
+        return f"{subject} {first}"
 
     def _clean_topic_label(
         self,
         claim: dict,
     ):
-        match = self.TOPIC_LABEL.match(
-            claim["text"]
-        )
+        match = self.TOPIC_LABEL.match(claim["text"])
 
         if not match:
             return claim
 
-        label = match.group(
-            "label"
-        )
+        label = match.group("label")
 
-        if not self._is_topic_label(
-            label
-        ):
+        if not self._is_topic_label(label):
             return claim
 
-        content = match.group(
-            "content"
-        ).strip()
+        content = match.group("content").strip()
 
         if not content:
             return claim
 
-        offset = match.start(
-            "content"
-        )
+        offset = match.start("content")
 
         return {
             **claim,
             "text": content,
-            "start": (
-                claim["start"]
-                + offset
-            ),
+            "start": (claim["start"] + offset),
         }
 
     def _split_contrast_claim(
         self,
         claim: dict,
     ):
-        text = claim[
-            "text"
-        ]
+        text = claim["text"]
 
-        separator = (
-            self.CONTRAST_SEPARATOR
-            .search(
-                text
-            )
-        )
+        separator = self.CONTRAST_SEPARATOR.search(text)
 
         if not separator:
-            return [
-                claim
-            ]
+            return [claim]
 
-        left_text = (
-            text[
-                :separator.start()
-            ]
-            .strip(
-                " ,;"
-            )
-        )
+        left_text = text[: separator.start()].strip(" ,;")
 
-        right_text = (
-            text[
-                separator.end():
-            ]
-            .strip(
-                " ,;"
-            )
-        )
+        right_text = text[separator.end() :].strip(" ,;")
 
-        if (
-            not left_text
-            or not right_text
-        ):
-            return [
-                claim
-            ]
+        if not left_text or not right_text:
+            return [claim]
 
-        left_doc = self.nlp(
-            left_text
-        )
+        left_doc = self.nlp(left_text)
 
-        subject = (
-            self._subject_phrase(
-                left_doc
-            )
-        )
+        subject = self._subject_phrase(left_doc)
 
         if subject:
-            pronoun = (
-                self.PRONOUN_START
-                .match(
-                    right_text
-                )
-            )
+            pronoun = self.PRONOUN_START.match(right_text)
 
             if pronoun:
-                right_text = (
-                    subject
-                    + right_text[
-                        pronoun.end():
-                    ]
-                )
+                right_text = subject + right_text[pronoun.end() :]
 
-        if (
-            not self._is_factual_text(
-                left_text
-            )
-            or not self._is_factual_text(
-                right_text
-            )
+        if not self._is_factual_text(left_text) or not self._is_factual_text(
+            right_text
         ):
-            return [
-                claim
-            ]
+            return [claim]
 
-        right_offset = (
-            separator.end()
-        )
+        right_offset = separator.end()
 
         return [
             {
                 **claim,
                 "text": left_text,
-                "end": (
-                    claim["start"]
-                    + separator.start()
-                ),
-                "method": (
-                    "contrast_clause_rule"
-                ),
+                "end": (claim["start"] + separator.start()),
+                "method": ("contrast_clause_rule"),
             },
             {
                 **claim,
                 "text": right_text,
-                "start": (
-                    claim["start"]
-                    + right_offset
-                ),
-                "method": (
-                    "contrast_clause_rule"
-                ),
+                "start": (claim["start"] + right_offset),
+                "method": ("contrast_clause_rule"),
             },
         ]
 
@@ -523,9 +343,7 @@ class ResponseClaimExtractor(
         self,
         text: str,
     ):
-        doc = self.nlp(
-            text
-        )
+        doc = self.nlp(text)
 
         return self._is_factual(
             doc,
@@ -535,19 +353,14 @@ class ResponseClaimExtractor(
     def _inside_ranges(
         self,
         start: int,
-        ranges: list[
-            tuple[int, int]
-        ],
+        ranges: list[tuple[int, int]],
     ):
         return any(
-            range_start
-            <= start
-            < range_end
+            range_start <= start < range_end
             for (
                 range_start,
                 range_end,
-            )
-            in ranges
+            ) in ranges
         )
 
     def _can_inherit_subject(
@@ -555,19 +368,11 @@ class ResponseClaimExtractor(
         doc,
     ):
         meaningful = [
-            token
-            for token in doc
-            if not token.is_space
-            and not token.is_punct
+            token for token in doc if not token.is_space and not token.is_punct
         ]
 
         if meaningful:
-            if (
-                meaningful[0].lower_
-                in self.BLOCKED_INHERITANCE_STARTS
-            ):
+            if meaningful[0].lower_ in self.BLOCKED_INHERITANCE_STARTS:
                 return False
 
-        return super()._can_inherit_subject(
-            doc
-        )
+        return super()._can_inherit_subject(doc)

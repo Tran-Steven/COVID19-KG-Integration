@@ -11,9 +11,7 @@ class NLPRequest(BaseModel):
     text: str
 
 
-class ResponseVerificationRequest(
-    BaseModel
-):
+class ResponseVerificationRequest(BaseModel):
     question: str
     response: str
 
@@ -28,14 +26,10 @@ class ExtractedEntity(BaseModel):
 class NLPResponse(BaseModel):
     text: str
 
-    entities: list[
-        ExtractedEntity
-    ]
+    entities: list[ExtractedEntity]
 
 
-class GraphEntityCandidate(
-    BaseModel
-):
+class GraphEntityCandidate(BaseModel):
     id: str
     categories: list[str]
     name: str
@@ -49,59 +43,41 @@ class LinkedEntity(BaseModel):
     start: int
     end: int
 
-    candidates: list[
-        GraphEntityCandidate
-    ]
+    candidates: list[GraphEntityCandidate]
 
 
-class EntityLinkingResponse(
-    BaseModel
-):
+class EntityLinkingResponse(BaseModel):
     text: str
 
-    entities: list[
-        LinkedEntity
-    ]
+    entities: list[LinkedEntity]
 
 
-class ExtractedRelation(
-    BaseModel
-):
+class ExtractedRelation(BaseModel):
     text: str | None
     normalized: str | None
     root: str | None
 
 
-class RelationResponse(
-    BaseModel
-):
+class RelationResponse(BaseModel):
     text: str
     relation: ExtractedRelation
 
 
-class NLPAnalysisResponse(
-    BaseModel
-):
+class NLPAnalysisResponse(BaseModel):
     text: str
 
-    entities: list[
-        LinkedEntity
-    ]
+    entities: list[LinkedEntity]
 
     relation: ExtractedRelation
 
 
-class RelationshipCandidate(
-    BaseModel
-):
+class RelationshipCandidate(BaseModel):
     relationship: str
     normalized: str
     score: float
 
 
-class KnowledgeGraphEntity(
-    BaseModel
-):
+class KnowledgeGraphEntity(BaseModel):
     id: str
     name: str
     categories: list[str]
@@ -110,21 +86,15 @@ class KnowledgeGraphEntity(
 class Evidence(BaseModel):
     edgeId: str | None
 
-    primaryKnowledgeSource: (
-        str | None
-    )
+    primaryKnowledgeSource: str | None
 
     providedBy: list[str]
 
-    sourceDataset: (
-        str | None
-    )
+    sourceDataset: str | None
 
     references: list[str]
 
-    maxPhaseForIndication: (
-        float | None
-    )
+    maxPhaseForIndication: float | None
 
     attributes: dict[
         str,
@@ -139,9 +109,7 @@ class GraphFact(BaseModel):
     evidence: Evidence
 
 
-class HistoryInterpretation(
-    BaseModel
-):
+class HistoryInterpretation(BaseModel):
     intent: str
     canonicalSubject: str
     eventType: str
@@ -151,17 +119,13 @@ class HistoryInterpretation(
     method: str
 
 
-class HistoryAnswer(
-    BaseModel
-):
+class HistoryAnswer(BaseModel):
     field: str
     value: str
     qualification: str | None
 
 
-class HistoryEvidence(
-    BaseModel
-):
+class HistoryEvidence(BaseModel):
     eventId: str | None
     eventName: str | None
     eventType: str | None
@@ -175,30 +139,18 @@ class HistoryEvidence(
     relatedEntityName: str | None
 
 
-class HistoryRetrievalResult(
-    BaseModel
-):
+class HistoryRetrievalResult(BaseModel):
     text: str
     status: str
 
-    interpretation: (
-        HistoryInterpretation
-        | None
-    )
+    interpretation: HistoryInterpretation | None
 
-    answer: (
-        HistoryAnswer
-        | None
-    )
+    answer: HistoryAnswer | None
 
-    evidence: list[
-        HistoryEvidence
-    ]
+    evidence: list[HistoryEvidence]
 
 
-class VerificationConfidence(
-    BaseModel
-):
+class VerificationConfidence(BaseModel):
     score: float
     level: str
     target: str
@@ -217,68 +169,43 @@ class VerificationConfidence(
     explanation: str
 
 
-class VerificationResult(
-    BaseModel
-):
+class VerificationResult(BaseModel):
     status: str
     reason: str
     evidenceCount: int
     method: str
 
-    confidence: (
-        VerificationConfidence
-    )
+    confidence: VerificationConfidence
 
 
-class GraphRetrievalResponse(
-    BaseModel
-):
+class GraphRetrievalResponse(BaseModel):
     text: str
 
-    verificationType: str = (
-        "relationship"
-    )
+    verificationType: str = "relationship"
 
-    verification: (
-        VerificationResult
-    )
+    verification: VerificationResult
 
-    entities: list[
-        LinkedEntity
-    ]
+    entities: list[LinkedEntity]
 
     relation: ExtractedRelation
 
-    relationships: list[
-        RelationshipCandidate
-    ]
+    relationships: list[RelationshipCandidate]
 
-    facts: list[
-        GraphFact
-    ]
+    facts: list[GraphFact]
 
-    history: (
-        HistoryRetrievalResult
-        | None
-    ) = None
+    history: HistoryRetrievalResult | None = None
 
 
-class GroundingContextResponse(
-    GraphRetrievalResponse
-):
+class GroundingContextResponse(GraphRetrievalResponse):
     context: str
 
 
-class AugmentedPromptResponse(
-    GroundingContextResponse
-):
+class AugmentedPromptResponse(GroundingContextResponse):
     hasEvidence: bool
     augmentedPrompt: str
 
 
-class VerifiedResponseClaim(
-    BaseModel
-):
+class VerifiedResponseClaim(BaseModel):
     index: int
     text: str
     start: int
@@ -286,14 +213,10 @@ class VerifiedResponseClaim(
     extractionMethod: str
     usedQuestionContext: bool
 
-    retrieval: (
-        GraphRetrievalResponse
-    )
+    retrieval: GraphRetrievalResponse
 
 
-class ResponseVerificationSummary(
-    BaseModel
-):
+class ResponseVerificationSummary(BaseModel):
     status: str
     claimCount: int
     supportedCount: int
@@ -309,45 +232,31 @@ class ResponseVerificationSummary(
     explanation: str
 
 
-class ResponseVerificationResponse(
-    BaseModel
-):
+class ResponseVerificationResponse(BaseModel):
     question: str
     response: str
     claimCount: int
 
-    summary: (
-        ResponseVerificationSummary
-    )
+    summary: ResponseVerificationSummary
 
-    claims: list[
-        VerifiedResponseClaim
-    ]
+    claims: list[VerifiedResponseClaim]
 
 
-class QueryAmbiguity(
-    BaseModel
-):
+class QueryAmbiguity(BaseModel):
     term: str
     type: str
 
-    possibleInterpretations: (
-        list[str]
-    )
+    possibleInterpretations: list[str]
 
 
-class ResolvedOutcome(
-    BaseModel
-):
+class ResolvedOutcome(BaseModel):
     outcome: str
     matchedText: str | None
     method: str = "rule"
     score: float | None = None
 
 
-class ResolvedRelationIntent(
-    BaseModel
-):
+class ResolvedRelationIntent(BaseModel):
     intent: str
     direction: str | None
     matchedText: str | None
@@ -356,31 +265,19 @@ class ResolvedRelationIntent(
     score: float | None = None
 
 
-class QueryInterpretation(
-    BaseModel
-):
+class QueryInterpretation(BaseModel):
     ambiguous: bool
     broadRelation: bool
 
-    outcomes: list[
-        ResolvedOutcome
-    ]
+    outcomes: list[ResolvedOutcome]
 
-    relationIntent: (
-        ResolvedRelationIntent
-    )
+    relationIntent: ResolvedRelationIntent
 
-    ambiguities: list[
-        QueryAmbiguity
-    ]
+    ambiguities: list[QueryAmbiguity]
 
 
-class InterpretationResponse(
-    BaseModel
-):
+class InterpretationResponse(BaseModel):
     text: str
     relation: ExtractedRelation
 
-    interpretation: (
-        QueryInterpretation
-    )
+    interpretation: QueryInterpretation
