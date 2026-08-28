@@ -2,7 +2,7 @@
   "suite": "chatgpt_real_response_regression",
   "purpose": "Post-hoc development regression using naturally generated ChatGPT responses observed during manual browser-extension testing.",
   "sourceCapturedAt": "2026-08-27T05:20:09.798Z",
-  "caseCount": 43,
+  "caseCount": 61,
   "omittedPromptCount": 2,
   "omittedPrompts": [
     "What's the deal with the lab leak theory? What do we actually know?",
@@ -223,6 +223,156 @@
       "id": "chatgpt_real_natural_summary_5bullet",
       "question": "Give me a 5 bullet summary of COVID-19.",
       "response": "Cause: COVID-19 is the disease caused by the SARS-CoV-2 virus.\n\nSpread: It spreads mainly through respiratory particles in the air, especially during close or prolonged indoor contact.\n\nSymptoms: It can range from no symptoms or mild illness to severe pneumonia and other complications.\n\nPrevention: Vaccination lowers the risk of severe illness, hospitalization, and death, though it does not guarantee prevention of infection.\n\nTreatment and recovery: Antiviral treatments such as remdesivir are used for some patients, and some people can develop long COVID after the initial infection."
+    },
+    {
+      "id": "chatgpt_real_meta_false_statement",
+      "question": "Explain why the statement “SARS-CoV-2 does not cause COVID-19” is false.",
+      "response": "The statement is false because SARS-CoV-2 is the virus that causes the disease COVID-19. “SARS-CoV-2” is the name of the virus, while “COVID-19” is the name of the illness that can result when a person is infected with that virus.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_reported_5g_correction",
+      "question": "Some people claim that 5G causes COVID-19. Explain why that claim is wrong.",
+      "response": "The claim is wrong because COVID-19 is caused by infection with the SARS-CoV-2 virus, not by radio waves. 5G uses non-ionizing electromagnetic radiation, which does not create viruses or cause viral infections. COVID-19 also spread in places that had little or no 5G coverage, which is inconsistent with 5G being its cause.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "MIXED"
+    },
+    {
+      "id": "chatgpt_real_hypothetical_cause",
+      "question": "Explain this hypothetical: if SARS-CoV-2 did not cause COVID-19, what would that imply?",
+      "response": "If SARS-CoV-2 did not cause COVID-19, it would mean the accepted causal relationship between the virus and the disease was wrong. Researchers would then need to identify some other cause of the illness called COVID-19, and a large body of evidence linking SARS-CoV-2 infection to COVID-19 symptoms, transmission, immune responses, and disease outcomes would need a different explanation.\n\nIn reality, that hypothetical conflicts with extensive evidence: SARS-CoV-2 is the established cause of COVID-19.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "MIXED"
+    },
+    {
+      "id": "chatgpt_real_meta_double_negation",
+      "question": "Is it incorrect to say that SARS-CoV-2 does not cause COVID-19?",
+      "response": "Yes. It is incorrect to say that SARS-CoV-2 does not cause COVID-19. SARS-CoV-2 is the virus that causes the disease COVID-19.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "CONTRADICTED"
+    },
+    {
+      "id": "chatgpt_real_disease_virus_pronoun",
+      "question": "Explain COVID-19 in one sentence and clearly distinguish the disease from the virus.",
+      "response": "COVID-19 is the disease, while SARS-CoV-2 is the virus that causes it.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "NOT_VERIFIABLE_WITH_CURRENT_KG"
+    },
+    {
+      "id": "chatgpt_real_cause_long_covid_chain",
+      "question": "Explain the relationship between SARS-CoV-2, COVID-19, and long COVID in one sentence.",
+      "response": "SARS-CoV-2 is the virus that causes COVID-19, the acute disease, and some people experience persistent or new symptoms after the infection called long COVID.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_compare_covid_influenza",
+      "question": "Compare what causes COVID-19 with what causes influenza in one sentence.",
+      "response": "COVID-19 is caused by the SARS-CoV-2 virus, while influenza is caused by influenza viruses, mainly influenza A and B.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_remdesivir_indirect",
+      "question": "Explain how remdesivir relates to COVID-19 without saying “remdesivir treats COVID-19.”",
+      "response": "Remdesivir is an antiviral medication used in some patients with COVID-19 to inhibit SARS-CoV-2 replication and reduce the course or severity of illness in appropriate cases.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_rhetorical_cause",
+      "question": "Explain what causes COVID-19 using a rhetorical question and answer.",
+      "response": "What causes COVID-19? Infection with the SARS-CoV-2 virus causes COVID-19.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_vaccine_concession_no_card_1",
+      "question": "Explain in one sentence how vaccines can still be useful even though vaccinated people can get infected.",
+      "response": "Vaccines can still be useful because, even though they do not prevent every infection, they can reduce the risk of severe illness, hospitalization, and death.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": false,
+      "manualObservation": "No KG extension card appeared in the browser."
+    },
+    {
+      "id": "chatgpt_real_vaccine_concession_no_card_2",
+      "question": "Explain in one sentence how vaccines can still be useful even though vaccinated people can get infected.",
+      "response": "Vaccines can still be useful because, even when breakthrough infections occur, they can lower the risk of severe disease, hospitalization, and death.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": false,
+      "manualObservation": "Repeated prompt; no KG extension card appeared."
+    },
+    {
+      "id": "chatgpt_real_origin_epistemic_compound",
+      "question": "Explain the COVID origin question in one sentence using the ideas “not proven,” “not ruled out,” and “best-supported.”",
+      "response": "The exact origin of SARS-CoV-2 has not been proven, a laboratory-related origin has not been ruled out, but based on the available scientific evidence, zoonotic spillover from animals is the best-supported explanation.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_context_sarscov2_definition",
+      "question": "What is SARS-CoV-2?",
+      "response": "SARS-CoV-2 is the coronavirus that causes COVID-19.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "contextSequence": "virus_disease_long_covid",
+      "contextStep": 1,
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_context_disease_pronoun",
+      "question": "What disease does it cause?",
+      "response": "SARS-CoV-2 causes COVID-19.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "contextSequence": "virus_disease_long_covid",
+      "contextStep": 2,
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_context_longterm_pronoun",
+      "question": "Can that lead to long-term symptoms?",
+      "response": "Yes. After SARS-CoV-2 infection, some people develop persistent or new symptoms lasting weeks, months, or longer, a condition commonly called long COVID.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "contextSequence": "virus_disease_long_covid",
+      "contextStep": 3,
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_parenthetical_cause",
+      "question": "Explain what COVID is in one sentence using parentheses and an em dash.",
+      "response": "COVID-19 (coronavirus disease 2019) is the illness caused by infection with SARS-CoV-2—the virus responsible for COVID-19.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_influenza_correction_semicolon",
+      "question": "Correct this misconception in one sentence: “COVID-19 is caused by influenza.”",
+      "response": "COVID-19 is not caused by influenza viruses; it is caused by SARS-CoV-2.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "SUPPORTED"
+    },
+    {
+      "id": "chatgpt_real_misconceptions_compound",
+      "question": "Give me a short paragraph that mentions three common COVID misconceptions, explains that each one is false, and then states the correct facts.",
+      "response": "Three common COVID misconceptions are that 5G causes COVID-19, influenza causes COVID-19, and COVID vaccines are useless because vaccinated people can still get infected; all three are false—COVID-19 is caused by SARS-CoV-2, not 5G or influenza viruses, and vaccination can still reduce the risk of severe illness, hospitalization, and death even when infections occur.",
+      "captureBatch": "manual_adversarial_2026_08_27",
+      "browserCardShown": true,
+      "manualObservedSummary": "MIXED"
     }
   ]
 }

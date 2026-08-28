@@ -647,17 +647,56 @@ class ResponseClaimExtractor:
 
             cleaned = remaining[leading_end:].rstrip()
 
+            (
+                cleaned,
+                correction_offset,
+            ) = self._rejected_claim_correction_text(cleaned)
+
             if not cleaned:
                 continue
 
             blocks.append(
                 {
                     "text": cleaned,
-                    "start": (match.start() + prefix_end + leading_end),
+                    "start": (
+                        match.start() + prefix_end + leading_end + correction_offset
+                    ),
                 }
             )
 
         return blocks
+
+    def _rejected_claim_correction_text(
+        self,
+        text: str,
+    ):
+        match = re.search(
+            (
+                r"\b(?:misconception|misconceptions|"
+                r"myth|myths)\b"
+                r".*?;\s*"
+                r"(?:(?:all|these|those)(?:\s+\w+)?"
+                r"|that(?:\s+claim)?"
+                r"|the\s+(?:claim|statement))"
+                r"\s+(?:are|is|were|was)\s+"
+                r"(?:false|wrong|incorrect)"
+                r"\s*[—–:-]\s*"
+                r"(?P<content>.+)$"
+            ),
+            text,
+            flags=re.IGNORECASE,
+        )
+
+        if match is None:
+            return (
+                text,
+                0,
+            )
+
+        return (
+            match.group("content").strip(),
+            match.start("content"),
+        )
 
     def _prepare_sentence(
         self,
@@ -675,6 +714,28 @@ class ResponseClaimExtractor:
 
         if not text:
             return trimmed
+
+        reality_match = re.match(
+            (
+                r"^(?:in reality|in fact|actually)"
+                r"\b[^:]{0,180}:\s*"
+                r"(?P<content>.+)$"
+            ),
+            text,
+            flags=re.IGNORECASE,
+        )
+
+        if reality_match:
+            content = reality_match.group("content")
+
+            content_start = trimmed["start"] + reality_match.start("content")
+
+            return self._trim_segment(
+                content,
+                content_start,
+                strip_punctuation=False,
+                method="sentence_rule",
+            )
 
         label_match = re.match(
             r"^([^:\n]{1,80}):\s+(.+)$",
@@ -1008,6 +1069,9 @@ class ResponseClaimExtractor:
         if not normalized:
             return False
 
+        if self._is_non_asserted_context(normalized):
+            return False
+
         if text.rstrip().endswith("?"):
             return False
 
@@ -1039,6 +1103,43 @@ class ResponseClaimExtractor:
             sentence,
             normalized,
         )
+
+    def _is_non_asserted_context(
+        self,
+        normalized: str,
+    ):
+        if normalized.startswith("if ") and re.search(
+            r"\b(?:would|could|might)\b",
+            normalized,
+        ):
+            return True
+
+        if re.search(
+            r"\bwould then\b",
+            normalized,
+        ):
+            return True
+
+        if re.match(
+            (
+                r"^(?:some|many) people "
+                r"(?:claim|say|believe) that\b"
+            ),
+            normalized,
+        ):
+            return True
+
+        if re.match(
+            (
+                r"^(?:\w+\s+){0,5}"
+                r"misconceptions? "
+                r"(?:are|include) that\b"
+            ),
+            normalized,
+        ):
+            return True
+
+        return False
 
     def _is_meta_discourse(
         self,

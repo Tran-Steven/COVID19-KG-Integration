@@ -31,7 +31,17 @@ class PropositionGuard:
 
         normalized = self._normalize(text)
 
-        assertion = self._cause_assertion_extended(normalized)
+        meta_claim = self.semantics.meta_rejected_relation(normalized)
+
+        assertion_text = meta_claim if meta_claim is not None else normalized
+
+        assertion = self._cause_assertion_extended(assertion_text)
+
+        if assertion is not None and meta_claim is not None:
+            assertion = {
+                **assertion,
+                "negated": not assertion["negated"],
+            }
 
         if assertion is None:
             if self._has_cause_language(normalized):
@@ -134,6 +144,16 @@ class PropositionGuard:
             (
                 (
                     r"^(?P<cause>.+?) "
+                    r"is (?:the )?"
+                    r"(?:established|known|recognized|"
+                    r"recognised|accepted) cause of "
+                    r"covid(?: 19)?\b"
+                ),
+                False,
+            ),
+            (
+                (
+                    r"^(?P<cause>.+?) "
                     r"(?:is )?incapable of "
                     r"(?:causing|producing|"
                     r"giving rise to) "
@@ -153,9 +173,24 @@ class PropositionGuard:
             ),
             (
                 (
-                    r"^(?P<cause>.+?) "
+                    r"(?:^|because )"
+                    r"(?P<cause>.+?) "
                     r"is the virus that causes "
+                    r"(?:the disease )?"
                     r"covid(?: 19)?\b"
+                ),
+                False,
+            ),
+            (
+                (
+                    r"^covid(?: 19)? "
+                    r"is (?:the )?"
+                    r"(?:disease|illness) "
+                    r"(?:while|whereas|and) "
+                    r"(?P<cause>.+?) "
+                    r"is the virus that "
+                    r"(?:causes|is responsible for) "
+                    r"it\b"
                 ),
                 False,
             ),
@@ -497,6 +532,29 @@ class PropositionGuard:
 
         targets = self._transmission_targets(normalized)
 
+        geographic_spread = re.search(
+            (
+                r"\b(?:spread|spreads|spreading)\s+"
+                r"(?:in|across|throughout)\s+"
+                r"(?:places|countries|regions|areas|"
+                r"locations)\b"
+            ),
+            normalized,
+        )
+
+        if not targets and geographic_spread:
+            return self._decision(
+                status=self.NOT_VERIFIABLE,
+                reason=(
+                    "Retrieved transmission-route "
+                    "evidence does not establish the "
+                    "claim's asserted geographic "
+                    "spread context."
+                ),
+                evidence_count=0,
+                clear_facts=True,
+            )
+
         evidence_objects = [
             self._normalize(
                 fact.get(
@@ -616,6 +674,10 @@ class PropositionGuard:
             (
                 r"\bcovid(?: 19)? "
                 r"(?:is|was) "
+                r"(?:(?:an?|the) )?"
+                r"(?:(?:infectious|respiratory|viral|"
+                r"contagious|communicable) )*"
+                r"(?:(?:disease|illness) )?"
                 r"(?P<neg>not )?"
                 r"caused by "
                 r"(?P<cause>.+)$"

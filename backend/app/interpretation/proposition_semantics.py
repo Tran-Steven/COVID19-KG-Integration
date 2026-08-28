@@ -161,6 +161,14 @@ class PropositionSemantics:
     ):
         normalized = self.normalize(text)
 
+        meta_claim = self.meta_rejected_relation(normalized)
+
+        if meta_claim is not None:
+            return self.NEGATION.search(meta_claim) is None
+
+        if self.is_positive_cause_with_alternative_negation(normalized):
+            return False
+
         if self.is_no_additional_risk_claim(text):
             return False
 
@@ -195,6 +203,81 @@ class PropositionSemantics:
             return True
 
         return self.NEGATION.search(normalized) is not None
+
+    def meta_rejected_relation(
+        self,
+        text: str,
+    ):
+        normalized = self.normalize(text)
+
+        patterns = (
+            (
+                r"^(?:it is|this is|that is) "
+                r"(?:incorrect|wrong|false) "
+                r"to say that "
+                r"(?P<claim>.+)$"
+            ),
+            (
+                r"^(?:the )?"
+                r"(?:claim|statement|idea) that "
+                r"(?P<claim>.+?) "
+                r"(?:is|was) "
+                r"(?:incorrect|wrong|false)$"
+            ),
+        )
+
+        for pattern in patterns:
+            match = re.search(
+                pattern,
+                normalized,
+            )
+
+            if match:
+                return match.group("claim").strip()
+
+        return None
+
+    def is_positive_cause_with_alternative_negation(
+        self,
+        text: str,
+    ):
+        normalized = self.normalize(text)
+
+        relation = re.search(
+            (
+                r"\b(?:"
+                r"causes?"
+                r"|caused by"
+                r"|responsible for"
+                r")\b"
+            ),
+            normalized,
+        )
+
+        if relation is None:
+            return False
+
+        trailing = normalized[relation.end() :]
+
+        negation = re.search(
+            r"\bnot\b",
+            trailing,
+        )
+
+        if negation is None:
+            return False
+
+        positive_span = trailing[: negation.start()]
+
+        preceding = normalized[: relation.start()]
+
+        passive_canonical = "sars cov 2" in positive_span or (
+            "coronavirus" in positive_span and "covid" in preceding
+        )
+
+        active_canonical = "sars cov 2" in preceding and "covid" in positive_span
+
+        return passive_canonical or active_canonical
 
     def _is_meta_relation_qualification(
         self,

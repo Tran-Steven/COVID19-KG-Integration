@@ -45,9 +45,7 @@ def verify(
         request,
         timeout=60,
     ) as result:
-        return json.load(
-            result
-        )
+        return json.load(result)
 
 
 def status_of(
@@ -55,16 +53,8 @@ def status_of(
     text: str,
 ):
     for claim in claims:
-        if claim[
-            "text"
-        ] == text:
-            return claim[
-                "retrieval"
-            ][
-                "verification"
-            ][
-                "status"
-            ]
+        if claim["text"] == text:
+            return claim["retrieval"]["verification"]["status"]
 
     return None
 
@@ -73,18 +63,9 @@ def contains_claim(
     claims: list[dict],
     fragment: str,
 ):
-    fragment = (
-        fragment.lower()
-    )
+    fragment = fragment.lower()
 
-    return any(
-        fragment
-        in claim[
-            "text"
-        ].lower()
-        for claim
-        in claims
-    )
+    return any(fragment in claim["text"].lower() for claim in claims)
 
 
 def check(
@@ -92,9 +73,7 @@ def check(
     label: str,
 ):
     print(
-        "PASS"
-        if condition
-        else "FAIL",
+        "PASS" if condition else "FAIL",
         label,
     )
 
@@ -108,15 +87,10 @@ def main():
             SUMMARY_RESPONSE,
         )
     except URLError as error:
-        print(
-            f"ERROR: could not reach "
-            f"{BASE_URL}: {error}"
-        )
+        print(f"ERROR: could not reach {BASE_URL}: {error}")
         return 1
 
-    claims = data[
-        "claims"
-    ]
+    claims = data["claims"]
 
     passed = 0
     total = 0
@@ -125,32 +99,18 @@ def main():
         (
             not contains_claim(
                 claims,
-                (
-                    "here’s the covid-19 "
-                    "discussion summarized"
-                ),
+                ("here’s the covid-19 discussion summarized"),
             ),
             "meta_summary_not_extracted",
         ),
         (
-            all(
-                "\n"
-                not in claim[
-                    "text"
-                ]
-                for claim
-                in claims
-            ),
+            all("\n" not in claim["text"] for claim in claims),
             "no_cross_line_claims",
         ),
         (
             contains_claim(
                 claims,
-                (
-                    "close face-to-face "
-                    "contact during sex "
-                    "can transmit sars-cov-2"
-                ),
+                ("close face-to-face contact during sex can transmit sars-cov-2"),
             ),
             "sex_transmission_preserved",
         ),
@@ -179,10 +139,7 @@ def main():
         (
             contains_claim(
                 claims,
-                (
-                    "smoking may increase "
-                    "the risk of severe illness"
-                ),
+                ("smoking may increase the risk of severe illness"),
             ),
             "smoking_subject_inherited",
         ),
@@ -200,10 +157,7 @@ def main():
         (
             status_of(
                 claims,
-                (
-                    "Sex itself does not "
-                    "cause COVID-19"
-                ),
+                ("Sex itself does not cause COVID-19"),
             )
             != "CONTRADICTED",
             "sex_negative_cause_not_reversed",
@@ -211,10 +165,7 @@ def main():
         (
             status_of(
                 claims,
-                (
-                    "Video games do not "
-                    "cause COVID-19."
-                ),
+                ("Video games do not cause COVID-19."),
             )
             != "CONTRADICTED",
             "gaming_negative_cause_not_reversed",
@@ -234,16 +185,9 @@ def main():
         (
             status_of(
                 claims,
-                (
-                    "Doing this deliberately is "
-                    "also a serious health/safety "
-                    "violation."
-                ),
+                ("Doing this deliberately is also a serious health/safety violation."),
             )
-            == (
-                "NOT_VERIFIABLE_"
-                "WITH_CURRENT_KG"
-            ),
+            == ("NOT_VERIFIABLE_WITH_CURRENT_KG"),
             "irrelevant_context_not_supported",
         ),
         (
@@ -271,23 +215,62 @@ def main():
 
     targeted = [
         (
+            ("SARS-CoV-2 is the established cause of COVID-19."),
+            "SUPPORTED",
+            "established_cause_paraphrase",
+        ),
+        (
+            ("SARS-CoV-2 is the virus that causes the disease COVID-19."),
+            "SUPPORTED",
+            "cause_disease_paraphrase",
+        ),
+        (
+            ("It is incorrect to say that SARS-CoV-2 does not cause COVID-19."),
+            "SUPPORTED",
+            "meta_negative_cause_reversal",
+        ),
+        (
+            ("It is incorrect to say that SARS-CoV-2 causes COVID-19."),
+            "CONTRADICTED",
+            "meta_positive_cause_reversal",
+        ),
+        (
+            ("COVID-19 is caused by SARS-CoV-2, not by radio waves."),
+            "SUPPORTED",
+            "alternative_cause_negation_scope",
+        ),
+        (
+            ("COVID-19 is caused by SARS-CoV-2, not 5G or influenza viruses."),
+            "SUPPORTED",
+            "alternative_cause_compound_scope",
+        ),
+        (
+            ("COVID-19 is the disease, while SARS-CoV-2 is the virus that causes it."),
+            "SUPPORTED",
+            "cause_pronoun_within_sentence",
+        ),
+        (
+            ("COVID-19 is an infectious disease caused by the coronavirus SARS-CoV-2."),
+            "SUPPORTED",
+            "descriptive_passive_cause",
+        ),
+        (
+            ("COVID-19 is an infectious disease not caused by SARS-CoV-2."),
+            "CONTRADICTED",
+            "descriptive_passive_negative_cause",
+        ),
+        (
             "SARS-CoV-2 does not cause COVID-19.",
             "CONTRADICTED",
             "canonical_negative_cause",
         ),
         (
             "Video games do not cause COVID-19.",
-            (
-                "NOT_VERIFIABLE_"
-                "WITH_CURRENT_KG"
-            ),
+            ("NOT_VERIFIABLE_WITH_CURRENT_KG"),
             "unlinked_alternative_cause",
         ),
         (
-            (
-                "COVID-19 does not spread through "
-                "respiratory particles."
-            ),
+            ("COVID-19 does not spread through respiratory particles."),
             "CONTRADICTED",
             "matched_negative_transmission",
         ),
@@ -308,15 +291,7 @@ def main():
             response,
         )
 
-        actual = result[
-            "claims"
-        ][0][
-            "retrieval"
-        ][
-            "verification"
-        ][
-            "status"
-        ]
+        actual = result["claims"][0]["retrieval"]["verification"]["status"]
 
         total += 1
 
@@ -327,56 +302,29 @@ def main():
             passed += 1
 
     print()
-    print(
-        "PROPOSITION REGRESSIONS"
-    )
+    print("PROPOSITION REGRESSIONS")
 
-    print(
-        f"checks: {passed}/{total} "
-        f"({passed / total:.1%})"
-    )
+    print(f"checks: {passed}/{total} ({passed / total:.1%})")
 
     print(
         "claimCount:",
-        data[
-            "claimCount"
-        ],
+        data["claimCount"],
     )
 
     if passed != total:
         print()
 
         for claim in claims:
-            print(
-                claim[
-                    "text"
-                ]
-            )
+            print(claim["text"])
 
             print(
                 "  ",
-                claim[
-                    "retrieval"
-                ][
-                    "verificationType"
-                ],
-                claim[
-                    "retrieval"
-                ][
-                    "verification"
-                ][
-                    "status"
-                ],
+                claim["retrieval"]["verificationType"],
+                claim["retrieval"]["verification"]["status"],
             )
 
-    return (
-        0
-        if passed == total
-        else 1
-    )
+    return 0 if passed == total else 1
 
 
 if __name__ == "__main__":
-    sys.exit(
-        main()
-    )
+    sys.exit(main())

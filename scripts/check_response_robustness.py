@@ -9,30 +9,114 @@ BASE_URL = "http://localhost:8000"
 
 CASES = [
     {
-        "name": "nonfactual_uncertainty",
-        "question": (
-            "How does COVID-19 spread?"
-        ),
+        "name": "hypothetical_chain_scope",
+        "question": ("What causes COVID-19?"),
         "response": (
-            "I'm not sure. "
-            "Thanks for asking. "
-            "Would you like anything else?"
+            "If SARS-CoV-2 did not cause COVID-19, "
+            "researchers would need another explanation. "
+            "Researchers would then need to identify "
+            "another cause. In reality, that hypothetical "
+            "conflicts with the evidence: SARS-CoV-2 is "
+            "the established cause of COVID-19."
+        ),
+        "claims": [
+            (
+                "SARS-CoV-2 is the established cause of COVID-19.",
+                "who",
+                "SUPPORTED",
+                False,
+            ),
+        ],
+        "summary": "SUPPORTED",
+    },
+    {
+        "name": "misconception_correction_preserved",
+        "question": ("What causes COVID-19?"),
+        "response": (
+            "A common COVID misconception is that 5G "
+            "causes COVID-19; that claim is false—"
+            "COVID-19 is caused by SARS-CoV-2."
+        ),
+        "claims": [
+            (
+                "COVID-19 is caused by SARS-CoV-2.",
+                "who",
+                "SUPPORTED",
+                False,
+            ),
+        ],
+        "summary": "SUPPORTED",
+    },
+    {
+        "name": "geographic_spread_not_route_evidence",
+        "question": ("Does 5G cause COVID-19?"),
+        "response": ("COVID-19 spread in places that had little or no 5G coverage."),
+        "claims": [
+            (
+                "COVID-19 spread in places that had little or no 5G coverage.",
+                "who",
+                "NOT_VERIFIABLE_WITH_CURRENT_KG",
+                False,
+            ),
+        ],
+        "summary": "NOT_VERIFIABLE_WITH_CURRENT_KG",
+    },
+    {
+        "name": "hypothetical_not_asserted",
+        "question": "What causes COVID-19?",
+        "response": (
+            "If SARS-CoV-2 did not cause COVID-19, "
+            "researchers would need another explanation."
         ),
         "claims": [],
-        "summary": (
-            "NO_FACTUAL_CLAIMS"
+        "summary": "NO_FACTUAL_CLAIMS",
+    },
+    {
+        "name": "reported_claim_not_asserted",
+        "question": "What causes COVID-19?",
+        "response": (
+            "Some people claim that 5G causes COVID-19. SARS-CoV-2 causes COVID-19."
         ),
+        "claims": [
+            (
+                "SARS-CoV-2 causes COVID-19.",
+                "who",
+                "SUPPORTED",
+                False,
+            ),
+        ],
+        "summary": "SUPPORTED",
+    },
+    {
+        "name": "misconception_list_not_asserted",
+        "question": "What causes COVID-19?",
+        "response": (
+            "Three common COVID misconceptions are that "
+            "5G causes COVID-19 and influenza causes "
+            "COVID-19. SARS-CoV-2 causes COVID-19."
+        ),
+        "claims": [
+            (
+                "SARS-CoV-2 causes COVID-19.",
+                "who",
+                "SUPPORTED",
+                False,
+            ),
+        ],
+        "summary": "SUPPORTED",
+    },
+    {
+        "name": "nonfactual_uncertainty",
+        "question": ("How does COVID-19 spread?"),
+        "response": ("I'm not sure. Thanks for asking. Would you like anything else?"),
+        "claims": [],
+        "summary": ("NO_FACTUAL_CLAIMS"),
     },
     {
         "name": "unknown_claim_preserved",
-        "question": (
-            "What causes COVID-19 and "
-            "can remdesivir treat it?"
-        ),
+        "question": ("What causes COVID-19 and can remdesivir treat it?"),
         "response": (
-            "SARS-CoV-2 causes COVID-19. "
-            "Remdesivir treats COVID-19. "
-            "5G cures COVID-19."
+            "SARS-CoV-2 causes COVID-19. Remdesivir treats COVID-19. 5G cures COVID-19."
         ),
         "claims": [
             (
@@ -50,10 +134,7 @@ CASES = [
             (
                 "5G cures COVID-19.",
                 "relationship",
-                (
-                    "NOT_VERIFIABLE_"
-                    "WITH_CURRENT_KG"
-                ),
+                ("NOT_VERIFIABLE_WITH_CURRENT_KG"),
                 False,
             ),
         ],
@@ -62,9 +143,7 @@ CASES = [
     {
         "name": "but_clause_split",
         "question": (
-            "How does COVID spread and "
-            "can COVID vaccination reduce "
-            "hospitalization?"
+            "How does COVID spread and can COVID vaccination reduce hospitalization?"
         ),
         "response": (
             "COVID spreads only via "
@@ -73,15 +152,13 @@ CASES = [
         ),
         "claims": [
             (
-                "COVID spreads only via "
-                "contaminated surfaces",
+                "COVID spreads only via contaminated surfaces",
                 "who",
                 "CONTRADICTED",
                 False,
             ),
             (
-                "vaccines lower "
-                "hospitalization risk",
+                "vaccines lower hospitalization risk",
                 "who",
                 "SUPPORTED",
                 True,
@@ -91,14 +168,9 @@ CASES = [
     },
     {
         "name": "and_clause_split",
-        "question": (
-            "How does COVID spread and "
-            "what do vaccines reduce?"
-        ),
+        "question": ("How does COVID spread and what do vaccines reduce?"),
         "response": (
-            "COVID spreads through the air "
-            "and vaccines lower "
-            "hospitalization risk."
+            "COVID spreads through the air and vaccines lower hospitalization risk."
         ),
         "claims": [
             (
@@ -108,8 +180,7 @@ CASES = [
                 False,
             ),
             (
-                "vaccines lower "
-                "hospitalization risk",
+                "vaccines lower hospitalization risk",
                 "who",
                 "SUPPORTED",
                 True,
@@ -119,18 +190,13 @@ CASES = [
     },
     {
         "name": "multi_outcome_not_split",
-        "question": (
-            "What do COVID vaccines "
-            "protect against?"
-        ),
+        "question": ("What do COVID vaccines protect against?"),
         "response": (
-            "COVID vaccines reduce severe "
-            "disease, hospitalization, and death."
+            "COVID vaccines reduce severe disease, hospitalization, and death."
         ),
         "claims": [
             (
-                "COVID vaccines reduce severe "
-                "disease, hospitalization, and death.",
+                "COVID vaccines reduce severe disease, hospitalization, and death.",
                 "who",
                 "SUPPORTED",
                 False,
@@ -140,13 +206,8 @@ CASES = [
     },
     {
         "name": "uncertainty_then_fact",
-        "question": (
-            "How does COVID-19 spread?"
-        ),
-        "response": (
-            "I don't know. "
-            "COVID can spread through the air."
-        ),
+        "question": ("How does COVID-19 spread?"),
+        "response": ("I don't know. COVID can spread through the air."),
         "claims": [
             (
                 "COVID can spread through the air.",
@@ -159,35 +220,23 @@ CASES = [
     },
     {
         "name": "vaccine_context",
-        "question": (
-            "How effective are COVID vaccines?"
-        ),
-        "response": (
-            "They guarantee that infection "
-            "cannot occur."
-        ),
+        "question": ("How effective are COVID vaccines?"),
+        "response": ("They guarantee that infection cannot occur."),
         "claims": [
             (
-                "They guarantee that infection "
-                "cannot occur.",
+                "They guarantee that infection cannot occur.",
                 "who",
                 "INSUFFICIENT_EVIDENCE",
                 True,
             ),
         ],
-        "summary": (
-            "INSUFFICIENT_EVIDENCE"
-        ),
+        "summary": ("INSUFFICIENT_EVIDENCE"),
     },
     {
         "name": "semicolon_split",
-        "question": (
-            "How does COVID spread and "
-            "what do vaccines reduce?"
-        ),
+        "question": ("How does COVID spread and what do vaccines reduce?"),
         "response": (
-            "COVID can spread through the air; "
-            "COVID vaccines reduce hospitalization."
+            "COVID can spread through the air; COVID vaccines reduce hospitalization."
         ),
         "claims": [
             (
@@ -213,10 +262,7 @@ def verify(
     response: str,
 ):
     request = Request(
-        (
-            f"{BASE_URL}"
-            "/kg/verify-response"
-        ),
+        (f"{BASE_URL}/kg/verify-response"),
         data=json.dumps(
             {
                 "question": question,
@@ -224,9 +270,7 @@ def verify(
             }
         ).encode(),
         headers={
-            "Content-Type": (
-                "application/json"
-            ),
+            "Content-Type": ("application/json"),
         },
         method="POST",
     )
@@ -235,35 +279,22 @@ def verify(
         request,
         timeout=30,
     ) as result:
-        return json.load(
-            result
-        )
+        return json.load(result)
 
 
 def check_case(
     case: dict,
 ):
     data = verify(
-        case[
-            "question"
-        ],
-        case[
-            "response"
-        ],
+        case["question"],
+        case["response"],
     )
 
-    actual_claims = data[
-        "claims"
-    ]
+    actual_claims = data["claims"]
 
-    expected_claims = case[
-        "claims"
-    ]
+    expected_claims = case["claims"]
 
-    claims_ok = (
-        len(actual_claims)
-        == len(expected_claims)
-    )
+    claims_ok = len(actual_claims) == len(expected_claims)
 
     if claims_ok:
         for (
@@ -280,57 +311,27 @@ def check_case(
                 expected_context,
             ) = expected
 
-            retrieval = actual[
-                "retrieval"
-            ]
+            retrieval = actual["retrieval"]
 
-            verification = retrieval[
-                "verification"
-            ]
+            verification = retrieval["verification"]
 
             if (
-                actual[
-                    "text"
-                ]
-                != expected_text
-                or retrieval[
-                    "verificationType"
-                ]
-                != expected_route
-                or verification[
-                    "status"
-                ]
-                != expected_status
-                or actual[
-                    "usedQuestionContext"
-                ]
-                != expected_context
+                actual["text"] != expected_text
+                or retrieval["verificationType"] != expected_route
+                or verification["status"] != expected_status
+                or actual["usedQuestionContext"] != expected_context
             ):
                 claims_ok = False
 
-    summary_status = data[
-        "summary"
-    ][
-        "status"
-    ]
+    summary_status = data["summary"]["status"]
 
-    summary_ok = (
-        summary_status
-        == case[
-            "summary"
-        ]
-    )
+    summary_ok = summary_status == case["summary"]
 
-    passed = (
-        claims_ok
-        and summary_ok
-    )
+    passed = claims_ok and summary_ok
 
     print(
         "PASS" if passed else "FAIL",
-        case[
-            "name"
-        ],
+        case["name"],
     )
 
     if not passed:
@@ -342,47 +343,33 @@ def check_case(
         )
 
         for claim in actual_claims:
-            retrieval = claim[
-                "retrieval"
-            ]
+            retrieval = claim["retrieval"]
 
             print(
                 "  claim:",
-                claim[
-                    "text"
-                ],
+                claim["text"],
             )
 
             print(
                 "    route:",
-                retrieval[
-                    "verificationType"
-                ],
+                retrieval["verificationType"],
             )
 
             print(
                 "    status:",
-                retrieval[
-                    "verification"
-                ][
-                    "status"
-                ],
+                retrieval["verification"]["status"],
             )
 
             print(
                 "    context:",
-                claim[
-                    "usedQuestionContext"
-                ],
+                claim["usedQuestionContext"],
             )
 
         print(
             "  summary:",
             summary_status,
             "expected:",
-            case[
-                "summary"
-            ],
+            case["summary"],
         )
 
     return passed
@@ -393,36 +380,20 @@ def main():
 
     try:
         for case in CASES:
-            if check_case(
-                case
-            ):
+            if check_case(case):
                 passed += 1
 
     except URLError as error:
-        print(
-            f"ERROR: could not reach "
-            f"{BASE_URL}: {error}"
-        )
+        print(f"ERROR: could not reach {BASE_URL}: {error}")
         return 1
 
     print()
-    print(
-        "RESPONSE ROBUSTNESS"
-    )
+    print("RESPONSE ROBUSTNESS")
 
-    print(
-        f"cases: {passed}/{len(CASES)} "
-        f"({passed / len(CASES):.1%})"
-    )
+    print(f"cases: {passed}/{len(CASES)} ({passed / len(CASES):.1%})")
 
-    return (
-        0
-        if passed == len(CASES)
-        else 1
-    )
+    return 0 if passed == len(CASES) else 1
 
 
 if __name__ == "__main__":
-    sys.exit(
-        main()
-    )
+    sys.exit(main())
