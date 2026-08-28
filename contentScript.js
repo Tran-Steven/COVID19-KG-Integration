@@ -4,28 +4,20 @@ const assistantVerifiedText = new WeakMap();
 const assistantVerificationData = new WeakMap();
 const verificationHosts = new WeakMap();
 
-const ORIGINAL_QUERY_MARKER =
-  "=== ORIGINAL USER QUERY ===";
+const ORIGINAL_QUERY_MARKER = "=== ORIGINAL USER QUERY ===";
 
-const CONTEXT_MARKER =
-  "=== KNOWLEDGE GRAPH CONTEXT ===";
+const CONTEXT_MARKER = "=== KNOWLEDGE GRAPH CONTEXT ===";
 
-const FEEDBACK_STORAGE_KEY =
-  "covidKgVerificationFeedback";
+const FEEDBACK_STORAGE_KEY = "covidKgVerificationFeedback";
 
-const VERIFICATION_CACHE_KEY =
-  "covidKgVerificationCache";
+const VERIFICATION_CACHE_KEY = "covidKgVerificationCache";
 
-const VERIFICATION_CACHE_VERSION =
-  "v1";
+const VERIFICATION_CACHE_VERSION = "v1";
 
 const ISSUE_URL =
   "https://github.com/Tran-Steven/COVID19-KG-Integration/issues/new/choose";
 
-const LOGO_URL =
-  chrome.runtime.getURL(
-    "images/icon-32.png"
-  );
+const LOGO_URL = chrome.runtime.getURL("images/icon-32.png");
 
 const RESPONSE_SETTLE_MS = 1400;
 const GENERATION_RECHECK_MS = 450;
@@ -67,174 +59,95 @@ const HOST_NON_ANSWER_PATTERNS = [
 ];
 
 const CONFIDENCE_COMPONENTS = [
-  [
-    "evidenceCoverage",
-    "Evidence coverage",
-  ],
-  [
-    "provenanceCompleteness",
-    "Provenance completeness",
-  ],
-  [
-    "relationCertainty",
-    "Relation certainty",
-  ],
-  [
-    "entityLinkCertainty",
-    "Entity-link certainty",
-  ],
-  [
-    "evidenceAgreement",
-    "Evidence agreement",
-  ],
-  [
-    "sourceDiversity",
-    "Source diversity",
-  ],
-  [
-    "recency",
-    "Recency",
-  ],
+  ["evidenceCoverage", "Evidence coverage"],
+  ["provenanceCompleteness", "Provenance completeness"],
+  ["relationCertainty", "Relation certainty"],
+  ["entityLinkCertainty", "Entity-link certainty"],
+  ["evidenceAgreement", "Evidence agreement"],
+  ["sourceDiversity", "Source diversity"],
+  ["recency", "Recency"],
 ];
 
-let lastConversationUrl =
-  location.href;
+let lastConversationUrl = location.href;
 
-let conversationChangeTimer =
-  null;
+let conversationChangeTimer = null;
 
-let lastOriginalDraft =
-  null;
+let lastOriginalDraft = null;
 
-let mutationFrame =
-  null;
+let mutationFrame = null;
 
-function createElement(
-  tag,
-  className = "",
-  text = null
-) {
-  const element =
-    document.createElement(
-      tag
-    );
+function createElement(tag, className = "", text = null) {
+  const element = document.createElement(tag);
 
   if (className) {
-    element.className =
-      className;
+    element.className = className;
   }
 
   if (text !== null) {
-    element.textContent =
-      text;
+    element.textContent = text;
   }
 
   return element;
 }
 
 function createLogo() {
-  const wrapper =
-    createElement(
-      "span",
-      "logo-wrapper"
-    );
+  const wrapper = createElement("span", "logo-wrapper");
 
-  const image =
-    document.createElement(
-      "img"
-    );
+  const image = document.createElement("img");
 
-  image.className =
-    "logo";
+  image.className = "logo";
 
-  image.src =
-    LOGO_URL;
+  image.src = LOGO_URL;
 
-  image.alt =
-    "Knowledge Graph Check";
+  image.alt = "Knowledge Graph Check";
 
-  wrapper.appendChild(
-    image
-  );
+  wrapper.appendChild(image);
 
   return wrapper;
 }
 
 function runtimeContextAvailable() {
   try {
-    return Boolean(
-      chrome &&
-      chrome.runtime &&
-      chrome.runtime.id
-    );
+    return Boolean(chrome && chrome.runtime && chrome.runtime.id);
   } catch {
     return false;
   }
 }
 
 function invalidContextError() {
-  const error =
-    new Error(
-      "Extension context unavailable"
-    );
+  const error = new Error("Extension context unavailable");
 
-  error.code =
-    "EXTENSION_CONTEXT_INVALIDATED";
+  error.code = "EXTENSION_CONTEXT_INVALIDATED";
 
   return error;
 }
 
-function isInvalidContextError(
-  error
-) {
+function isInvalidContextError(error) {
   if (!error) {
     return false;
   }
 
-  if (
-    error.code ===
-    "EXTENSION_CONTEXT_INVALIDATED"
-  ) {
+  if (error.code === "EXTENSION_CONTEXT_INVALIDATED") {
     return true;
   }
 
-  const message =
-    String(
-      error.message ||
-      error
-    ).toLowerCase();
+  const message = String(error.message || error).toLowerCase();
 
   return (
-    message.includes(
-      "extension context invalidated"
-    ) ||
-    message.includes(
-      "extension context unavailable"
-    )
+    message.includes("extension context invalidated") ||
+    message.includes("extension context unavailable")
   );
 }
 
-async function sendRuntimeMessage(
-  payload
-) {
-  if (
-    !runtimeContextAvailable()
-  ) {
+async function sendRuntimeMessage(payload) {
+  if (!runtimeContextAvailable()) {
     throw invalidContextError();
   }
 
   try {
-    return await chrome.runtime
-      .sendMessage(
-        payload
-      );
+    return await chrome.runtime.sendMessage(payload);
   } catch (error) {
-    if (
-      isInvalidContextError(
-        error
-      ) ||
-      !runtimeContextAvailable()
-    ) {
+    if (isInvalidContextError(error) || !runtimeContextAvailable()) {
       throw invalidContextError();
     }
 
@@ -242,272 +155,134 @@ async function sendRuntimeMessage(
   }
 }
 
-function storageGet(
-  keys
-) {
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-      if (
-        !runtimeContextAvailable()
-      ) {
-        reject(
-          invalidContextError()
-        );
+function storageGet(keys) {
+  return new Promise((resolve, reject) => {
+    if (!runtimeContextAvailable()) {
+      reject(invalidContextError());
+
+      return;
+    }
+
+    chrome.storage.local.get(keys, (result) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
 
         return;
       }
 
-      chrome.storage.local.get(
-        keys,
-        (result) => {
-          if (
-            chrome.runtime
-              .lastError
-          ) {
-            reject(
-              new Error(
-                chrome.runtime
-                  .lastError
-                  .message
-              )
-            );
-
-            return;
-          }
-
-          resolve(
-            result
-          );
-        }
-      );
-    }
-  );
+      resolve(result);
+    });
+  });
 }
 
-function storageSet(
-  values
-) {
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-      if (
-        !runtimeContextAvailable()
-      ) {
-        reject(
-          invalidContextError()
-        );
+function storageSet(values) {
+  return new Promise((resolve, reject) => {
+    if (!runtimeContextAvailable()) {
+      reject(invalidContextError());
+
+      return;
+    }
+
+    chrome.storage.local.set(values, () => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
 
         return;
       }
 
-      chrome.storage.local.set(
-        values,
-        () => {
-          if (
-            chrome.runtime
-              .lastError
-          ) {
-            reject(
-              new Error(
-                chrome.runtime
-                  .lastError
-                  .message
-              )
-            );
-
-            return;
-          }
-
-          resolve();
-        }
-      );
-    }
-  );
+      resolve();
+    });
+  });
 }
 
-function hashText(
-  text
-) {
-  let hash =
-    2166136261;
+function hashText(text) {
+  let hash = 2166136261;
 
-  for (
-    let index = 0;
-    index < text.length;
-    index += 1
-  ) {
-    hash ^=
-      text.charCodeAt(
-        index
-      );
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
 
-    hash =
-      Math.imul(
-        hash,
-        16777619
-      );
+    hash = Math.imul(hash, 16777619);
   }
 
-  return (
-    hash >>> 0
-  )
-    .toString(16)
-    .padStart(
-      8,
-      "0"
-    );
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 function conversationKey() {
-  return (
-    location.origin +
-    location.pathname
-  );
+  return location.origin + location.pathname;
 }
 
-function verificationCacheId(
-  question,
-  response
-) {
+function verificationCacheId(question, response) {
   return (
     `${VERIFICATION_CACHE_VERSION}:` +
     `${conversationKey()}:` +
-    `${hashText(
-      `${question}\u0000${response}`
-    )}`
+    `${hashText(`${question}\u0000${response}`)}`
   );
 }
 
 async function getVerificationCache() {
-  const result =
-    await storageGet([
-      VERIFICATION_CACHE_KEY,
-    ]);
+  const result = await storageGet([VERIFICATION_CACHE_KEY]);
 
-  const cache =
-    result[
-      VERIFICATION_CACHE_KEY
-    ];
+  const cache = result[VERIFICATION_CACHE_KEY];
 
-  if (
-    !cache ||
-    typeof cache !==
-      "object" ||
-    Array.isArray(cache)
-  ) {
+  if (!cache || typeof cache !== "object" || Array.isArray(cache)) {
     return {};
   }
 
   return cache;
 }
 
-async function getCachedVerification(
-  question,
-  response
-) {
-  const cache =
-    await getVerificationCache();
+async function getCachedVerification(question, response) {
+  const cache = await getVerificationCache();
 
-  return (
-    cache[
-      verificationCacheId(
-        question,
-        response
-      )
-    ] ||
-    null
-  );
+  return cache[verificationCacheId(question, response)] || null;
 }
 
-async function saveCachedVerification(
-  question,
-  response,
-  data
-) {
-  const cache =
-    await getVerificationCache();
+async function saveCachedVerification(question, response, data) {
+  const cache = await getVerificationCache();
 
-  const id =
-    verificationCacheId(
-      question,
-      response
-    );
+  const id = verificationCacheId(question, response);
 
   cache[id] = {
-    version:
-      VERIFICATION_CACHE_VERSION,
-    conversation:
-      conversationKey(),
+    version: VERIFICATION_CACHE_VERSION,
+    conversation: conversationKey(),
     question,
     response,
-    savedAt:
-      new Date()
-        .toISOString(),
+    savedAt: new Date().toISOString(),
     data,
   };
 
   await storageSet({
-    [
-      VERIFICATION_CACHE_KEY
-    ]:
-      cache,
+    [VERIFICATION_CACHE_KEY]: cache,
   });
 }
 
-function parseRgb(
-  value
-) {
-  const match =
-    String(value)
-      .match(
-        /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/
-      );
+function parseRgb(value) {
+  const match = String(value).match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
 
   if (!match) {
     return null;
   }
 
-  return [
-    Number(match[1]),
-    Number(match[2]),
-    Number(match[3]),
-  ];
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
 
 function isDarkTheme() {
-  const html =
-    document.documentElement;
+  const html = document.documentElement;
 
-  const body =
-    document.body;
+  const body = document.body;
 
   if (
-    html.classList
-      .contains("dark") ||
-    body?.classList
-      .contains("dark") ||
-    html.dataset.theme ===
-      "dark" ||
-    body?.dataset.theme ===
-      "dark"
+    html.classList.contains("dark") ||
+    body?.classList.contains("dark") ||
+    html.dataset.theme === "dark" ||
+    body?.dataset.theme === "dark"
   ) {
     return true;
   }
 
-  const scheme =
-    getComputedStyle(
-      html
-    ).colorScheme;
+  const scheme = getComputedStyle(html).colorScheme;
 
-  if (
-    scheme ===
-    "dark"
-  ) {
+  if (scheme === "dark") {
     return true;
   }
 
@@ -515,62 +290,33 @@ function isDarkTheme() {
     return false;
   }
 
-  const rgb =
-    parseRgb(
-      getComputedStyle(
-        body
-      ).backgroundColor
-    );
+  const rgb = parseRgb(getComputedStyle(body).backgroundColor);
 
   if (!rgb) {
     return false;
   }
 
-  const luminance =
-    (
-      0.2126 * rgb[0] +
-      0.7152 * rgb[1] +
-      0.0722 * rgb[2]
-    );
+  const luminance = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
 
-  return (
-    luminance < 128
-  );
+  return luminance < 128;
 }
 
-function applyTheme(
-  host
-) {
+function applyTheme(host) {
   if (!host) {
     return;
   }
 
-  host.dataset.theme =
-    isDarkTheme()
-      ? "dark"
-      : "light";
+  host.dataset.theme = isDarkTheme() ? "dark" : "light";
 }
 
 function syncThemes() {
-  document
-    .querySelectorAll(
-      "[data-covid-kg-verification]"
-    )
-    .forEach(
-      (host) => {
-        applyTheme(
-          host
-        );
-      }
-    );
+  document.querySelectorAll("[data-covid-kg-verification]").forEach((host) => {
+    applyTheme(host);
+  });
 }
 
 function prefersReducedMotion() {
-  return window
-    .matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    )
-    .matches;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 function findComposer() {
@@ -581,28 +327,13 @@ function findComposer() {
     'form [contenteditable="true"]',
   ];
 
-  for (
-    const selector
-    of selectors
-  ) {
-    const elements =
-      document
-        .querySelectorAll(
-          selector
-        );
+  for (const selector of selectors) {
+    const elements = document.querySelectorAll(selector);
 
-    for (
-      const element
-      of elements
-    ) {
-      const rectangle =
-        element
-          .getBoundingClientRect();
+    for (const element of elements) {
+      const rectangle = element.getBoundingClientRect();
 
-      if (
-        rectangle.width > 0 &&
-        rectangle.height > 0
-      ) {
+      if (rectangle.width > 0 && rectangle.height > 0) {
         return element;
       }
     }
@@ -611,463 +342,247 @@ function findComposer() {
   return null;
 }
 
-function getComposerText(
-  element
-) {
+function getComposerText(element) {
   if (
-    element instanceof
-      HTMLTextAreaElement ||
-    element instanceof
-      HTMLInputElement
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLInputElement
   ) {
-    return element.value
-      .trim();
+    return element.value.trim();
   }
 
-  return element.innerText
-    .trim();
+  return element.innerText.trim();
 }
 
-function setTextInputValue(
-  element,
-  text
-) {
+function setTextInputValue(element, text) {
   const prototype =
-    element instanceof
-      HTMLTextAreaElement
-      ? HTMLTextAreaElement
-          .prototype
-      : HTMLInputElement
-          .prototype;
+    element instanceof HTMLTextAreaElement
+      ? HTMLTextAreaElement.prototype
+      : HTMLInputElement.prototype;
 
-  const descriptor =
-    Object
-      .getOwnPropertyDescriptor(
-        prototype,
-        "value"
-      );
+  const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
 
-  descriptor.set.call(
-    element,
-    text
+  descriptor.set.call(element, text);
+
+  element.dispatchEvent(
+    new Event("input", {
+      bubbles: true,
+    }),
   );
 
   element.dispatchEvent(
-    new Event(
-      "input",
-      {
-        bubbles:
-          true,
-      }
-    )
-  );
-
-  element.dispatchEvent(
-    new Event(
-      "change",
-      {
-        bubbles:
-          true,
-      }
-    )
+    new Event("change", {
+      bubbles: true,
+    }),
   );
 }
 
-function setContentEditableValue(
-  element,
-  text
-) {
+function setContentEditableValue(element, text) {
   element.focus();
 
-  const selection =
-    window.getSelection();
+  const selection = window.getSelection();
 
-  const range =
-    document.createRange();
+  const range = document.createRange();
 
-  range.selectNodeContents(
-    element
-  );
+  range.selectNodeContents(element);
 
   selection.removeAllRanges();
 
-  selection.addRange(
-    range
-  );
+  selection.addRange(range);
 
-  const inserted =
-    document.execCommand(
-      "insertText",
-      false,
-      text
-    );
+  const inserted = document.execCommand("insertText", false, text);
 
   if (!inserted) {
-    element.textContent =
-      text;
+    element.textContent = text;
 
     element.dispatchEvent(
-      new InputEvent(
-        "input",
-        {
-          bubbles:
-            true,
-          inputType:
-            "insertText",
-          data:
-            text,
-        }
-      )
+      new InputEvent("input", {
+        bubbles: true,
+        inputType: "insertText",
+        data: text,
+      }),
     );
   }
 }
 
-function setComposerText(
-  element,
-  text
-) {
+function setComposerText(element, text) {
   if (
-    element instanceof
-      HTMLTextAreaElement ||
-    element instanceof
-      HTMLInputElement
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLInputElement
   ) {
-    setTextInputValue(
-      element,
-      text
-    );
+    setTextInputValue(element, text);
 
     return;
   }
 
-  setContentEditableValue(
-    element,
-    text
-  );
+  setContentEditableValue(element, text);
 }
 
-function extractOriginalQuery(
-  text
-) {
-  const originalIndex =
-    text.indexOf(
-      ORIGINAL_QUERY_MARKER
-    );
+function extractOriginalQuery(text) {
+  const originalIndex = text.indexOf(ORIGINAL_QUERY_MARKER);
 
-  const contextIndex =
-    text.indexOf(
-      CONTEXT_MARKER
-    );
+  const contextIndex = text.indexOf(CONTEXT_MARKER);
 
   if (
     originalIndex === -1 ||
     contextIndex === -1 ||
-    contextIndex <=
-      originalIndex
+    contextIndex <= originalIndex
   ) {
     return null;
   }
 
   return text
-    .slice(
-      originalIndex +
-        ORIGINAL_QUERY_MARKER
-          .length,
-      contextIndex
-    )
+    .slice(originalIndex + ORIGINAL_QUERY_MARKER.length, contextIndex)
     .trim();
 }
 
-function normalizeQueryText(
-  text
-) {
-  return (
-    extractOriginalQuery(
-      text
-    ) ||
-    text.trim()
-  );
+function normalizeQueryText(text) {
+  return extractOriginalQuery(text) || text.trim();
 }
 
-async function requestContext(
-  text
-) {
+async function requestContext(text) {
   return sendRuntimeMessage({
-    type:
-      "GET_KG_CONTEXT",
+    type: "GET_KG_CONTEXT",
     text,
   });
 }
 
-async function requestAugmentation(
-  text
-) {
+async function requestAugmentation(text) {
   return sendRuntimeMessage({
-    type:
-      "GET_KG_AUGMENTATION",
+    type: "GET_KG_AUGMENTATION",
     text,
   });
 }
 
-async function requestResponseVerification(
-  question,
-  response
-) {
+async function requestResponseVerification(question, response) {
   return sendRuntimeMessage({
-    type:
-      "VERIFY_KG_RESPONSE",
+    type: "VERIFY_KG_RESPONSE",
     question,
     response,
   });
 }
 
-function extractUserMessageText(
-  element
-) {
-  const content =
-    (
-      element
-        .querySelector(
-          ".whitespace-pre-wrap"
-        ) ||
-      element
-    );
+function extractUserMessageText(element) {
+  const content = element.querySelector(".whitespace-pre-wrap") || element;
 
-  return content.innerText
-    .trim();
+  return content.innerText.trim();
 }
 
-function extractAssistantMessageText(
-  element
-) {
+function extractAssistantMessageText(element) {
   const content =
-    (
-      element
-        .querySelector(
-          ".markdown"
-        ) ||
-      element
-        .querySelector(
-          "[data-message-content]"
-        ) ||
-      element
-        .querySelector(
-          ".whitespace-pre-wrap"
-        )
-    );
+    element.querySelector(".markdown") ||
+    element.querySelector("[data-message-content]") ||
+    element.querySelector(".whitespace-pre-wrap");
 
   if (content) {
-    return content.innerText
-      .trim();
+    return content.innerText.trim();
   }
 
-  const clone =
-    element.cloneNode(
-      true
-    );
+  const clone = element.cloneNode(true);
 
-  clone
-    .querySelectorAll(
-      "[data-covid-kg-verification]"
-    )
-    .forEach(
-      (node) => {
-        node.remove();
-      }
-    );
+  clone.querySelectorAll("[data-covid-kg-verification]").forEach((node) => {
+    node.remove();
+  });
 
-  return clone.innerText
-    .trim();
+  return clone.innerText.trim();
 }
 
-function textHasCovidContext(
-  text
-) {
+function textHasCovidContext(text) {
   if (!text) {
     return false;
   }
 
-  return COVID_CONTEXT_PATTERNS
-    .some(
-      (pattern) =>
-        pattern.test(
-          text
-        )
-    );
+  return COVID_CONTEXT_PATTERNS.some((pattern) => pattern.test(text));
 }
 
 function getConversationMessages() {
-  return Array.from(
-    document
-      .querySelectorAll(
-        "[data-message-author-role]"
-      )
-  );
+  return Array.from(document.querySelectorAll("[data-message-author-role]"));
 }
 
 function getUserMessages() {
   return Array.from(
-    document
-      .querySelectorAll(
-        '[data-message-author-role="user"]'
-      )
+    document.querySelectorAll('[data-message-author-role="user"]'),
   );
 }
 
 function getAssistantMessages() {
   return Array.from(
-    document
-      .querySelectorAll(
-        '[data-message-author-role="assistant"]'
-      )
+    document.querySelectorAll('[data-message-author-role="assistant"]'),
   );
 }
 
-function getRelevantUserMessages(
-  element = null
-) {
-  const messages =
-    getConversationMessages();
+function getRelevantUserMessages(element = null) {
+  const messages = getConversationMessages();
 
-  let endIndex =
-    messages.length;
+  let endIndex = messages.length;
 
   if (element) {
-    const index =
-      messages.indexOf(
-        element
-      );
+    const index = messages.indexOf(element);
 
-    if (
-      index >= 0
-    ) {
-      endIndex =
-        index + 1;
+    if (index >= 0) {
+      endIndex = index + 1;
     }
   }
 
   return messages
-    .slice(
-      0,
-      endIndex
-    )
+    .slice(0, endIndex)
     .filter(
-      (message) =>
-        (
-          message
-            .getAttribute(
-              "data-message-author-role"
-            ) ===
-          "user"
-        )
+      (message) => message.getAttribute("data-message-author-role") === "user",
     )
-    .slice(
-      -CONTEXT_USER_MESSAGE_LIMIT
-    );
+    .slice(-CONTEXT_USER_MESSAGE_LIMIT);
 }
 
-function conversationHasCovidContext(
-  element = null
-) {
-  const userMessages =
-    getRelevantUserMessages(
-      element
-    );
+function conversationHasCovidContext(element = null) {
+  const userMessages = getRelevantUserMessages(element);
 
-  return userMessages.some(
-    (message) =>
-      textHasCovidContext(
-        normalizeQueryText(
-          extractUserMessageText(
-            message
-          )
-        )
-      )
+  return userMessages.some((message) =>
+    textHasCovidContext(normalizeQueryText(extractUserMessageText(message))),
   );
 }
 
 function getLatestUserMessage() {
-  const messages =
-    getUserMessages();
+  const messages = getUserMessages();
 
-  if (
-    messages.length === 0
-  ) {
+  if (messages.length === 0) {
     return null;
   }
 
-  return messages[
-    messages.length - 1
-  ];
+  return messages[messages.length - 1];
 }
 
 function getLatestUserQuery() {
-  const message =
-    getLatestUserMessage();
+  const message = getLatestUserMessage();
 
   if (message) {
-    return normalizeQueryText(
-      extractUserMessageText(
-        message
-      )
-    );
+    return normalizeQueryText(extractUserMessageText(message));
   }
 
-  const composer =
-    findComposer();
+  const composer = findComposer();
 
   if (!composer) {
     return "";
   }
 
-  return normalizeQueryText(
-    getComposerText(
-      composer
-    )
-  );
+  return normalizeQueryText(getComposerText(composer));
 }
 
-function elementComesBefore(
-  first,
-  second
-) {
-  if (
-    !first ||
-    !second ||
-    first === second
-  ) {
+function elementComesBefore(first, second) {
+  if (!first || !second || first === second) {
     return false;
   }
 
   return Boolean(
-    first.compareDocumentPosition(
-      second
-    ) &
-    Node.DOCUMENT_POSITION_FOLLOWING
+    first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING,
   );
 }
 
-function findUserMessageBeforeElement(
-  element
-) {
-  const users =
-    getUserMessages();
+function findUserMessageBeforeElement(element) {
+  const users = getUserMessages();
 
-  let result =
-    null;
+  let result = null;
 
-  for (
-    const user
-    of users
-  ) {
-    if (
-      elementComesBefore(
-        user,
-        element
-      )
-    ) {
-      result =
-        user;
+  for (const user of users) {
+    if (elementComesBefore(user, element)) {
+      result = user;
 
       continue;
     }
@@ -1078,153 +593,81 @@ function findUserMessageBeforeElement(
   return result;
 }
 
-function findQuestionElementForAssistant(
-  element
-) {
-  return findUserMessageBeforeElement(
-    element
-  );
+function findQuestionElementForAssistant(element) {
+  return findUserMessageBeforeElement(element);
 }
 
-function findQuestionForElement(
-  element
-) {
-  const questionElement =
-    findUserMessageBeforeElement(
-      element
-    );
+function findQuestionForElement(element) {
+  const questionElement = findUserMessageBeforeElement(element);
 
   if (!questionElement) {
     return null;
   }
 
-  const text =
-    extractUserMessageText(
-      questionElement
-    );
+  const text = extractUserMessageText(questionElement);
 
   if (!text) {
     return null;
   }
 
-  return normalizeQueryText(
-    text
-  );
+  return normalizeQueryText(text);
 }
 
-function findQuestionForAssistant(
-  element
-) {
-  return findQuestionForElement(
-    element
-  );
+function findQuestionForAssistant(element) {
+  return findQuestionForElement(element);
 }
 
-function isLikelyContextualFollowUp(
-  text
-) {
-  const normalized =
-    String(
-      text ||
-      ""
-    )
-      .trim()
-      .replace(
-        /\s+/g,
-        " "
-      );
+function isLikelyContextualFollowUp(text) {
+  const normalized = String(text || "")
+    .trim()
+    .replace(/\s+/g, " ");
 
   if (!normalized) {
     return false;
   }
 
-  const words =
-    normalized
-      .split(" ")
-      .filter(Boolean);
+  const words = normalized.split(" ").filter(Boolean);
 
-  if (
-    words.length >
-    CONTEXTUAL_FOLLOW_UP_WORD_LIMIT
-  ) {
+  if (words.length > CONTEXTUAL_FOLLOW_UP_WORD_LIMIT) {
     return false;
   }
 
   return (
-    CONTEXTUAL_FOLLOW_UP_PATTERN
-      .test(
-        normalized
-      ) ||
-    CONTEXTUAL_REFERENCE_PATTERN
-      .test(
-        normalized
-      )
+    CONTEXTUAL_FOLLOW_UP_PATTERN.test(normalized) ||
+    CONTEXTUAL_REFERENCE_PATTERN.test(normalized)
   );
 }
 
-function previousTurnHasCovidContext(
-  questionElement
-) {
+function previousTurnHasCovidContext(questionElement) {
   if (!questionElement) {
     return false;
   }
 
-  const messages =
-    getConversationMessages();
+  const messages = getConversationMessages();
 
-  const questionIndex =
-    messages.indexOf(
-      questionElement
-    );
+  const questionIndex = messages.indexOf(questionElement);
 
-  if (
-    questionIndex <= 0
-  ) {
+  if (questionIndex <= 0) {
     return false;
   }
 
-  let checked =
-    0;
+  let checked = 0;
 
-  for (
-    let index =
-      questionIndex - 1;
-    index >= 0 &&
-      checked < 2;
-    index -= 1
-  ) {
-    const role =
-      messages[index]
-        .getAttribute(
-          "data-message-author-role"
-        );
+  for (let index = questionIndex - 1; index >= 0 && checked < 2; index -= 1) {
+    const role = messages[index].getAttribute("data-message-author-role");
 
-    if (
-      role !== "user" &&
-      role !== "assistant"
-    ) {
+    if (role !== "user" && role !== "assistant") {
       continue;
     }
 
-    checked +=
-      1;
+    checked += 1;
 
     const text =
       role === "user"
-        ? normalizeQueryText(
-            extractUserMessageText(
-              messages[index]
-            )
-          )
-        : extractAssistantMessageText(
-            messages[index]
-          );
+        ? normalizeQueryText(extractUserMessageText(messages[index]))
+        : extractAssistantMessageText(messages[index]);
 
-    if (
-      textHasCovidContext(
-        text
-      )
-    ) {
+    if (textHasCovidContext(text)) {
       return true;
     }
   }
@@ -1232,376 +675,185 @@ function previousTurnHasCovidContext(
   return false;
 }
 
-function userTurnHasCovidContext(
-  userElement
-) {
+function userTurnHasCovidContext(userElement) {
   if (!userElement) {
     return false;
   }
 
-  const question =
-    normalizeQueryText(
-      extractUserMessageText(
-        userElement
-      )
-    );
+  const question = normalizeQueryText(extractUserMessageText(userElement));
 
-  if (
-    textHasCovidContext(
-      question
-    )
-  ) {
+  if (textHasCovidContext(question)) {
     return true;
   }
 
   return (
-    isLikelyContextualFollowUp(
-      question
-    ) &&
-    previousTurnHasCovidContext(
-      userElement
-    )
+    isLikelyContextualFollowUp(question) &&
+    previousTurnHasCovidContext(userElement)
   );
 }
 
-function responseSurfaceHasCovidContext(
-  element,
-  question,
-  responseText = ""
-) {
-  if (
-    textHasCovidContext(
-      question
-    )
-  ) {
+function responseSurfaceHasCovidContext(element, question, responseText = "") {
+  if (textHasCovidContext(question)) {
     return true;
   }
 
-  if (
-    textHasCovidContext(
-      responseText
-    )
-  ) {
+  if (textHasCovidContext(responseText)) {
     return true;
   }
 
-  const questionElement =
-    findUserMessageBeforeElement(
-      element
-    );
+  const questionElement = findUserMessageBeforeElement(element);
 
   return (
-    isLikelyContextualFollowUp(
-      question
-    ) &&
-    previousTurnHasCovidContext(
-      questionElement
-    )
+    isLikelyContextualFollowUp(question) &&
+    previousTurnHasCovidContext(questionElement)
   );
 }
 
-function turnHasCovidContext(
-  element
-) {
-  const question =
-    findQuestionForAssistant(
-      element
-    ) || "";
+function turnHasCovidContext(element) {
+  const question = findQuestionForAssistant(element) || "";
 
-  const response =
-    extractAssistantMessageText(
-      element
-    ) || "";
+  const response = extractAssistantMessageText(element) || "";
 
-  return responseSurfaceHasCovidContext(
-    element,
-    question,
-    response
-  );
+  return responseSurfaceHasCovidContext(element, question, response);
 }
 
-function normalizeHostNonAnswerText(
-  text
-) {
-  return String(
-    text ||
-    ""
-  )
-    .replace(
-      /’/g,
-      "'"
-    )
-    .replace(
-      /\s+/g,
-      " "
-    )
+function normalizeHostNonAnswerText(text) {
+  return String(text || "")
+    .replace(/’/g, "'")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
-function isHostNonAnswer(
-  text
-) {
-  const normalized =
-    normalizeHostNonAnswerText(
-      text
-    );
+function isHostNonAnswer(text) {
+  const normalized = normalizeHostNonAnswerText(text);
 
   if (!normalized) {
     return false;
   }
 
   const hasTitle =
-    (
-      /this content can't be shown/i
-        .test(
-          normalized
-        ) ||
-      /this content cannot be shown/i
-        .test(
-          normalized
-        )
-    );
+    /this content can't be shown/i.test(normalized) ||
+    /this content cannot be shown/i.test(normalized);
 
   if (!hasTitle) {
     return false;
   }
 
-  let supportingMatches =
-    0;
+  let supportingMatches = 0;
 
-  for (
-    const pattern
-    of HOST_NON_ANSWER_PATTERNS
-  ) {
-    if (
-      pattern.test(
-        normalized
-      )
-    ) {
-      supportingMatches +=
-        1;
+  for (const pattern of HOST_NON_ANSWER_PATTERNS) {
+    if (pattern.test(normalized)) {
+      supportingMatches += 1;
     }
   }
 
-  return (
-    supportingMatches >= 2
-  );
+  return supportingMatches >= 2;
 }
 
 function findHostNonAnswerSurfaces() {
-  const root =
-    document.querySelector(
-      "main"
-    ) ||
-    document.body;
+  const root = document.querySelector("main") || document.body;
 
   if (!root) {
     return [];
   }
 
-  const elements =
-    Array.from(
-      root.querySelectorAll(
-        [
-          '[data-testid^="conversation-turn-"]',
-          "article",
-          "section",
-          "div",
-        ].join(",")
-      )
+  const elements = Array.from(
+    root.querySelectorAll(
+      ['[data-testid^="conversation-turn-"]', "article", "section", "div"].join(
+        ",",
+      ),
+    ),
+  );
+
+  const candidates = elements.filter((element) => {
+    if (
+      element.matches('[data-message-author-role="assistant"]') ||
+      element.querySelector('[data-message-author-role="assistant"]')
+    ) {
+      return false;
+    }
+
+    const text = element.textContent?.trim() || "";
+
+    if (text.length < 40 || text.length > 1800) {
+      return false;
+    }
+
+    return isHostNonAnswer(text);
+  });
+
+  const minimal = candidates.filter(
+    (candidate) =>
+      !candidates.some(
+        (other) => other !== candidate && candidate.contains(other),
+      ),
+  );
+
+  const surfaces = [];
+
+  const seen = new Set();
+
+  for (const candidate of minimal) {
+    const turn = candidate.closest(
+      ['[data-testid^="conversation-turn-"]', "article"].join(","),
     );
-
-  const candidates =
-    elements.filter(
-      (element) => {
-        if (
-          element.matches(
-            '[data-message-author-role="assistant"]'
-          ) ||
-          element.querySelector(
-            '[data-message-author-role="assistant"]'
-          )
-        ) {
-          return false;
-        }
-
-        const text =
-          element.textContent
-            ?.trim() ||
-          "";
-
-        if (
-          text.length < 40 ||
-          text.length > 1800
-        ) {
-          return false;
-        }
-
-        return isHostNonAnswer(
-          text
-        );
-      }
-    );
-
-  const minimal =
-    candidates.filter(
-      (candidate) =>
-        !candidates.some(
-          (other) =>
-            (
-              other !==
-                candidate &&
-              candidate.contains(
-                other
-              )
-            )
-        )
-    );
-
-  const surfaces =
-    [];
-
-  const seen =
-    new Set();
-
-  for (
-    const candidate
-    of minimal
-  ) {
-    const turn =
-      candidate.closest(
-        [
-          '[data-testid^="conversation-turn-"]',
-          "article",
-        ].join(",")
-      );
 
     const surface =
-      (
-        turn &&
-        isHostNonAnswer(
-          turn.textContent ||
-          ""
-        )
-      )
-        ? turn
-        : candidate;
+      turn && isHostNonAnswer(turn.textContent || "") ? turn : candidate;
 
-    if (
-      seen.has(
-        surface
-      )
-    ) {
+    if (seen.has(surface)) {
       continue;
     }
 
-    seen.add(
-      surface
-    );
+    seen.add(surface);
 
-    surfaces.push(
-      surface
-    );
+    surfaces.push(surface);
   }
 
-  return surfaces.sort(
-    (
-      first,
-      second
-    ) => {
-      if (
-        elementComesBefore(
-          first,
-          second
-        )
-      ) {
-        return -1;
-      }
-
-      if (
-        elementComesBefore(
-          second,
-          first
-        )
-      ) {
-        return 1;
-      }
-
-      return 0;
+  return surfaces.sort((first, second) => {
+    if (elementComesBefore(first, second)) {
+      return -1;
     }
-  );
+
+    if (elementComesBefore(second, first)) {
+      return 1;
+    }
+
+    return 0;
+  });
 }
 
-function getNextUserMessage(
-  userElement
-) {
-  const users =
-    getUserMessages();
+function getNextUserMessage(userElement) {
+  const users = getUserMessages();
 
-  const index =
-    users.indexOf(
-      userElement
-    );
+  const index = users.indexOf(userElement);
 
-  if (
-    index === -1 ||
-    index >=
-      users.length - 1
-  ) {
+  if (index === -1 || index >= users.length - 1) {
     return null;
   }
 
-  return users[
-    index + 1
-  ];
+  return users[index + 1];
 }
 
-function elementBelongsToUserTurn(
-  element,
-  userElement
-) {
-  if (
-    !element ||
-    !userElement ||
-    !elementComesBefore(
-      userElement,
-      element
-    )
-  ) {
+function elementBelongsToUserTurn(element, userElement) {
+  if (!element || !userElement || !elementComesBefore(userElement, element)) {
     return false;
   }
 
-  const nextUser =
-    getNextUserMessage(
-      userElement
-    );
+  const nextUser = getNextUserMessage(userElement);
 
   if (!nextUser) {
     return true;
   }
 
-  return elementComesBefore(
-    element,
-    nextUser
-  );
+  return elementComesBefore(element, nextUser);
 }
 
-function findAssistantForUserTurn(
-  userElement
-) {
-  const assistants =
-    getAssistantMessages();
+function findAssistantForUserTurn(userElement) {
+  const assistants = getAssistantMessages();
 
-  for (
-    const assistant
-    of assistants
-  ) {
-    if (
-      elementBelongsToUserTurn(
-        assistant,
-        userElement
-      )
-    ) {
+  for (const assistant of assistants) {
+    if (elementBelongsToUserTurn(assistant, userElement)) {
       return assistant;
     }
   }
@@ -1609,22 +861,11 @@ function findAssistantForUserTurn(
   return null;
 }
 
-function findNonAnswerForUserTurn(
-  userElement
-) {
-  const surfaces =
-    findHostNonAnswerSurfaces();
+function findNonAnswerForUserTurn(userElement) {
+  const surfaces = findHostNonAnswerSurfaces();
 
-  for (
-    const surface
-    of surfaces
-  ) {
-    if (
-      elementBelongsToUserTurn(
-        surface,
-        userElement
-      )
-    ) {
+  for (const surface of surfaces) {
+    if (elementBelongsToUserTurn(surface, userElement)) {
       return surface;
     }
   }
@@ -1633,73 +874,37 @@ function findNonAnswerForUserTurn(
 }
 
 function getResponseSurfaces() {
-  const surfaces =
-    [];
+  const surfaces = [];
 
-  for (
-    const element
-    of getAssistantMessages()
-  ) {
+  for (const element of getAssistantMessages()) {
     surfaces.push({
-      kind:
-        "assistant",
+      kind: "assistant",
       element,
-      question:
-        findQuestionForElement(
-          element
-        ),
-      response:
-        extractAssistantMessageText(
-          element
-        ),
+      question: findQuestionForElement(element),
+      response: extractAssistantMessageText(element),
     });
   }
 
-  for (
-    const element
-    of findHostNonAnswerSurfaces()
-  ) {
+  for (const element of findHostNonAnswerSurfaces()) {
     surfaces.push({
-      kind:
-        "non_answer",
+      kind: "non_answer",
       element,
-      question:
-        findQuestionForElement(
-          element
-        ),
-      response:
-        normalizeHostNonAnswerText(
-          element.textContent
-        ),
+      question: findQuestionForElement(element),
+      response: normalizeHostNonAnswerText(element.textContent),
     });
   }
 
-  surfaces.sort(
-    (
-      first,
-      second
-    ) => {
-      if (
-        elementComesBefore(
-          first.element,
-          second.element
-        )
-      ) {
-        return -1;
-      }
-
-      if (
-        elementComesBefore(
-          second.element,
-          first.element
-        )
-      ) {
-        return 1;
-      }
-
-      return 0;
+  surfaces.sort((first, second) => {
+    if (elementComesBefore(first.element, second.element)) {
+      return -1;
     }
-  );
+
+    if (elementComesBefore(second.element, first.element)) {
+      return 1;
+    }
+
+    return 0;
+  });
 
   return surfaces;
 }
@@ -1711,20 +916,12 @@ function assistantGenerationInProgress() {
     'button[aria-label="Stop streaming"]',
   ];
 
-  return selectors.some(
-    (selector) =>
-      Boolean(
-        document
-          .querySelector(
-            selector
-          )
-      )
+  return selectors.some((selector) =>
+    Boolean(document.querySelector(selector)),
   );
 }
 
-function statusClass(
-  status
-) {
+function statusClass(status) {
   switch (status) {
     case "SUPPORTED":
       return "supported";
@@ -1746,36 +943,23 @@ function statusClass(
   }
 }
 
-function statusLabel(
-  status
-) {
+function statusLabel(status) {
   switch (status) {
     case "INSUFFICIENT_EVIDENCE":
-      return (
-        "INSUFFICIENT EVIDENCE"
-      );
+      return "INSUFFICIENT EVIDENCE";
 
     case "NOT_VERIFIABLE_WITH_CURRENT_KG":
-      return (
-        "NOT VERIFIABLE"
-      );
+      return "NOT VERIFIABLE";
 
     case "NO_FACTUAL_CLAIMS":
-      return (
-        "NO FACTUAL CLAIMS"
-      );
+      return "NO FACTUAL CLAIMS";
 
     default:
-      return (
-        status ||
-        "UNKNOWN"
-      );
+      return status || "UNKNOWN";
   }
 }
 
-function humanStatusLabel(
-  status
-) {
+function humanStatusLabel(status) {
   switch (status) {
     case "SUPPORTED":
       return "Supported";
@@ -1790,270 +974,127 @@ function humanStatusLabel(
       return "Not verifiable";
 
     default:
-      return statusLabel(
-        status
-      );
+      return statusLabel(status);
   }
 }
 
-function percent(
-  value
-) {
-  if (
-    value === null ||
-    value ===
-      undefined ||
-    Number.isNaN(
-      Number(value)
-    )
-  ) {
+function percent(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) {
     return null;
   }
 
-  return `${Math.round(
-    Number(value) *
-      100
-  )}%`;
+  return `${Math.round(Number(value) * 100)}%`;
 }
 
-function confidenceLevel(
-  confidence
-) {
-  const value =
-    confidence?.level
-      ? String(
-          confidence.level
-        )
-      : "";
+function confidenceLevel(confidence) {
+  const value = confidence?.level ? String(confidence.level) : "";
 
   if (!value) {
     return "Unknown";
   }
 
-  return (
-    value
-      .charAt(0)
-      .toUpperCase() +
-    value
-      .slice(1)
-      .toLowerCase()
-  );
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 }
 
-function displaySourceName(
-  value
-) {
+function displaySourceName(value) {
   if (!value) {
-    return (
-      "Knowledge Graph"
-    );
+    return "Knowledge Graph";
   }
 
-  const normalized =
-    String(value)
-      .trim()
-      .toLowerCase();
+  const normalized = String(value).trim().toLowerCase();
 
-  if (
-    normalized
-      .includes("who") ||
-    normalized
-      .includes("sago")
-  ) {
+  if (normalized.includes("who") || normalized.includes("sago")) {
     return "WHO";
   }
 
-  if (
-    normalized
-      .includes(
-        "chembl"
-      )
-  ) {
+  if (normalized.includes("chembl")) {
     return "ChEMBL";
   }
 
-  if (
-    normalized
-      .includes(
-        "monarch"
-      )
-  ) {
+  if (normalized.includes("monarch")) {
     return "Monarch";
   }
 
   return String(value);
 }
 
-function getNormalHostTarget(
-  element
-) {
+function getNormalHostTarget(element) {
   const content =
-    (
-      element
-        .querySelector(
-          ".markdown"
-        ) ||
-      element
-        .querySelector(
-          "[data-message-content]"
-        ) ||
-      element
-        .querySelector(
-          ".whitespace-pre-wrap"
-        )
-    );
+    element.querySelector(".markdown") ||
+    element.querySelector("[data-message-content]") ||
+    element.querySelector(".whitespace-pre-wrap");
 
-  return (
-    content &&
-    content.parentElement
-  )
-    ? content.parentElement
-    : element;
+  return content && content.parentElement ? content.parentElement : element;
 }
 
-function placeHost(
-  host,
-  element,
-  options = {}
-) {
-  if (
-    options.after
-  ) {
-    if (
-      host.previousElementSibling !==
-      element
-    ) {
-      element.insertAdjacentElement(
-        "afterend",
-        host
-      );
+function placeHost(host, element, options = {}) {
+  if (options.after) {
+    if (host.previousElementSibling !== element) {
+      element.insertAdjacentElement("afterend", host);
     }
 
     return;
   }
 
-  const target =
-    getNormalHostTarget(
-      element
-    );
+  const target = getNormalHostTarget(element);
 
-  if (
-    host.parentElement !==
-    target
-  ) {
-    target.appendChild(
-      host
-    );
+  if (host.parentElement !== target) {
+    target.appendChild(host);
   }
 }
 
-function createVerificationHost(
-  element,
-  options = {}
-) {
-  const mapped =
-    verificationHosts.get(
-      element
-    );
+function createVerificationHost(element, options = {}) {
+  const mapped = verificationHosts.get(element);
 
-  if (
-    mapped &&
-    mapped.isConnected
-  ) {
-    placeHost(
-      mapped,
-      element,
-      options
-    );
+  if (mapped && mapped.isConnected) {
+    placeHost(mapped, element, options);
 
-    applyTheme(
-      mapped
-    );
+    applyTheme(mapped);
 
     return mapped;
   }
 
-  const descendant =
-    element.querySelector?.(
-      "[data-covid-kg-verification]"
-    );
+  const descendant = element.querySelector?.("[data-covid-kg-verification]");
 
   if (descendant) {
-    verificationHosts.set(
-      element,
-      descendant
-    );
+    verificationHosts.set(element, descendant);
 
-    applyTheme(
-      descendant
-    );
+    applyTheme(descendant);
 
     return descendant;
   }
 
-  if (
-    element.nextElementSibling
-      ?.matches(
-        "[data-covid-kg-verification]"
-      )
-  ) {
-    const sibling =
-      element.nextElementSibling;
+  if (element.nextElementSibling?.matches("[data-covid-kg-verification]")) {
+    const sibling = element.nextElementSibling;
 
-    verificationHosts.set(
-      element,
-      sibling
-    );
+    verificationHosts.set(element, sibling);
 
-    applyTheme(
-      sibling
-    );
+    applyTheme(sibling);
 
     return sibling;
   }
 
-  const host =
-    document.createElement(
-      "div"
-    );
+  const host = document.createElement("div");
 
-  host.setAttribute(
-    "data-covid-kg-verification",
-    "true"
-  );
+  host.setAttribute("data-covid-kg-verification", "true");
 
-  host.style.display =
-    "block";
+  host.style.display = "block";
 
-  host.style.width =
-    "100%";
+  host.style.width = "100%";
 
-  host.style.maxWidth =
-    "50rem";
+  host.style.maxWidth = "50rem";
 
-  host.style.marginTop =
-    "14px";
+  host.style.marginTop = "14px";
 
-  applyTheme(
-    host
-  );
+  applyTheme(host);
 
-  placeHost(
-    host,
-    element,
-    options
-  );
+  placeHost(host, element, options);
 
-  verificationHosts.set(
-    element,
-    host
-  );
+  verificationHosts.set(element, host);
 
-  const shadow =
-    host.attachShadow({
-      mode:
-        "open",
-    });
+  const shadow = host.attachShadow({
+    mode: "open",
+  });
 
   shadow.innerHTML = `
     <style>
@@ -3053,48 +2094,25 @@ function createVerificationHost(
   return host;
 }
 
-function getVerificationHost(
-  element
-) {
-  const mapped =
-    verificationHosts.get(
-      element
-    );
+function getVerificationHost(element) {
+  const mapped = verificationHosts.get(element);
 
-  if (
-    mapped &&
-    mapped.isConnected
-  ) {
+  if (mapped && mapped.isConnected) {
     return mapped;
   }
 
-  const descendant =
-    element.querySelector?.(
-      "[data-covid-kg-verification]"
-    );
+  const descendant = element.querySelector?.("[data-covid-kg-verification]");
 
   if (descendant) {
-    verificationHosts.set(
-      element,
-      descendant
-    );
+    verificationHosts.set(element, descendant);
 
     return descendant;
   }
 
-  if (
-    element.nextElementSibling
-      ?.matches(
-        "[data-covid-kg-verification]"
-      )
-  ) {
-    const sibling =
-      element.nextElementSibling;
+  if (element.nextElementSibling?.matches("[data-covid-kg-verification]")) {
+    const sibling = element.nextElementSibling;
 
-    verificationHosts.set(
-      element,
-      sibling
-    );
+    verificationHosts.set(element, sibling);
 
     return sibling;
   }
@@ -3102,510 +2120,277 @@ function getVerificationHost(
   return null;
 }
 
-function removeVerificationHost(
-  element
-) {
-  const host =
-    getVerificationHost(
-      element
-    );
+function removeVerificationHost(element) {
+  const host = getVerificationHost(element);
 
   if (host) {
     host.remove();
   }
 
-  verificationHosts.delete(
-    element
-  );
+  verificationHosts.delete(element);
 }
 
-function transferVerificationHost(
-  fromElement,
-  toElement,
-  options = {}
-) {
-  if (
-    !fromElement ||
-    !toElement ||
-    fromElement ===
-      toElement
-  ) {
+function transferVerificationHost(fromElement, toElement, options = {}) {
+  if (!fromElement || !toElement || fromElement === toElement) {
     return null;
   }
 
-  const host =
-    getVerificationHost(
-      fromElement
-    );
+  const host = getVerificationHost(fromElement);
 
   if (!host) {
     return null;
   }
 
-  verificationHosts.delete(
-    fromElement
-  );
+  verificationHosts.delete(fromElement);
 
-  verificationHosts.set(
-    toElement,
-    host
-  );
+  verificationHosts.set(toElement, host);
 
-  delete host.dataset
-    .kgPending;
+  delete host.dataset.kgPending;
 
-  placeHost(
-    host,
-    toElement,
-    options
-  );
+  placeHost(host, toElement, options);
 
-  applyTheme(
-    host
-  );
+  applyTheme(host);
 
   return host;
 }
 
-function adoptPendingHostForAssistant(
-  assistantElement
-) {
-  const questionElement =
-    findQuestionElementForAssistant(
-      assistantElement
-    );
+function adoptPendingHostForAssistant(assistantElement) {
+  const questionElement = findQuestionElementForAssistant(assistantElement);
 
   if (!questionElement) {
     return;
   }
 
-  const host =
-    getVerificationHost(
-      questionElement
-    );
+  const host = getVerificationHost(questionElement);
 
-  if (
-    !host ||
-    host.dataset.kgPending !==
-      "true"
-  ) {
+  if (!host || host.dataset.kgPending !== "true") {
     return;
   }
 
-  transferVerificationHost(
-    questionElement,
-    assistantElement
-  );
+  transferVerificationHost(questionElement, assistantElement);
 }
 
-function adoptPendingHostForNonAnswer(
-  surface
-) {
-  const questionElement =
-    findUserMessageBeforeElement(
-      surface
-    );
+function adoptPendingHostForNonAnswer(surface) {
+  const questionElement = findUserMessageBeforeElement(surface);
 
   if (!questionElement) {
     return;
   }
 
-  const host =
-    getVerificationHost(
-      questionElement
-    );
+  const host = getVerificationHost(questionElement);
 
-  if (
-    !host ||
-    host.dataset.kgPending !==
-      "true"
-  ) {
+  if (!host || host.dataset.kgPending !== "true") {
     return;
   }
 
-  transferVerificationHost(
-    questionElement,
-    surface,
-    {
-      after:
-        true,
-    }
-  );
+  transferVerificationHost(questionElement, surface, {
+    after: true,
+  });
 }
 
-function cancelCardAnimations(
-  card
-) {
-  card
-    .getAnimations()
-    .forEach(
-      (animation) => {
-        animation.cancel();
-      }
-    );
+function cancelCardAnimations(card) {
+  card.getAnimations().forEach((animation) => {
+    animation.cancel();
+  });
 
-  const child =
-    card.firstElementChild;
+  const child = card.firstElementChild;
 
   if (child) {
-    child
-      .getAnimations()
-      .forEach(
-        (animation) => {
-          animation.cancel();
-        }
-      );
+    child.getAnimations().forEach((animation) => {
+      animation.cancel();
+    });
   }
 }
 
-function swapCardContent(
-  card,
-  content,
-  className = "card"
-) {
-  const oldContent =
-    card.firstElementChild;
+function swapCardContent(card, content, className = "card") {
+  const oldContent = card.firstElementChild;
 
-  if (
-    !oldContent ||
-    prefersReducedMotion()
-  ) {
-    cancelCardAnimations(
-      card
-    );
+  if (!oldContent || prefersReducedMotion()) {
+    cancelCardAnimations(card);
 
-    card.style.height =
-      "";
+    card.style.height = "";
 
-    card.style.transition =
-      "";
+    card.style.transition = "";
 
-    card.style.overflow =
-      "";
+    card.style.overflow = "";
 
-    card.className =
-      className;
+    card.className = className;
 
-    card.replaceChildren(
-      content
-    );
+    card.replaceChildren(content);
 
     return;
   }
 
   const compactToCompact =
-    (
-      card.classList
-        .contains(
-          "compact-state"
-        ) &&
-      className.includes(
-        "compact-state"
-      )
-    );
+    card.classList.contains("compact-state") &&
+    className.includes("compact-state");
 
-  if (
-    compactToCompact
-  ) {
-    card.className =
-      className;
+  if (compactToCompact) {
+    card.className = className;
 
-    card.replaceChildren(
-      content
-    );
+    card.replaceChildren(content);
 
     content.animate(
       [
         {
-          opacity:
-            0.55,
+          opacity: 0.55,
         },
         {
-          opacity:
-            1,
+          opacity: 1,
         },
       ],
       {
-        duration:
-          100,
-        easing:
-          "ease-out",
-      }
+        duration: 100,
+        easing: "ease-out",
+      },
     );
 
     return;
   }
 
-  const transitionId =
-    (
-      Number(
-        card.dataset
-          .kgTransitionId ||
-        0
-      ) + 1
-    );
+  const transitionId = Number(card.dataset.kgTransitionId || 0) + 1;
 
-  card.dataset
-    .kgTransitionId =
-    String(
-      transitionId
-    );
+  card.dataset.kgTransitionId = String(transitionId);
 
-  cancelCardAnimations(
-    card
+  cancelCardAnimations(card);
+
+  const oldHeight = card.getBoundingClientRect().height;
+
+  card.style.transition = "none";
+
+  card.style.height = `${oldHeight}px`;
+
+  card.style.overflow = "hidden";
+
+  const fadeOut = oldContent.animate(
+    [
+      {
+        opacity: 1,
+        transform: "translateY(0px)",
+      },
+      {
+        opacity: 0,
+        transform: "translateY(-2px)",
+      },
+    ],
+    {
+      duration: CONTENT_FADE_OUT_MS,
+      easing: "ease-out",
+      fill: "forwards",
+    },
   );
 
-  const oldHeight =
-    card.getBoundingClientRect()
-      .height;
+  const replace = () => {
+    if (Number(card.dataset.kgTransitionId) !== transitionId) {
+      return;
+    }
 
-  card.style.transition =
-    "none";
+    card.className = className;
 
-  card.style.height =
-    `${oldHeight}px`;
+    content.style.opacity = "0";
 
-  card.style.overflow =
-    "hidden";
+    content.style.transform = "translateY(4px)";
 
-  const fadeOut =
-    oldContent.animate(
-      [
-        {
-          opacity:
-            1,
-          transform:
-            "translateY(0px)",
-        },
-        {
-          opacity:
-            0,
-          transform:
-            "translateY(-2px)",
-        },
-      ],
-      {
-        duration:
-          CONTENT_FADE_OUT_MS,
-        easing:
-          "ease-out",
-        fill:
-          "forwards",
-      }
-    );
+    card.replaceChildren(content);
 
-  const replace =
-    () => {
-      if (
-        Number(
-          card.dataset
-            .kgTransitionId
-        ) !==
-        transitionId
-      ) {
+    const newHeight = card.scrollHeight;
+
+    card.getBoundingClientRect();
+
+    requestAnimationFrame(() => {
+      if (Number(card.dataset.kgTransitionId) !== transitionId) {
         return;
       }
 
-      card.className =
-        className;
+      card.style.transition =
+        `height ${CARD_RESIZE_MS}ms ` +
+        "cubic-bezier(0.2, 0.8, 0.2, 1), " +
+        `border-radius ${CARD_RESIZE_MS}ms ease`;
 
-      content.style.opacity =
-        "0";
+      card.style.height = `${newHeight}px`;
 
-      content.style.transform =
-        "translateY(4px)";
-
-      card.replaceChildren(
-        content
+      const fadeIn = content.animate(
+        [
+          {
+            opacity: 0,
+            transform: "translateY(4px)",
+          },
+          {
+            opacity: 1,
+            transform: "translateY(0px)",
+          },
+        ],
+        {
+          duration: CONTENT_FADE_IN_MS,
+          delay: 20,
+          easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          fill: "forwards",
+        },
       );
 
-      const newHeight =
-        card.scrollHeight;
-
-      card.getBoundingClientRect();
-
-      requestAnimationFrame(
-        () => {
-          if (
-            Number(
-              card.dataset
-                .kgTransitionId
-            ) !==
-            transitionId
-          ) {
+      fadeIn.finished
+        .catch(() => {})
+        .finally(() => {
+          if (Number(card.dataset.kgTransitionId) !== transitionId) {
             return;
           }
 
-          card.style.transition =
-            (
-              `height ${CARD_RESIZE_MS}ms ` +
-              "cubic-bezier(0.2, 0.8, 0.2, 1), " +
-              `border-radius ${CARD_RESIZE_MS}ms ease`
-            );
+          content.style.opacity = "";
 
-          card.style.height =
-            `${newHeight}px`;
+          content.style.transform = "";
+        });
 
-          const fadeIn =
-            content.animate(
-              [
-                {
-                  opacity:
-                    0,
-                  transform:
-                    "translateY(4px)",
-                },
-                {
-                  opacity:
-                    1,
-                  transform:
-                    "translateY(0px)",
-                },
-              ],
-              {
-                duration:
-                  CONTENT_FADE_IN_MS,
-                delay:
-                  20,
-                easing:
-                  "cubic-bezier(0.2, 0.8, 0.2, 1)",
-                fill:
-                  "forwards",
-              }
-            );
-
-          fadeIn.finished
-            .catch(
-              () => {}
-            )
-            .finally(
-              () => {
-                if (
-                  Number(
-                    card.dataset
-                      .kgTransitionId
-                  ) !==
-                  transitionId
-                ) {
-                  return;
-                }
-
-                content.style.opacity =
-                  "";
-
-                content.style.transform =
-                  "";
-              }
-            );
-
-          setTimeout(
-            () => {
-              if (
-                Number(
-                  card.dataset
-                    .kgTransitionId
-                ) !==
-                transitionId
-              ) {
-                return;
-              }
-
-              card.style.height =
-                "";
-
-              card.style.transition =
-                "";
-
-              card.style.overflow =
-                "";
-            },
-            CARD_RESIZE_MS + 60
-          );
+      setTimeout(() => {
+        if (Number(card.dataset.kgTransitionId) !== transitionId) {
+          return;
         }
-      );
-    };
 
-  fadeOut.finished
-    .then(
-      replace
-    )
-    .catch(
-      replace
-    );
+        card.style.height = "";
+
+        card.style.transition = "";
+
+        card.style.overflow = "";
+      }, CARD_RESIZE_MS + 60);
+    });
+  };
+
+  fadeOut.finished.then(replace).catch(replace);
 }
 
 function createThinkingDots() {
-  const dots =
-    createElement(
-      "span",
-      "thinking-dots"
-    );
+  const dots = createElement("span", "thinking-dots");
 
-  for (
-    let index = 0;
-    index < 3;
-    index += 1
-  ) {
-    dots.appendChild(
-      createElement(
-        "span",
-        "thinking-dot"
-      )
-    );
+  for (let index = 0; index < 3; index += 1) {
+    dots.appendChild(createElement("span", "thinking-dot"));
   }
 
   return dots;
 }
 
-function resetNestedDisclosures(
-  wrapper
-) {
-  wrapper
-    .querySelectorAll(
-      ".disclosure.open"
-    )
-    .forEach(
-      (nested) => {
-        if (
-          nested === wrapper
-        ) {
-          return;
-        }
+function resetNestedDisclosures(wrapper) {
+  wrapper.querySelectorAll(".disclosure.open").forEach((nested) => {
+    if (nested === wrapper) {
+      return;
+    }
 
-        nested.classList
-          .remove(
-            "open"
-          );
+    nested.classList.remove("open");
 
-        const button =
-          nested.querySelector(
-            ":scope > .disclosure-toggle"
-          );
+    const button = nested.querySelector(":scope > .disclosure-toggle");
 
-        const panel =
-          nested.querySelector(
-            ":scope > .disclosure-panel"
-          );
+    const panel = nested.querySelector(":scope > .disclosure-panel");
 
-        if (button) {
-          button.setAttribute(
-            "aria-expanded",
-            "false"
-          );
-        }
+    if (button) {
+      button.setAttribute("aria-expanded", "false");
+    }
 
-        if (panel) {
-          panel.style.height =
-            "0px";
+    if (panel) {
+      panel.style.height = "0px";
 
-          panel.style.opacity =
-            "0";
+      panel.style.opacity = "0";
 
-          panel.style.transition =
-            "";
-        }
-      }
-    );
+      panel.style.transition = "";
+    }
+  });
 }
 
 function setDisclosureOpen(
@@ -3614,586 +2399,280 @@ function setDisclosureOpen(
   panel,
   labelElement,
   options,
-  open
+  open,
 ) {
-  const currentOpen =
-    wrapper.classList
-      .contains(
-        "open"
-      );
+  const currentOpen = wrapper.classList.contains("open");
 
-  if (
-    currentOpen === open
-  ) {
+  if (currentOpen === open) {
     return;
   }
 
-  if (
-    options.openLabel &&
-    options.closedLabel
-  ) {
-    labelElement.textContent =
-      open
-        ? options.openLabel
-        : options.closedLabel;
+  if (options.openLabel && options.closedLabel) {
+    labelElement.textContent = open ? options.openLabel : options.closedLabel;
   }
 
-  button.setAttribute(
-    "aria-expanded",
-    open
-      ? "true"
-      : "false"
-  );
+  button.setAttribute("aria-expanded", open ? "true" : "false");
 
-  if (
-    !open &&
-    options.resetChildrenOnClose
-  ) {
-    resetNestedDisclosures(
-      wrapper
-    );
+  if (!open && options.resetChildrenOnClose) {
+    resetNestedDisclosures(wrapper);
   }
 
-  if (
-    prefersReducedMotion()
-  ) {
-    wrapper.classList
-      .toggle(
-        "open",
-        open
-      );
+  if (prefersReducedMotion()) {
+    wrapper.classList.toggle("open", open);
 
-    panel.style.height =
-      open
-        ? "auto"
-        : "0px";
+    panel.style.height = open ? "auto" : "0px";
 
-    panel.style.opacity =
-      open
-        ? "1"
-        : "0";
+    panel.style.opacity = open ? "1" : "0";
 
     return;
   }
 
   panel.style.transition =
-    (
-      `height ${DISCLOSURE_MS}ms ` +
-      "cubic-bezier(0.2, 0.8, 0.2, 1), " +
-      "opacity 85ms ease"
-    );
+    `height ${DISCLOSURE_MS}ms ` +
+    "cubic-bezier(0.2, 0.8, 0.2, 1), " +
+    "opacity 85ms ease";
 
   if (open) {
-    wrapper.classList
-      .add(
-        "open"
-      );
+    wrapper.classList.add("open");
 
-    panel.style.height =
-      "0px";
+    panel.style.height = "0px";
 
-    panel.style.opacity =
-      "0";
+    panel.style.opacity = "0";
 
     panel.getBoundingClientRect();
 
-    const targetHeight =
-      panel.scrollHeight;
+    const targetHeight = panel.scrollHeight;
 
-    requestAnimationFrame(
-      () => {
-        panel.style.height =
-          `${targetHeight}px`;
+    requestAnimationFrame(() => {
+      panel.style.height = `${targetHeight}px`;
 
-        panel.style.opacity =
-          "1";
+      panel.style.opacity = "1";
+    });
+
+    const finish = (event) => {
+      if (event.propertyName !== "height") {
+        return;
       }
-    );
 
-    const finish =
-      (event) => {
-        if (
-          event.propertyName !==
-          "height"
-        ) {
-          return;
-        }
+      panel.style.height = "auto";
 
-        panel.style.height =
-          "auto";
+      panel.style.transition = "";
 
-        panel.style.transition =
-          "";
+      panel.removeEventListener("transitionend", finish);
+    };
 
-        panel.removeEventListener(
-          "transitionend",
-          finish
-        );
-      };
-
-    panel.addEventListener(
-      "transitionend",
-      finish
-    );
+    panel.addEventListener("transitionend", finish);
 
     return;
   }
 
-  const currentHeight =
-    panel.getBoundingClientRect()
-      .height;
+  const currentHeight = panel.getBoundingClientRect().height;
 
-  panel.style.height =
-    `${currentHeight}px`;
+  panel.style.height = `${currentHeight}px`;
 
-  panel.style.opacity =
-    "1";
+  panel.style.opacity = "1";
 
   panel.getBoundingClientRect();
 
-  wrapper.classList
-    .remove(
-      "open"
-    );
+  wrapper.classList.remove("open");
 
-  requestAnimationFrame(
-    () => {
-      panel.style.height =
-        "0px";
+  requestAnimationFrame(() => {
+    panel.style.height = "0px";
 
-      panel.style.opacity =
-        "0";
+    panel.style.opacity = "0";
+  });
+
+  const finish = (event) => {
+    if (event.propertyName !== "height") {
+      return;
     }
-  );
 
-  const finish =
-    (event) => {
-      if (
-        event.propertyName !==
-        "height"
-      ) {
-        return;
-      }
+    panel.style.transition = "";
 
-      panel.style.transition =
-        "";
+    panel.removeEventListener("transitionend", finish);
+  };
 
-      panel.removeEventListener(
-        "transitionend",
-        finish
-      );
-    };
-
-  panel.addEventListener(
-    "transitionend",
-    finish
-  );
+  panel.addEventListener("transitionend", finish);
 }
 
-function createDisclosure(
-  label,
-  content,
-  options = {}
-) {
-  const wrapper =
-    createElement(
-      "div",
-      (
-        "disclosure " +
-        (
-          options.className ||
-          ""
-        )
-      ).trim()
+function createDisclosure(label, content, options = {}) {
+  const wrapper = createElement(
+    "div",
+    ("disclosure " + (options.className || "")).trim(),
+  );
+
+  const button = createElement("button", "disclosure-toggle");
+
+  button.type = "button";
+
+  button.setAttribute("aria-expanded", "false");
+
+  const arrow = createElement("span", "disclosure-arrow", "›");
+
+  const labelElement = createElement("span", "", label);
+
+  button.appendChild(arrow);
+
+  button.appendChild(labelElement);
+
+  const panel = createElement("div", "disclosure-panel");
+
+  panel.style.height = "0px";
+
+  panel.style.opacity = "0";
+
+  const inner = createElement("div", "disclosure-inner");
+
+  inner.appendChild(content);
+
+  panel.appendChild(inner);
+
+  wrapper.appendChild(button);
+
+  wrapper.appendChild(panel);
+
+  button.addEventListener("click", () => {
+    setDisclosureOpen(
+      wrapper,
+      button,
+      panel,
+      labelElement,
+      options,
+      !wrapper.classList.contains("open"),
     );
-
-  const button =
-    createElement(
-      "button",
-      "disclosure-toggle"
-    );
-
-  button.type =
-    "button";
-
-  button.setAttribute(
-    "aria-expanded",
-    "false"
-  );
-
-  const arrow =
-    createElement(
-      "span",
-      "disclosure-arrow",
-      "›"
-    );
-
-  const labelElement =
-    createElement(
-      "span",
-      "",
-      label
-    );
-
-  button.appendChild(
-    arrow
-  );
-
-  button.appendChild(
-    labelElement
-  );
-
-  const panel =
-    createElement(
-      "div",
-      "disclosure-panel"
-    );
-
-  panel.style.height =
-    "0px";
-
-  panel.style.opacity =
-    "0";
-
-  const inner =
-    createElement(
-      "div",
-      "disclosure-inner"
-    );
-
-  inner.appendChild(
-    content
-  );
-
-  panel.appendChild(
-    inner
-  );
-
-  wrapper.appendChild(
-    button
-  );
-
-  wrapper.appendChild(
-    panel
-  );
-
-  button.addEventListener(
-    "click",
-    () => {
-      setDisclosureOpen(
-        wrapper,
-        button,
-        panel,
-        labelElement,
-        options,
-        !wrapper.classList
-          .contains(
-            "open"
-          )
-      );
-    }
-  );
+  });
 
   return wrapper;
 }
 
-function renderCompactState(
-  element,
-  state,
-  text,
-  options = {}
-) {
-  const host =
-    createVerificationHost(
-      element,
-      options
-    );
+function renderCompactState(element, state, text, options = {}) {
+  const host = createVerificationHost(element, options);
 
-  if (
-    host.dataset.kgState ===
-    state
-  ) {
+  if (host.dataset.kgState === state) {
     return;
   }
 
-  host.dataset.kgState =
-    state;
+  host.dataset.kgState = state;
 
-  applyTheme(
-    host
-  );
+  applyTheme(host);
 
-  const card =
-    host.shadowRoot
-      .querySelector(
-        ".card"
-      );
+  const card = host.shadowRoot.querySelector(".card");
 
-  const shell =
-    createElement(
-      "div",
-      "content-shell"
-    );
+  const shell = createElement("div", "content-shell");
 
-  const row =
-    createElement(
-      "div",
-      "compact-row"
-    );
+  const row = createElement("div", "compact-row");
 
-  const logo =
-    createElement(
-      "span",
-      "compact-logo"
-    );
+  const logo = createElement("span", "compact-logo");
 
-  logo.appendChild(
-    createLogo()
-  );
+  logo.appendChild(createLogo());
 
-  row.appendChild(
-    logo
-  );
+  row.appendChild(logo);
 
-  const copy =
-    createElement(
-      "div",
-      "compact-copy"
-    );
+  const copy = createElement("div", "compact-copy");
 
   copy.appendChild(
-    createElement(
-      "span",
-      "compact-title",
-      "Knowledge Graph Check"
-    )
+    createElement("span", "compact-title", "Knowledge Graph Check"),
   );
 
-  copy.appendChild(
-    createElement(
-      "span",
-      "compact-separator",
-      "·"
-    )
-  );
+  copy.appendChild(createElement("span", "compact-separator", "·"));
 
-  copy.appendChild(
-    createElement(
-      "span",
-      "compact-status",
-      text
-    )
-  );
+  copy.appendChild(createElement("span", "compact-status", text));
 
-  copy.appendChild(
-    createThinkingDots()
-  );
+  copy.appendChild(createThinkingDots());
 
-  row.appendChild(
-    copy
-  );
+  row.appendChild(copy);
 
-  shell.appendChild(
-    row
-  );
+  shell.appendChild(row);
 
-  swapCardContent(
-    card,
-    shell,
-    "card compact-state"
-  );
+  swapCardContent(card, shell, "card compact-state");
 }
 
-function renderPendingForUser(
-  userElement
-) {
-  const host =
-    createVerificationHost(
-      userElement,
-      {
-        after:
-          true,
-      }
-    );
+function renderPendingForUser(userElement) {
+  const host = createVerificationHost(userElement, {
+    after: true,
+  });
 
-  host.dataset.kgPending =
-    "true";
+  host.dataset.kgPending = "true";
 
-  renderCompactState(
-    userElement,
-    "waiting",
-    "Waiting for response",
-    {
-      after:
-        true,
-    }
-  );
+  renderCompactState(userElement, "waiting", "Waiting for response", {
+    after: true,
+  });
 }
 
-function renderAssistantWaiting(
-  element
-) {
-  adoptPendingHostForAssistant(
-    element
-  );
+function renderAssistantWaiting(element) {
+  adoptPendingHostForAssistant(element);
 
-  renderCompactState(
-    element,
-    "waiting",
-    "Waiting for response"
-  );
+  renderCompactState(element, "waiting", "Waiting for response");
 }
 
-function renderPreparingVerification(
-  element
-) {
-  adoptPendingHostForAssistant(
-    element
-  );
+function renderPreparingVerification(element) {
+  adoptPendingHostForAssistant(element);
 
-  renderCompactState(
-    element,
-    "preparing",
-    "Preparing verification"
-  );
+  renderCompactState(element, "preparing", "Preparing verification");
 }
 
-function renderVerificationLoading(
-  element,
-  existing = false
-) {
-  adoptPendingHostForAssistant(
-    element
-  );
+function renderVerificationLoading(element, existing = false) {
+  adoptPendingHostForAssistant(element);
 
-  const host =
-    createVerificationHost(
-      element
-    );
+  const host = createVerificationHost(element);
 
-  if (
-    host.dataset.kgState ===
-    "verifying"
-  ) {
+  if (host.dataset.kgState === "verifying") {
     return;
   }
 
-  host.dataset.kgState =
-    "verifying";
+  host.dataset.kgState = "verifying";
 
-  delete host.dataset
-    .kgPending;
+  delete host.dataset.kgPending;
 
-  applyTheme(
-    host
-  );
+  applyTheme(host);
 
-  const card =
-    host.shadowRoot
-      .querySelector(
-        ".card"
-      );
+  const card = host.shadowRoot.querySelector(".card");
 
-  const shell =
-    createElement(
-      "div",
-      "content-shell"
-    );
+  const shell = createElement("div", "content-shell");
 
-  const wrapper =
-    createElement(
-      "div",
-      "loading"
-    );
+  const wrapper = createElement("div", "loading");
 
-  wrapper.appendChild(
-    createLogo()
-  );
+  wrapper.appendChild(createLogo());
 
-  const copy =
-    createElement(
-      "div",
-      "loading-copy"
-    );
+  const copy = createElement("div", "loading-copy");
 
   copy.appendChild(
-    createElement(
-      "div",
-      "loading-title",
-      "Knowledge Graph Check"
-    )
+    createElement("div", "loading-title", "Knowledge Graph Check"),
   );
 
   copy.appendChild(
     createElement(
       "div",
       "loading-subtitle",
-      existing
-        ? "Verifying this response..."
-        : "Verifying response..."
-    )
+      existing ? "Verifying this response..." : "Verifying response...",
+    ),
   );
 
-  const progress =
-    createElement(
-      "div",
-      "loading-progress"
-    );
+  const progress = createElement("div", "loading-progress");
+
+  progress.appendChild(createElement("span", "loading-pulse"));
 
   progress.appendChild(
-    createElement(
-      "span",
-      "loading-pulse"
-    )
+    createElement("span", "", "Checking source-backed evidence"),
   );
 
-  progress.appendChild(
-    createElement(
-      "span",
-      "",
-      "Checking source-backed evidence"
-    )
-  );
+  progress.appendChild(createThinkingDots());
 
-  progress.appendChild(
-    createThinkingDots()
-  );
+  copy.appendChild(progress);
 
-  copy.appendChild(
-    progress
-  );
+  wrapper.appendChild(copy);
 
-  wrapper.appendChild(
-    copy
-  );
+  wrapper.appendChild(createElement("div", "spinner"));
 
-  wrapper.appendChild(
-    createElement(
-      "div",
-      "spinner"
-    )
-  );
+  shell.appendChild(wrapper);
 
-  shell.appendChild(
-    wrapper
-  );
-
-  swapCardContent(
-    card,
-    shell
-  );
+  swapCardContent(card, shell);
 }
 
-function evidenceSource(
-  fact
-) {
-  const evidence =
-    fact.evidence ||
-    {};
+function evidenceSource(fact) {
+  const evidence = fact.evidence || {};
 
-  const attributes =
-    evidence.attributes ||
-    {};
+  const attributes = evidence.attributes || {};
 
   return (
     attributes.source_name ||
@@ -4204,46 +2683,25 @@ function evidenceSource(
   );
 }
 
-function collectEvidence(
-  claim
-) {
-  const retrieval =
-    claim.retrieval ||
-    {};
+function collectEvidence(claim) {
+  const retrieval = claim.retrieval || {};
 
-  const items =
-    [];
+  const items = [];
 
-  for (
-    const fact
-    of retrieval.facts || []
-  ) {
+  for (const fact of retrieval.facts || []) {
     items.push({
-      type:
-        "fact",
-      value:
-        fact,
+      type: "fact",
+      value: fact,
     });
   }
 
-  const history =
-    retrieval.history;
+  const history = retrieval.history;
 
-  if (
-    history &&
-    Array.isArray(
-      history.evidence
-    )
-  ) {
-    for (
-      const evidence
-      of history.evidence
-    ) {
+  if (history && Array.isArray(history.evidence)) {
+    for (const evidence of history.evidence) {
       items.push({
-        type:
-          "history",
-        value:
-          evidence,
+        type: "history",
+        value: evidence,
       });
     }
   }
@@ -4251,993 +2709,429 @@ function collectEvidence(
   return items;
 }
 
-function assessmentLabel(
-  claim
-) {
-  const retrieval =
-    claim.retrieval ||
-    {};
+function assessmentLabel(claim) {
+  const retrieval = claim.retrieval || {};
 
-  if (
-    retrieval.verificationType ===
-    "history"
-  ) {
-    return (
-      "WHO historical evidence"
-    );
+  if (retrieval.verificationType === "history") {
+    return "WHO historical evidence";
   }
 
-  if (
-    retrieval.verificationType ===
-    "who"
-  ) {
-    return (
-      "WHO assessment"
-    );
+  if (retrieval.verificationType === "who") {
+    return "WHO assessment";
   }
 
-  const evidence =
-    collectEvidence(
-      claim
-    );
+  const evidence = collectEvidence(claim);
 
-  const fact =
-    evidence.find(
-      (item) =>
-        item.type ===
-        "fact"
-    );
+  const fact = evidence.find((item) => item.type === "fact");
 
   if (fact) {
-    return (
-      `${displaySourceName(
-        evidenceSource(
-          fact.value
-        )
-      )} evidence`
-    );
+    return `${displaySourceName(evidenceSource(fact.value))} evidence`;
   }
 
-  return (
-    "Knowledge Graph assessment"
-  );
+  return "Knowledge Graph assessment";
 }
 
-function appendReferences(
-  container,
-  references
-) {
+function appendReferences(container, references) {
   const validReferences = [
     ...new Set(
-      (references || [])
-        .filter(
-          (reference) =>
-            (
-              typeof reference ===
-                "string" &&
-              /^https?:\/\//i
-                .test(
-                  reference
-                )
-            )
-        )
+      (references || []).filter(
+        (reference) =>
+          typeof reference === "string" && /^https?:\/\//i.test(reference),
+      ),
     ),
   ];
 
-  if (
-    validReferences.length === 0
-  ) {
+  if (validReferences.length === 0) {
     return;
   }
 
-  const source =
-    createElement(
-      "div",
-      "source"
-    );
+  const source = createElement("div", "source");
 
-  validReferences.forEach(
-    (
-      reference,
-      index
-    ) => {
-      if (
-        index > 0
-      ) {
-        source.appendChild(
-          document
-            .createTextNode(
-              " · "
-            )
-        );
-      }
-
-      const link =
-        document
-          .createElement(
-            "a"
-          );
-
-      link.href =
-        reference;
-
-      link.target =
-        "_blank";
-
-      link.rel =
-        "noreferrer";
-
-      link.textContent =
-        (
-          validReferences
-            .length === 1
-        )
-          ? "Source"
-          : (
-              `Source ` +
-              `${index + 1}`
-            );
-
-      source.appendChild(
-        link
-      );
+  validReferences.forEach((reference, index) => {
+    if (index > 0) {
+      source.appendChild(document.createTextNode(" · "));
     }
-  );
 
-  container.appendChild(
-    source
-  );
+    const link = document.createElement("a");
+
+    link.href = reference;
+
+    link.target = "_blank";
+
+    link.rel = "noreferrer";
+
+    link.textContent =
+      validReferences.length === 1 ? "Source" : `Source ` + `${index + 1}`;
+
+    source.appendChild(link);
+  });
+
+  container.appendChild(source);
 }
 
-function renderFactEvidence(
-  container,
-  fact
-) {
-  const subject =
-    fact.subject ||
-    {};
+function renderFactEvidence(container, fact) {
+  const subject = fact.subject || {};
 
-  const object =
-    fact.object ||
-    {};
+  const object = fact.object || {};
 
-  const predicate =
-    fact.predicate ||
-    "related_to";
+  const predicate = fact.predicate || "related_to";
 
-  const evidence =
-    fact.evidence ||
-    {};
+  const evidence = fact.evidence || {};
 
-  const attributes =
-    evidence.attributes ||
-    {};
+  const attributes = evidence.attributes || {};
 
-  const item =
-    createElement(
-      "div",
-      "evidence"
-    );
+  const item = createElement("div", "evidence");
 
   item.appendChild(
     createElement(
       "div",
       "evidence-title",
-      (
-        `${
-          subject.name ||
-          subject.id ||
-          "Unknown"
-        } → ` +
+      `${subject.name || subject.id || "Unknown"} → ` +
         `${predicate} → ` +
-        `${
-          object.name ||
-          object.id ||
-          "Unknown"
-        }`
-      )
-    )
+        `${object.name || object.id || "Unknown"}`,
+    ),
   );
 
   item.appendChild(
-    createElement(
-      "div",
-      "source",
-      displaySourceName(
-        evidenceSource(
-          fact
-        )
-      )
-    )
+    createElement("div", "source", displaySourceName(evidenceSource(fact))),
   );
 
-  const references = [
-    ...(
-      evidence.references ||
-      []
-    ),
-  ];
+  const references = [...(evidence.references || [])];
 
-  if (
-    attributes.source_url
-  ) {
-    references.push(
-      attributes.source_url
-    );
+  if (attributes.source_url) {
+    references.push(attributes.source_url);
   }
 
-  appendReferences(
-    item,
-    references
-  );
+  appendReferences(item, references);
 
-  container.appendChild(
-    item
-  );
+  container.appendChild(item);
 }
 
-function renderHistoryEvidence(
-  container,
-  evidence
-) {
-  const item =
-    createElement(
-      "div",
-      "evidence"
-    );
+function renderHistoryEvidence(container, evidence) {
+  const item = createElement("div", "evidence");
 
-  const date =
-    evidence.dateStart ||
-    evidence.dateEnd;
+  const date = evidence.dateStart || evidence.dateEnd;
 
   const text =
-    evidence.sourceText ||
-    evidence.eventName ||
-    "Historical evidence";
+    evidence.sourceText || evidence.eventName || "Historical evidence";
 
   item.appendChild(
-    createElement(
-      "div",
-      "evidence-title",
-      date
-        ? `${date} · ${text}`
-        : text
-    )
+    createElement("div", "evidence-title", date ? `${date} · ${text}` : text),
   );
 
-  const links =
-    [];
+  const links = [];
 
-  if (
-    evidence.sourceUrl
-  ) {
-    links.push(
-      evidence.sourceUrl
-    );
+  if (evidence.sourceUrl) {
+    links.push(evidence.sourceUrl);
   }
 
-  for (
-    const link
-    of evidence.sourceLinks ||
-      []
-  ) {
-    if (
-      !links.includes(
-        link
-      )
-    ) {
-      links.push(
-        link
-      );
+  for (const link of evidence.sourceLinks || []) {
+    if (!links.includes(link)) {
+      links.push(link);
     }
   }
 
-  appendReferences(
-    item,
-    links
-  );
+  appendReferences(item, links);
 
-  container.appendChild(
-    item
-  );
+  container.appendChild(item);
 }
 
-function renderEvidenceDetails(
-  claim
-) {
-  const evidence =
-    collectEvidence(
-      claim
-    );
+function renderEvidenceDetails(claim) {
+  const evidence = collectEvidence(claim);
 
-  if (
-    evidence.length === 0
-  ) {
+  if (evidence.length === 0) {
     return null;
   }
 
-  const content =
-    createElement(
-      "div",
-      "detail-content"
-    );
+  const content = createElement("div", "detail-content");
 
-  const list =
-    createElement(
-      "div",
-      "evidence-list"
-    );
+  const list = createElement("div", "evidence-list");
 
-  for (
-    const item
-    of evidence
-  ) {
-    if (
-      item.type ===
-      "history"
-    ) {
-      renderHistoryEvidence(
-        list,
-        item.value
-      );
+  for (const item of evidence) {
+    if (item.type === "history") {
+      renderHistoryEvidence(list, item.value);
     } else {
-      renderFactEvidence(
-        list,
-        item.value
-      );
+      renderFactEvidence(list, item.value);
     }
   }
 
-  content.appendChild(
-    list
-  );
+  content.appendChild(list);
 
-  return createDisclosure(
-    (
-      `Evidence ` +
-      `(${evidence.length})`
-    ),
-    content,
-    {
-      className:
-        "detail-disclosure",
-    }
-  );
+  return createDisclosure(`Evidence ` + `(${evidence.length})`, content, {
+    className: "detail-disclosure",
+  });
 }
 
-function renderConfidenceDetails(
-  confidence
-) {
-  if (
-    !confidence ||
-    confidence.score ===
-      undefined
-  ) {
+function renderConfidenceDetails(confidence) {
+  if (!confidence || confidence.score === undefined) {
     return null;
   }
 
-  const content =
-    createElement(
-      "div",
-      "detail-content"
-    );
+  const content = createElement("div", "detail-content");
 
-  const box =
-    createElement(
-      "div",
-      "confidence-box"
-    );
+  const box = createElement("div", "confidence-box");
 
-  const overall =
-    createElement(
-      "div",
-      "confidence-overall"
-    );
+  const overall = createElement("div", "confidence-overall");
 
-  overall.appendChild(
-    createElement(
-      "span",
-      "",
-      "Evidence strength"
-    )
-  );
+  overall.appendChild(createElement("span", "", "Evidence strength"));
 
   overall.appendChild(
     createElement(
       "strong",
       "",
-      (
-        `${confidenceLevel(
-          confidence
-        )} · ` +
-        `${
-          percent(
-            confidence.score
-          ) ||
-          "N/A"
-        }`
-      )
-    )
+      `${confidenceLevel(confidence)} · ` +
+        `${percent(confidence.score) || "N/A"}`,
+    ),
   );
 
-  box.appendChild(
-    overall
-  );
+  box.appendChild(overall);
 
-  const components =
-    confidence.components ||
-    {};
+  const components = confidence.components || {};
 
-  const weights =
-    confidence.weights ||
-    {};
+  const weights = confidence.weights || {};
 
-  for (
-    const [
-      key,
-      label,
-    ]
-    of CONFIDENCE_COMPONENTS
-  ) {
-    if (
-      components[key] ===
-      undefined
-    ) {
+  for (const [key, label] of CONFIDENCE_COMPONENTS) {
+    if (components[key] === undefined) {
       continue;
     }
 
-    const value =
-      Number(
-        components[key]
-      );
+    const value = Number(components[key]);
 
-    const weight =
-      weights[key];
+    const weight = weights[key];
 
-    const row =
-      createElement(
-        "div",
-        "confidence-row"
-      );
+    const row = createElement("div", "confidence-row");
 
-    const line =
-      createElement(
-        "div",
-        "confidence-line"
-      );
+    const line = createElement("div", "confidence-line");
 
-    line.appendChild(
-      createElement(
-        "span",
-        "confidence-label",
-        label
-      )
-    );
+    line.appendChild(createElement("span", "confidence-label", label));
 
     line.appendChild(
       createElement(
         "span",
         "confidence-value",
-        (
-          `${percent(
-            value
-          )}` +
-          (
-            weight !==
-            undefined
-              ? (
-                  ` · weight ` +
-                  `${percent(
-                    weight
-                  )}`
-                )
-              : ""
-          )
-        )
-      )
+        `${percent(value)}` +
+          (weight !== undefined ? ` · weight ` + `${percent(weight)}` : ""),
+      ),
     );
 
-    row.appendChild(
-      line
-    );
+    row.appendChild(line);
 
-    const bar =
-      createElement(
-        "div",
-        "confidence-bar"
-      );
+    const bar = createElement("div", "confidence-bar");
 
-    const fill =
-      createElement(
-        "div",
-        "confidence-fill"
-      );
+    const fill = createElement("div", "confidence-fill");
 
-    fill.style.width =
-      `${Math.max(
-        0,
-        Math.min(
-          100,
-          value * 100
-        )
-      )}%`;
+    fill.style.width = `${Math.max(0, Math.min(100, value * 100))}%`;
 
-    bar.appendChild(
-      fill
-    );
+    bar.appendChild(fill);
 
-    row.appendChild(
-      bar
-    );
+    row.appendChild(bar);
 
-    box.appendChild(
-      row
-    );
+    box.appendChild(row);
   }
 
   box.appendChild(
     createElement(
       "div",
       "confidence-note",
-      (
-        confidence.explanation ||
-        (
-          "This is a heuristic " +
+      confidence.explanation ||
+        "This is a heuristic " +
           "evidence-grounding score. " +
           "It is uncalibrated and is " +
           "not the probability that " +
-          "the claim is true."
-        )
-      )
-    )
+          "the claim is true.",
+    ),
   );
 
-  content.appendChild(
-    box
-  );
+  content.appendChild(box);
 
-  return createDisclosure(
-    "Confidence details",
-    content,
-    {
-      className:
-        "detail-disclosure",
-    }
-  );
+  return createDisclosure("Confidence details", content, {
+    className: "detail-disclosure",
+  });
 }
 
-function appendClaimMeta(
-  container,
-  claim
-) {
-  const verification =
-    claim.retrieval
-      ?.verification ||
-    {};
+function appendClaimMeta(container, claim) {
+  const verification = claim.retrieval?.verification || {};
 
-  const confidence =
-    verification.confidence ||
-    {};
+  const confidence = verification.confidence || {};
 
-  const meta =
-    createElement(
-      "div",
-      "meta"
-    );
+  const meta = createElement("div", "meta");
 
-  if (
-    confidence.level
-  ) {
-    const strength =
-      createElement(
-        "span"
-      );
+  if (confidence.level) {
+    const strength = createElement("span");
+
+    strength.appendChild(document.createTextNode("Evidence strength: "));
 
     strength.appendChild(
-      document
-        .createTextNode(
-          "Evidence strength: "
-        )
+      createElement("strong", "", confidenceLevel(confidence)),
     );
 
-    strength.appendChild(
-      createElement(
-        "strong",
-        "",
-        confidenceLevel(
-          confidence
-        )
-      )
-    );
-
-    meta.appendChild(
-      strength
-    );
+    meta.appendChild(strength);
   }
 
-  if (
-    verification.evidenceCount !==
-    undefined
-  ) {
+  if (verification.evidenceCount !== undefined) {
     meta.appendChild(
       createElement(
         "span",
         "",
-        (
-          `${verification.evidenceCount} ` +
-          `evidence record${
-            verification
-              .evidenceCount === 1
-              ? ""
-              : "s"
-          }`
-        )
-      )
+        `${verification.evidenceCount} ` +
+          `evidence record${verification.evidenceCount === 1 ? "" : "s"}`,
+      ),
     );
   }
 
-  if (
-    claim.usedQuestionContext
-  ) {
-    meta.appendChild(
-      createElement(
-        "span",
-        "",
-        "Used question context"
-      )
-    );
+  if (claim.usedQuestionContext) {
+    meta.appendChild(createElement("span", "", "Used question context"));
   }
 
-  if (
-    meta.childNodes.length > 0
-  ) {
-    container.appendChild(
-      meta
-    );
+  if (meta.childNodes.length > 0) {
+    container.appendChild(meta);
   }
 }
 
-function createClaimElement(
-  claim
-) {
-  const verification =
-    claim.retrieval
-      ?.verification ||
-    {};
+function createClaimElement(claim) {
+  const verification = claim.retrieval?.verification || {};
 
-  const confidence =
-    verification.confidence ||
-    {};
+  const confidence = verification.confidence || {};
 
-  const container =
-    createElement(
-      "div",
-      "claim"
-    );
+  const container = createElement("div", "claim");
 
-  const top =
-    createElement(
-      "div",
-      "claim-top"
-    );
+  const top = createElement("div", "claim-top");
 
-  top.appendChild(
-    createElement(
-      "div",
-      "claim-text",
-      claim.text ||
-      ""
-    )
-  );
+  top.appendChild(createElement("div", "claim-text", claim.text || ""));
 
   top.appendChild(
     createElement(
       "span",
-      (
-        "badge " +
-        statusClass(
-          verification.status
-        )
-      ),
-      statusLabel(
-        verification.status
-      )
-    )
+      "badge " + statusClass(verification.status),
+      statusLabel(verification.status),
+    ),
   );
 
-  container.appendChild(
-    top
-  );
+  container.appendChild(top);
 
-  if (
-    verification.reason
-  ) {
+  if (verification.reason) {
     container.appendChild(
-      createElement(
-        "div",
-        "claim-reason",
-        verification.reason
-      )
+      createElement("div", "claim-reason", verification.reason),
     );
   }
 
-  appendClaimMeta(
-    container,
-    claim
-  );
+  appendClaimMeta(container, claim);
 
-  const evidence =
-    renderEvidenceDetails(
-      claim
-    );
+  const evidence = renderEvidenceDetails(claim);
 
   if (evidence) {
-    container.appendChild(
-      evidence
-    );
+    container.appendChild(evidence);
   }
 
-  const confidenceDetails =
-    renderConfidenceDetails(
-      confidence
-    );
+  const confidenceDetails = renderConfidenceDetails(confidence);
 
-  if (
-    confidenceDetails
-  ) {
-    container.appendChild(
-      confidenceDetails
-    );
+  if (confidenceDetails) {
+    container.appendChild(confidenceDetails);
   }
 
   return container;
 }
 
-function renderSingleClaim(
-  shell,
-  claim
-) {
-  const verification =
-    claim.retrieval
-      ?.verification ||
-    {};
+function renderSingleClaim(shell, claim) {
+  const verification = claim.retrieval?.verification || {};
 
-  const confidence =
-    verification.confidence ||
-    {};
+  const confidence = verification.confidence || {};
 
-  const assessment =
-    createElement(
-      "div",
-      "assessment"
-    );
+  const assessment = createElement("div", "assessment");
 
   assessment.appendChild(
-    createElement(
-      "div",
-      "assessment-label",
-      assessmentLabel(
-        claim
-      )
-    )
+    createElement("div", "assessment-label", assessmentLabel(claim)),
   );
 
   assessment.appendChild(
     createElement(
       "div",
       "assessment-text",
-      (
-        verification.reason ||
-        (
-          "The Knowledge Graph " +
-          "did not return an explanatory summary."
-        )
-      )
-    )
+      verification.reason ||
+        "The Knowledge Graph " + "did not return an explanatory summary.",
+    ),
   );
 
-  appendClaimMeta(
-    assessment,
-    claim
-  );
+  appendClaimMeta(assessment, claim);
 
-  const evidence =
-    renderEvidenceDetails(
-      claim
-    );
+  const evidence = renderEvidenceDetails(claim);
 
   if (evidence) {
-    assessment.appendChild(
-      evidence
-    );
+    assessment.appendChild(evidence);
   }
 
-  const confidenceDetails =
-    renderConfidenceDetails(
-      confidence
-    );
+  const confidenceDetails = renderConfidenceDetails(confidence);
 
-  if (
-    confidenceDetails
-  ) {
-    assessment.appendChild(
-      confidenceDetails
-    );
+  if (confidenceDetails) {
+    assessment.appendChild(confidenceDetails);
   }
 
-  shell.appendChild(
-    assessment
-  );
+  shell.appendChild(assessment);
 }
 
-function appendAggregate(
-  shell,
-  data
-) {
-  const summary =
-    data.summary ||
-    {};
+function appendAggregate(shell, data) {
+  const summary = data.summary || {};
 
-  const aggregate =
-    createElement(
-      "div",
-      "aggregate"
-    );
+  const aggregate = createElement("div", "aggregate");
 
   const supported =
-    (
-      summary.supportedRatio !==
-        null &&
-      summary.supportedRatio !==
-        undefined
-    )
-      ? percent(
-          summary.supportedRatio
-        )
-      : percent(
-          summary.groundingScore
-        );
+    summary.supportedRatio !== null && summary.supportedRatio !== undefined
+      ? percent(summary.supportedRatio)
+      : percent(summary.groundingScore);
 
-  const coverage =
-    percent(
-      summary.coverageRatio
-    );
+  const coverage = percent(summary.coverageRatio);
 
-  if (
-    supported !== null
-  ) {
-    const metric =
-      createElement(
-        "span"
-      );
+  if (supported !== null) {
+    const metric = createElement("span");
 
-    metric.appendChild(
-      document
-        .createTextNode(
-          "Supported "
-        )
-    );
+    metric.appendChild(document.createTextNode("Supported "));
 
-    metric.appendChild(
-      createElement(
-        "strong",
-        "",
-        supported
-      )
-    );
+    metric.appendChild(createElement("strong", "", supported));
 
-    aggregate.appendChild(
-      metric
-    );
+    aggregate.appendChild(metric);
   }
 
-  if (
-    coverage !== null
-  ) {
-    const metric =
-      createElement(
-        "span"
-      );
+  if (coverage !== null) {
+    const metric = createElement("span");
 
     metric.appendChild(
-      document
-        .createTextNode(
-          (
-            "Knowledge Graph " +
-            "coverage "
-          )
-        )
+      document.createTextNode("Knowledge Graph " + "coverage "),
     );
 
-    metric.appendChild(
-      createElement(
-        "strong",
-        "",
-        coverage
-      )
-    );
+    metric.appendChild(createElement("strong", "", coverage));
 
-    aggregate.appendChild(
-      metric
-    );
+    aggregate.appendChild(metric);
   }
 
-  const attention =
-    createElement(
-      "span"
-    );
+  const attention = createElement("span");
+
+  attention.appendChild(document.createTextNode("Needs attention "));
 
   attention.appendChild(
-    document
-      .createTextNode(
-        "Needs attention "
-      )
+    createElement("strong", "", String(summary.needsAttentionCount || 0)),
   );
 
-  attention.appendChild(
-    createElement(
-      "strong",
-      "",
-      String(
-        summary
-          .needsAttentionCount ||
-        0
-      )
-    )
-  );
+  aggregate.appendChild(attention);
 
-  aggregate.appendChild(
-    attention
-  );
-
-  shell.appendChild(
-    aggregate
-  );
+  shell.appendChild(aggregate);
 }
 
-function getClaimStatusCounts(
-  claims
-) {
-  const counts =
-    new Map();
+function getClaimStatusCounts(claims) {
+  const counts = new Map();
 
-  for (
-    const claim
-    of claims
-  ) {
-    const status =
-      claim.retrieval
-        ?.verification
-        ?.status ||
-      "UNKNOWN";
+  for (const claim of claims) {
+    const status = claim.retrieval?.verification?.status || "UNKNOWN";
 
-    counts.set(
-      status,
-      (
-        counts.get(
-          status
-        ) ||
-        0
-      ) + 1
-    );
+    counts.set(status, (counts.get(status) || 0) + 1);
   }
 
   return counts;
 }
 
-function createClaimStatusSummary(
-  claims
-) {
-  const counts =
-    getClaimStatusCounts(
-      claims
-    );
+function createClaimStatusSummary(claims) {
+  const counts = getClaimStatusCounts(claims);
 
-  const container =
-    createElement(
-      "div",
-      "claim-summary-counts"
-    );
+  const container = createElement("div", "claim-summary-counts");
 
   const order = [
     "SUPPORTED",
@@ -5246,14 +3140,8 @@ function createClaimStatusSummary(
     "NOT_VERIFIABLE_WITH_CURRENT_KG",
   ];
 
-  for (
-    const status
-    of order
-  ) {
-    const count =
-      counts.get(
-        status
-      );
+  for (const status of order) {
+    const count = counts.get(status);
 
     if (!count) {
       continue;
@@ -5262,603 +3150,275 @@ function createClaimStatusSummary(
     container.appendChild(
       createElement(
         "span",
-        (
-          "summary-chip " +
-          statusClass(
-            status
-          )
-        ),
-        (
-          `${count} ` +
-          `${humanStatusLabel(
-            status
-          )}`
-        )
-      )
+        "summary-chip " + statusClass(status),
+        `${count} ` + `${humanStatusLabel(status)}`,
+      ),
     );
   }
 
   return container;
 }
 
-function renderMultipleClaims(
-  shell,
-  data
-) {
-  const claims =
-    data.claims ||
-    [];
+function renderMultipleClaims(shell, data) {
+  const claims = data.claims || [];
 
-  appendAggregate(
-    shell,
-    data
-  );
+  appendAggregate(shell, data);
 
-  const claimsContainer =
-    createElement(
-      "div",
-      "claims"
-    );
+  const claimsContainer = createElement("div", "claims");
 
-  for (
-    const claim
-    of claims
-  ) {
-    claimsContainer.appendChild(
-      createClaimElement(
-        claim
-      )
-    );
+  for (const claim of claims) {
+    claimsContainer.appendChild(createClaimElement(claim));
   }
 
-  if (
-    claims.length <
-    COLLAPSE_CLAIM_THRESHOLD
-  ) {
-    shell.appendChild(
-      claimsContainer
-    );
+  if (claims.length < COLLAPSE_CLAIM_THRESHOLD) {
+    shell.appendChild(claimsContainer);
 
     return;
   }
 
-  const summary =
-    createElement(
-      "div",
-      "claim-summary"
-    );
+  const summary = createElement("div", "claim-summary");
 
   summary.appendChild(
     createElement(
       "div",
       "claim-summary-title",
-      (
-        `${claims.length} factual claims checked`
-      )
-    )
+      `${claims.length} factual claims checked`,
+    ),
   );
 
-  summary.appendChild(
-    createClaimStatusSummary(
-      claims
-    )
-  );
+  summary.appendChild(createClaimStatusSummary(claims));
+
+  shell.appendChild(summary);
 
   shell.appendChild(
-    summary
-  );
-
-  shell.appendChild(
-    createDisclosure(
-      "Show all claims",
-      claimsContainer,
-      {
-        className:
-          "claim-disclosure",
-        closedLabel:
-          "Show all claims",
-        openLabel:
-          "Hide claims",
-        resetChildrenOnClose:
-          true,
-      }
-    )
+    createDisclosure("Show all claims", claimsContainer, {
+      className: "claim-disclosure",
+      closedLabel: "Show all claims",
+      openLabel: "Hide claims",
+      resetChildrenOnClose: true,
+    }),
   );
 }
 
-async function saveFeedbackLocally(
-  feedback
-) {
-  const result =
-    await storageGet([
-      FEEDBACK_STORAGE_KEY,
-    ]);
+async function saveFeedbackLocally(feedback) {
+  const result = await storageGet([FEEDBACK_STORAGE_KEY]);
 
-  const existing =
-    Array.isArray(
-      result[
-        FEEDBACK_STORAGE_KEY
-      ]
-    )
-      ? result[
-          FEEDBACK_STORAGE_KEY
-        ]
-      : [];
+  const existing = Array.isArray(result[FEEDBACK_STORAGE_KEY])
+    ? result[FEEDBACK_STORAGE_KEY]
+    : [];
 
   await storageSet({
-    [
-      FEEDBACK_STORAGE_KEY
-    ]:
-      [
-        ...existing,
-        feedback,
-      ],
+    [FEEDBACK_STORAGE_KEY]: [...existing, feedback],
   });
 }
 
-function createFeedbackBody(
-  data
-) {
-  const body =
-    createElement(
-      "div",
-      "feedback-body"
-    );
+function createFeedbackBody(data) {
+  const body = createElement("div", "feedback-body");
 
   body.appendChild(
     createElement(
       "div",
       "feedback-question",
-      (
-        "How useful was " +
-        "this verification?"
-      )
-    )
+      "How useful was " + "this verification?",
+    ),
   );
 
   body.appendChild(
     createElement(
       "div",
       "feedback-help",
-      (
-        "1 = not useful · " +
-        "5 = very useful"
-      )
-    )
+      "1 = not useful · " + "5 = very useful",
+    ),
   );
 
-  const ratingRow =
-    createElement(
-      "div",
-      "rating-row"
-    );
+  const ratingRow = createElement("div", "rating-row");
 
-  let rating =
-    null;
+  let rating = null;
 
-  let correctness =
-    null;
+  let correctness = null;
 
-  for (
-    let value = 1;
-    value <= 5;
-    value += 1
-  ) {
-    const button =
-      createElement(
-        "button",
-        "rating-button",
-        String(value)
-      );
+  for (let value = 1; value <= 5; value += 1) {
+    const button = createElement("button", "rating-button", String(value));
 
-    button.type =
-      "button";
+    button.type = "button";
 
-    button.addEventListener(
-      "click",
-      () => {
-        rating =
-          value;
+    button.addEventListener("click", () => {
+      rating = value;
 
-        ratingRow
-          .querySelectorAll(
-            ".rating-button"
-          )
-          .forEach(
-            (candidate) => {
-              candidate
-                .classList
-                .remove(
-                  "selected"
-                );
-            }
-          );
+      ratingRow.querySelectorAll(".rating-button").forEach((candidate) => {
+        candidate.classList.remove("selected");
+      });
 
-        button
-          .classList
-          .add(
-            "selected"
-          );
-      }
-    );
+      button.classList.add("selected");
+    });
 
-    ratingRow.appendChild(
-      button
-    );
+    ratingRow.appendChild(button);
   }
 
-  body.appendChild(
-    ratingRow
-  );
+  body.appendChild(ratingRow);
 
   body.appendChild(
     createElement(
       "div",
       "feedback-question",
-      (
-        "Did the verification " +
-        "result seem correct?"
-      )
-    )
+      "Did the verification " + "result seem correct?",
+    ),
   );
 
-  const choiceRow =
-    createElement(
-      "div",
-      "choice-row"
-    );
+  const choiceRow = createElement("div", "choice-row");
 
-  for (
-    const [
-      value,
-      label,
-    ]
-    of [
-      [
-        "yes",
-        "Yes",
-      ],
-      [
-        "no",
-        "No",
-      ],
-      [
-        "unsure",
-        "Unsure",
-      ],
-    ]
-  ) {
-    const button =
-      createElement(
-        "button",
-        "choice-button",
-        label
-      );
+  for (const [value, label] of [
+    ["yes", "Yes"],
+    ["no", "No"],
+    ["unsure", "Unsure"],
+  ]) {
+    const button = createElement("button", "choice-button", label);
 
-    button.type =
-      "button";
+    button.type = "button";
 
-    button.addEventListener(
-      "click",
-      () => {
-        correctness =
-          value;
+    button.addEventListener("click", () => {
+      correctness = value;
 
-        choiceRow
-          .querySelectorAll(
-            ".choice-button"
-          )
-          .forEach(
-            (candidate) => {
-              candidate
-                .classList
-                .remove(
-                  "selected"
-                );
-            }
-          );
+      choiceRow.querySelectorAll(".choice-button").forEach((candidate) => {
+        candidate.classList.remove("selected");
+      });
 
-        button
-          .classList
-          .add(
-            "selected"
-          );
-      }
-    );
+      button.classList.add("selected");
+    });
 
-    choiceRow.appendChild(
-      button
-    );
+    choiceRow.appendChild(button);
   }
 
-  body.appendChild(
-    choiceRow
-  );
+  body.appendChild(choiceRow);
 
   body.appendChild(
     createElement(
       "div",
       "feedback-question",
-      (
-        "What was unclear " +
-        "or incorrect?"
-      )
-    )
+      "What was unclear " + "or incorrect?",
+    ),
   );
 
-  body.appendChild(
-    createElement(
-      "div",
-      "feedback-help",
-      "Optional"
-    )
-  );
+  body.appendChild(createElement("div", "feedback-help", "Optional"));
 
-  const textarea =
-    document
-      .createElement(
-        "textarea"
-      );
+  const textarea = document.createElement("textarea");
 
-  textarea.placeholder =
-    (
-      "Add any details " +
-      "that would help..."
-    );
+  textarea.placeholder = "Add any details " + "that would help...";
 
-  body.appendChild(
-    textarea
-  );
+  body.appendChild(textarea);
 
-  const actions =
-    createElement(
-      "div",
-      "feedback-actions"
-    );
+  const actions = createElement("div", "feedback-actions");
 
-  const save =
-    createElement(
-      "button",
-      "save-feedback",
-      "Save feedback"
-    );
+  const save = createElement("button", "save-feedback", "Save feedback");
 
-  save.type =
-    "button";
+  save.type = "button";
 
-  const status =
-    createElement(
-      "span",
-      "feedback-status"
-    );
+  const status = createElement("span", "feedback-status");
 
-  save.addEventListener(
-    "click",
-    async () => {
-      const comment =
-        textarea.value
-          .trim();
+  save.addEventListener("click", async () => {
+    const comment = textarea.value.trim();
 
-      if (
-        rating === null &&
-        correctness === null &&
-        !comment
-      ) {
-        status.textContent =
-          (
-            "Add a rating, " +
-            "answer, or note."
-          );
+    if (rating === null && correctness === null && !comment) {
+      status.textContent = "Add a rating, " + "answer, or note.";
+
+      return;
+    }
+
+    save.disabled = true;
+
+    status.textContent = "Saving...";
+
+    const feedback = {
+      id: `${Date.now()}-` + `${Math.random().toString(36).slice(2)}`,
+      createdAt: new Date().toISOString(),
+      usefulRating: rating,
+      perceivedCorrectness: correctness,
+      comment,
+      question: data.question || "",
+      response: data.response || "",
+      summaryStatus: data.summary?.status || null,
+      claimCount: data.claimCount || 0,
+      claims: (data.claims || []).map((claim) => ({
+        text: claim.text,
+        status: claim.retrieval?.verification?.status || null,
+      })),
+    };
+
+    try {
+      await saveFeedbackLocally(feedback);
+
+      status.textContent = "Saved locally " + "in this browser.";
+
+      save.textContent = "Saved";
+    } catch (error) {
+      save.disabled = false;
+
+      if (isInvalidContextError(error)) {
+        status.textContent = "Extension updated. " + "Refresh ChatGPT.";
 
         return;
       }
 
-      save.disabled =
-        true;
-
-      status.textContent =
-        "Saving...";
-
-      const feedback = {
-        id:
-          (
-            `${Date.now()}-` +
-            `${Math.random()
-              .toString(36)
-              .slice(2)}`
-          ),
-        createdAt:
-          new Date()
-            .toISOString(),
-        usefulRating:
-          rating,
-        perceivedCorrectness:
-          correctness,
-        comment,
-        question:
-          data.question ||
-          "",
-        response:
-          data.response ||
-          "",
-        summaryStatus:
-          data.summary
-            ?.status ||
-          null,
-        claimCount:
-          data.claimCount ||
-          0,
-        claims:
-          (data.claims ||
-            [])
-            .map(
-              (claim) => ({
-                text:
-                  claim.text,
-                status:
-                  claim
-                    .retrieval
-                    ?.verification
-                    ?.status ||
-                  null,
-              })
-            ),
-      };
-
-      try {
-        await saveFeedbackLocally(
-          feedback
-        );
-
-        status.textContent =
-          (
-            "Saved locally " +
-            "in this browser."
-          );
-
-        save.textContent =
-          "Saved";
-      } catch (error) {
-        save.disabled =
-          false;
-
-        if (
-          isInvalidContextError(
-            error
-          )
-        ) {
-          status.textContent =
-            (
-              "Extension updated. " +
-              "Refresh ChatGPT."
-            );
-
-          return;
-        }
-
-        status.textContent =
-          (
-            "Could not save: " +
-            error.message
-          );
-      }
+      status.textContent = "Could not save: " + error.message;
     }
-  );
+  });
 
-  actions.appendChild(
-    save
-  );
+  actions.appendChild(save);
 
-  actions.appendChild(
-    status
-  );
+  actions.appendChild(status);
 
-  body.appendChild(
-    actions
-  );
+  body.appendChild(actions);
 
   body.appendChild(
     createElement(
       "div",
       "feedback-privacy",
-      (
-        "Feedback is stored locally " +
+      "Feedback is stored locally " +
         "in this browser and is not " +
         "automatically sent to the " +
-        "project authors."
-      )
-    )
+        "project authors.",
+    ),
   );
 
   return body;
 }
 
-function createFeedbackSection(
-  data
-) {
-  const wrapper =
-    createElement(
-      "div",
-      "feedback"
-    );
+function createFeedbackSection(data) {
+  const wrapper = createElement("div", "feedback");
 
   wrapper.appendChild(
-    createDisclosure(
-      "Give feedback",
-      createFeedbackBody(
-        data
-      )
-    )
+    createDisclosure("Give feedback", createFeedbackBody(data)),
   );
 
   return wrapper;
 }
 
-function createHeader(
-  subtitle,
-  status = null
-) {
-  const header =
-    createElement(
-      "div",
-      "header"
-    );
+function createHeader(subtitle, status = null) {
+  const header = createElement("div", "header");
 
-  const titleWrap =
-    createElement(
-      "div",
-      "title-wrap"
-    );
+  const titleWrap = createElement("div", "title-wrap");
 
-  titleWrap.appendChild(
-    createLogo()
-  );
+  titleWrap.appendChild(createLogo());
 
-  const titles =
-    createElement(
-      "div"
-    );
+  const titles = createElement("div");
 
-  titles.appendChild(
-    createElement(
-      "div",
-      "title",
-      "Knowledge Graph Check"
-    )
-  );
+  titles.appendChild(createElement("div", "title", "Knowledge Graph Check"));
 
   if (subtitle) {
-    titles.appendChild(
-      createElement(
-        "div",
-        "subtitle",
-        subtitle
-      )
-    );
+    titles.appendChild(createElement("div", "subtitle", subtitle));
   }
 
-  titleWrap.appendChild(
-    titles
-  );
+  titleWrap.appendChild(titles);
 
-  header.appendChild(
-    titleWrap
-  );
+  header.appendChild(titleWrap);
 
   if (status) {
     header.appendChild(
       createElement(
         "span",
-        (
-          "badge " +
-          statusClass(
-            status
-          )
-        ),
-        statusLabel(
-          status
-        )
-      )
+        "badge " + statusClass(status),
+        statusLabel(status),
+      ),
     );
   }
 
@@ -5866,1291 +3426,648 @@ function createHeader(
 }
 
 function createFooter() {
-  const footer =
-    createElement(
-      "div",
-      "footer"
-    );
+  const footer = createElement("div", "footer");
 
   footer.appendChild(
-    createElement(
-      "span",
-      "",
-      (
-        "Research prototype · " +
-        "not a clinical tool"
-      )
-    )
+    createElement("span", "", "Research prototype · " + "not a clinical tool"),
   );
 
-  const issueLink =
-    document
-      .createElement(
-        "a"
-      );
+  const issueLink = document.createElement("a");
 
-  issueLink.className =
-    "report-link";
+  issueLink.className = "report-link";
 
-  issueLink.href =
-    ISSUE_URL;
+  issueLink.href = ISSUE_URL;
 
-  issueLink.target =
-    "_blank";
+  issueLink.target = "_blank";
 
-  issueLink.rel =
-    "noreferrer";
+  issueLink.rel = "noreferrer";
 
-  issueLink.textContent =
-    "Report an issue ↗";
+  issueLink.textContent = "Report an issue ↗";
 
-  footer.appendChild(
-    issueLink
-  );
+  footer.appendChild(issueLink);
 
   return footer;
 }
 
-function renderVerification(
-  element,
-  data
-) {
-  if (
-    !element ||
-    !element.isConnected
-  ) {
+function renderVerification(element, data) {
+  if (!element || !element.isConnected) {
     return;
   }
 
-  adoptPendingHostForAssistant(
-    element
-  );
+  adoptPendingHostForAssistant(element);
 
-  const host =
-    createVerificationHost(
-      element
-    );
+  const host = createVerificationHost(element);
 
-  host.dataset.kgState =
-    "result";
+  host.dataset.kgState = "result";
 
-  delete host.dataset
-    .kgPending;
+  delete host.dataset.kgPending;
 
-  applyTheme(
-    host
-  );
+  applyTheme(host);
 
-  const card =
-    host.shadowRoot
-      .querySelector(
-        ".card"
-      );
+  const card = host.shadowRoot.querySelector(".card");
 
-  const shell =
-    createElement(
-      "div",
-      "content-shell"
-    );
+  const shell = createElement("div", "content-shell");
 
-  const summary =
-    data.summary ||
-    {};
+  const summary = data.summary || {};
 
-  const claims =
-    data.claims ||
-    [];
+  const claims = data.claims || [];
 
   shell.appendChild(
     createHeader(
-      (
-        `${data.claimCount || 0} ` +
-        `factual claim${
-          data.claimCount === 1
-            ? ""
-            : "s"
-        } checked`
-      ),
-      summary.status
-    )
+      `${data.claimCount || 0} ` +
+        `factual claim${data.claimCount === 1 ? "" : "s"} checked`,
+      summary.status,
+    ),
   );
 
-  if (
-    claims.length === 0
-  ) {
+  if (claims.length === 0) {
     shell.appendChild(
       createElement(
         "div",
         "empty",
-        (
-          summary.explanation ||
-          (
-            "No factual claims were " +
-            "detected in this response."
-          )
-        )
-      )
+        summary.explanation ||
+          "No factual claims were " + "detected in this response.",
+      ),
     );
-  } else if (
-    claims.length === 1
-  ) {
-    renderSingleClaim(
-      shell,
-      claims[0]
-    );
+  } else if (claims.length === 1) {
+    renderSingleClaim(shell, claims[0]);
   } else {
-    renderMultipleClaims(
-      shell,
-      data
-    );
+    renderMultipleClaims(shell, data);
   }
 
-  shell.appendChild(
-    createFeedbackSection(
-      data
-    )
-  );
+  shell.appendChild(createFeedbackSection(data));
 
-  shell.appendChild(
-    createFooter()
-  );
+  shell.appendChild(createFooter());
 
-  swapCardContent(
-    card,
-    shell
-  );
+  swapCardContent(card, shell);
 }
 
-function renderNonAnswer(
-  element,
-  question
-) {
-  adoptPendingHostForNonAnswer(
-    element
-  );
+function renderNonAnswer(element, question) {
+  adoptPendingHostForNonAnswer(element);
 
-  const host =
-    createVerificationHost(
-      element,
-      {
-        after:
-          true,
-      }
-    );
+  const host = createVerificationHost(element, {
+    after: true,
+  });
 
-  host.dataset.kgState =
-    "non-answer";
+  host.dataset.kgState = "non-answer";
 
-  delete host.dataset
-    .kgPending;
+  delete host.dataset.kgPending;
 
-  applyTheme(
-    host
-  );
+  applyTheme(host);
 
-  const card =
-    host.shadowRoot
-      .querySelector(
-        ".card"
-      );
+  const card = host.shadowRoot.querySelector(".card");
 
-  const shell =
-    createElement(
-      "div",
-      "content-shell"
-    );
+  const shell = createElement("div", "content-shell");
 
-  shell.appendChild(
-    createHeader(
-      "No verification result"
-    )
-  );
+  shell.appendChild(createHeader("No verification result"));
 
-  const body =
-    createElement(
-      "div",
-      "non-answer"
-    );
+  const body = createElement("div", "non-answer");
 
   body.appendChild(
-    createElement(
-      "div",
-      "non-answer-title",
-      "No response available to verify"
-    )
+    createElement("div", "non-answer-title", "No response available to verify"),
   );
 
   body.appendChild(
     createElement(
       "div",
       "non-answer-copy",
-      (
-        "ChatGPT did not return a " +
+      "ChatGPT did not return a " +
         "substantive factual answer, " +
         "so the verification pipeline " +
-        "was not run."
-      )
-    )
+        "was not run.",
+    ),
   );
 
   body.appendChild(
     createElement(
       "div",
       "evidence-explorer-note",
-      (
-        "You can still inspect relevant " +
+      "You can still inspect relevant " +
         "Knowledge Graph evidence. " +
         "This is evidence retrieval, " +
-        "not a verification result."
-      )
-    )
+        "not a verification result.",
+    ),
   );
 
-  const button =
-    createElement(
-      "button",
-      "inline-action",
-      (
-        "Check Knowledge Graph " +
-        "for evidence →"
-      )
-    );
+  const button = createElement(
+    "button",
+    "inline-action",
+    "Check Knowledge Graph " + "for evidence →",
+  );
 
-  button.type =
-    "button";
+  button.type = "button";
 
-  button.addEventListener(
-    "click",
-    async () => {
-      button.disabled =
-        true;
+  button.addEventListener("click", async () => {
+    button.disabled = true;
 
-      button.textContent =
-        "Checking Knowledge Graph…";
+    button.textContent = "Checking Knowledge Graph…";
 
-      try {
-        const response =
-          await requestContext(
-            question
-          );
+    try {
+      const response = await requestContext(question);
 
-        if (
-          !response ||
-          !response.ok
-        ) {
-          throw new Error(
-            response?.error ||
-            "Knowledge graph request failed"
-          );
-        }
-
-        renderEvidenceExplorer(
-          element,
-          question,
-          response.data
-        );
-      } catch (error) {
-        button.disabled =
-          false;
-
-        button.textContent =
-          (
-            "Check Knowledge Graph " +
-            "for evidence →"
-          );
-
-        if (
-          isInvalidContextError(
-            error
-          )
-        ) {
-          renderReconnect(
-            element,
-            true
-          );
-
-          return;
-        }
-
-        const existingError =
-          body.querySelector(
-            ".retrieval-error"
-          );
-
-        if (existingError) {
-          existingError.remove();
-        }
-
-        const errorText =
-          createElement(
-            "div",
-            (
-              "evidence-explorer-note " +
-              "retrieval-error"
-            ),
-            (
-              "Evidence retrieval failed: " +
-              error.message
-            )
-          );
-
-        body.appendChild(
-          errorText
-        );
+      if (!response || !response.ok) {
+        throw new Error(response?.error || "Knowledge graph request failed");
       }
+
+      renderEvidenceExplorer(element, question, response.data);
+    } catch (error) {
+      button.disabled = false;
+
+      button.textContent = "Check Knowledge Graph " + "for evidence →";
+
+      if (isInvalidContextError(error)) {
+        renderReconnect(element, true);
+
+        return;
+      }
+
+      const existingError = body.querySelector(".retrieval-error");
+
+      if (existingError) {
+        existingError.remove();
+      }
+
+      const errorText = createElement(
+        "div",
+        "evidence-explorer-note " + "retrieval-error",
+        "Evidence retrieval failed: " + error.message,
+      );
+
+      body.appendChild(errorText);
     }
-  );
+  });
 
-  body.appendChild(
-    button
-  );
+  body.appendChild(button);
 
-  shell.appendChild(
-    body
-  );
+  shell.appendChild(body);
 
-  shell.appendChild(
-    createFooter()
-  );
+  shell.appendChild(createFooter());
 
-  swapCardContent(
-    card,
-    shell
-  );
+  swapCardContent(card, shell);
 }
 
-function renderEvidenceExplorer(
-  element,
-  question,
-  data
-) {
-  const host =
-    createVerificationHost(
-      element,
-      {
-        after:
-          true,
-      }
-    );
+function renderEvidenceExplorer(element, question, data) {
+  const host = createVerificationHost(element, {
+    after: true,
+  });
 
-  host.dataset.kgState =
-    "evidence-explorer";
+  host.dataset.kgState = "evidence-explorer";
 
-  delete host.dataset
-    .kgPending;
+  delete host.dataset.kgPending;
 
-  applyTheme(
-    host
-  );
+  applyTheme(host);
 
-  const card =
-    host.shadowRoot
-      .querySelector(
-        ".card"
-      );
+  const card = host.shadowRoot.querySelector(".card");
 
-  const facts =
-    data.facts ||
-    [];
+  const facts = data.facts || [];
 
-  if (
-    facts.length === 0
-  ) {
-    const existingBody =
-      card.shadowRoot
-        ?.querySelector(
-          ".non-answer"
-        );
+  if (facts.length === 0) {
+    const existingBody = card.shadowRoot?.querySelector(".non-answer");
 
-    const shell =
-      createElement(
-        "div",
-        "content-shell"
-      );
+    const shell = createElement("div", "content-shell");
 
-    shell.appendChild(
-      createHeader(
-        "No verification result"
-      )
-    );
+    shell.appendChild(createHeader("No verification result"));
 
-    const body =
-      createElement(
-        "div",
-        "non-answer"
-      );
+    const body = createElement("div", "non-answer");
 
     body.appendChild(
       createElement(
         "div",
         "non-answer-title",
-        "No response available to verify"
-      )
+        "No response available to verify",
+      ),
     );
 
     body.appendChild(
       createElement(
         "div",
         "non-answer-copy",
-        (
-          "ChatGPT did not return a " +
+        "ChatGPT did not return a " +
           "substantive factual answer, " +
           "so the verification pipeline " +
-          "was not run."
-        )
-      )
+          "was not run.",
+      ),
     );
 
     body.appendChild(
       createElement(
         "div",
         "evidence-explorer-note",
-        (
-          "No matching source-backed " +
+        "No matching source-backed " +
           "Knowledge Graph evidence " +
-          "was retrieved for this prompt."
-        )
-      )
+          "was retrieved for this prompt.",
+      ),
     );
 
-    shell.appendChild(
-      body
-    );
+    shell.appendChild(body);
 
-    shell.appendChild(
-      createFooter()
-    );
+    shell.appendChild(createFooter());
 
-    swapCardContent(
-      card,
-      shell
-    );
+    swapCardContent(card, shell);
 
     return;
   }
 
-  const shell =
-    createElement(
-      "div",
-      "content-shell"
-    );
+  const shell = createElement("div", "content-shell");
 
   shell.appendChild(
-    createHeader(
-      (
-        "Evidence view · " +
-        "not a verification result"
-      )
-    )
+    createHeader("Evidence view · " + "not a verification result"),
   );
 
-  const body =
-    createElement(
-      "div",
-      "explorer"
-    );
+  const body = createElement("div", "explorer");
 
   body.appendChild(
-    createElement(
-      "div",
-      "explorer-heading",
-      "Knowledge Graph evidence"
-    )
+    createElement("div", "explorer-heading", "Knowledge Graph evidence"),
   );
 
   body.appendChild(
     createElement(
       "div",
       "explorer-copy",
-      (
-        `${facts.length} source-backed ` +
+      `${facts.length} source-backed ` +
         `evidence record${
-          facts.length === 1
-            ? ""
-            : "s"
-        } retrieved for this prompt.`
-      )
-    )
+          facts.length === 1 ? "" : "s"
+        } retrieved for this prompt.`,
+    ),
   );
 
-  const list =
-    createElement(
-      "div",
-      "explorer-list"
-    );
+  const list = createElement("div", "explorer-list");
 
-  for (
-    const fact
-    of facts
-  ) {
-    renderFactEvidence(
-      list,
-      fact
-    );
+  for (const fact of facts) {
+    renderFactEvidence(list, fact);
   }
 
-  body.appendChild(
-    list
-  );
+  body.appendChild(list);
 
   body.appendChild(
     createElement(
       "div",
       "evidence-explorer-note",
-      (
-        "Retrieved evidence is shown " +
+      "Retrieved evidence is shown " +
         "without generating a replacement " +
         "answer and is not included in " +
-        "response-verification metrics."
-      )
-    )
+        "response-verification metrics.",
+    ),
   );
 
-  shell.appendChild(
-    body
-  );
+  shell.appendChild(body);
 
-  shell.appendChild(
-    createFooter()
-  );
+  shell.appendChild(createFooter());
 
-  swapCardContent(
-    card,
-    shell
-  );
+  swapCardContent(card, shell);
 }
 
-function renderReconnect(
-  element,
-  after = false
-) {
-  const host =
-    createVerificationHost(
-      element,
-      {
-        after,
-      }
-    );
+function renderReconnect(element, after = false) {
+  const host = createVerificationHost(element, {
+    after,
+  });
 
-  host.dataset.kgState =
-    "error";
+  host.dataset.kgState = "error";
 
-  delete host.dataset
-    .kgPending;
+  delete host.dataset.kgPending;
 
-  const card =
-    host.shadowRoot
-      .querySelector(
-        ".card"
-      );
+  const card = host.shadowRoot.querySelector(".card");
 
-  const shell =
-    createElement(
-      "div",
-      "content-shell"
-    );
+  const shell = createElement("div", "content-shell");
 
-  const wrapper =
-    createElement(
-      "div",
-      "reconnect"
-    );
+  const wrapper = createElement("div", "reconnect");
 
   wrapper.appendChild(
-    createElement(
-      "div",
-      "reconnect-title",
-      "Knowledge Graph Check"
-    )
+    createElement("div", "reconnect-title", "Knowledge Graph Check"),
   );
 
   wrapper.appendChild(
     createElement(
       "div",
       "reconnect-copy",
-      (
-        "The extension was updated. " +
-        "Refresh ChatGPT to reconnect."
-      )
-    )
+      "The extension was updated. " + "Refresh ChatGPT to reconnect.",
+    ),
   );
 
-  const button =
-    createElement(
-      "button",
-      "refresh",
-      "Refresh ChatGPT"
-    );
+  const button = createElement("button", "refresh", "Refresh ChatGPT");
 
-  button.type =
-    "button";
+  button.type = "button";
 
-  button.addEventListener(
-    "click",
-    () => {
-      window.location
-        .reload();
-    }
-  );
+  button.addEventListener("click", () => {
+    window.location.reload();
+  });
 
-  wrapper.appendChild(
-    button
-  );
+  wrapper.appendChild(button);
 
-  shell.appendChild(
-    wrapper
-  );
+  shell.appendChild(wrapper);
 
-  swapCardContent(
-    card,
-    shell
-  );
+  swapCardContent(card, shell);
 }
 
-function renderVerificationError(
-  element,
-  question,
-  responseText,
-  error
-) {
-  if (
-    isInvalidContextError(
-      error
-    )
-  ) {
-    renderReconnect(
-      element
-    );
+function renderVerificationError(element, question, responseText, error) {
+  if (isInvalidContextError(error)) {
+    renderReconnect(element);
 
     return;
   }
 
-  const host =
-    createVerificationHost(
-      element
-    );
+  const host = createVerificationHost(element);
 
-  host.dataset.kgState =
-    "error";
+  host.dataset.kgState = "error";
 
-  delete host.dataset
-    .kgPending;
+  delete host.dataset.kgPending;
 
-  const card =
-    host.shadowRoot
-      .querySelector(
-        ".card"
-      );
+  const card = host.shadowRoot.querySelector(".card");
 
-  const shell =
-    createElement(
-      "div",
-      "content-shell"
-    );
+  const shell = createElement("div", "content-shell");
 
-  const wrapper =
-    createElement(
-      "div",
-      "error"
-    );
+  const wrapper = createElement("div", "error");
 
   wrapper.appendChild(
-    createElement(
-      "div",
-      "error-title",
-      "Knowledge Graph unavailable"
-    )
+    createElement("div", "error-title", "Knowledge Graph unavailable"),
   );
 
   wrapper.appendChild(
     createElement(
       "div",
       "error-copy",
-      (
-        "Make sure the local backend " +
-        "is running, then retry."
-      )
-    )
+      "Make sure the local backend " + "is running, then retry.",
+    ),
   );
 
-  const retry =
-    createElement(
-      "button",
-      "retry",
-      "Retry"
-    );
+  const retry = createElement("button", "retry", "Retry");
 
-  retry.type =
-    "button";
+  retry.type = "button";
 
-  retry.addEventListener(
-    "click",
-    () => {
-      verifyAssistantMessage(
-        element,
-        {
-          question,
-          responseText,
-          force:
-            true,
-        }
-      );
-    }
-  );
+  retry.addEventListener("click", () => {
+    verifyAssistantMessage(element, {
+      question,
+      responseText,
+      force: true,
+    });
+  });
 
-  wrapper.appendChild(
-    retry
-  );
+  wrapper.appendChild(retry);
 
-  shell.appendChild(
-    wrapper
-  );
+  shell.appendChild(wrapper);
 
-  swapCardContent(
-    card,
-    shell
-  );
+  swapCardContent(card, shell);
 }
 
-async function verifyAssistantMessage(
-  element,
-  options = {}
-) {
-  if (
-    !element ||
-    !element.isConnected
-  ) {
+async function verifyAssistantMessage(element, options = {}) {
+  if (!element || !element.isConnected) {
     return {
-      status:
-        "skipped",
+      status: "skipped",
     };
   }
 
-  adoptPendingHostForAssistant(
-    element
-  );
+  adoptPendingHostForAssistant(element);
 
   const responseText =
-    (
-      options.responseText ||
-      extractAssistantMessageText(
-        element
-      )
-    );
+    options.responseText || extractAssistantMessageText(element);
 
-  const question =
-    (
-      options.question ||
-      findQuestionForAssistant(
-        element
-      )
-    );
+  const question = options.question || findQuestionForAssistant(element);
 
-  if (
-    !responseText ||
-    !question
-  ) {
+  if (!responseText || !question) {
     return {
-      status:
-        "skipped",
+      status: "skipped",
     };
   }
 
-  if (
-    !responseSurfaceHasCovidContext(
-      element,
-      question,
-      responseText
-    )
-  ) {
-    removeVerificationHost(
-      element
-    );
+  if (!responseSurfaceHasCovidContext(element, question, responseText)) {
+    removeVerificationHost(element);
 
     return {
-      status:
-        "skipped",
+      status: "skipped",
     };
   }
 
-  if (
-    isHostNonAnswer(
-      responseText
-    )
-  ) {
-    renderNonAnswer(
-      element,
-      question
-    );
+  if (isHostNonAnswer(responseText)) {
+    renderNonAnswer(element, question);
 
     return {
-      status:
-        "non_answer",
+      status: "non_answer",
     };
   }
 
-  if (
-    assistantVerifiedText
-      .get(element) ===
-      responseText
-  ) {
-    const data =
-      assistantVerificationData
-        .get(element);
+  if (assistantVerifiedText.get(element) === responseText) {
+    const data = assistantVerificationData.get(element);
 
     if (
       data &&
-      (
-        !getVerificationHost(
-          element
-        ) ||
-        getVerificationHost(
-          element
-        )?.dataset
-          .kgState !==
-          "result"
-      )
+      (!getVerificationHost(element) ||
+        getVerificationHost(element)?.dataset.kgState !== "result")
     ) {
-      renderVerification(
-        element,
-        data
-      );
+      renderVerification(element, data);
     }
 
     return {
-      status:
-        "restored",
+      status: "restored",
     };
   }
 
-  if (
-    assistantPendingText
-      .get(element) ===
-      responseText
-  ) {
+  if (assistantPendingText.get(element) === responseText) {
     return {
-      status:
-        "pending",
+      status: "pending",
     };
   }
 
-  if (
-    !options.force
-  ) {
+  if (!options.force) {
     try {
-      const cached =
-        await getCachedVerification(
-          question,
-          responseText
-        );
+      const cached = await getCachedVerification(question, responseText);
 
-      if (
-        cached?.data
-      ) {
-        assistantVerifiedText
-          .set(
-            element,
-            responseText
-          );
+      if (cached?.data) {
+        assistantVerifiedText.set(element, responseText);
 
-        assistantVerificationData
-          .set(
-            element,
-            cached.data
-          );
+        assistantVerificationData.set(element, cached.data);
 
-        renderVerification(
-          element,
-          cached.data
-        );
+        renderVerification(element, cached.data);
 
         return {
-          status:
-            "restored",
+          status: "restored",
         };
       }
     } catch (error) {
-      if (
-        isInvalidContextError(
-          error
-        )
-      ) {
-        renderReconnect(
-          element
-        );
+      if (isInvalidContextError(error)) {
+        renderReconnect(element);
 
         return {
-          status:
-            "error",
+          status: "error",
         };
       }
     }
   }
 
-  assistantPendingText
-    .set(
-      element,
-      responseText
-    );
+  assistantPendingText.set(element, responseText);
 
-  renderVerificationLoading(
-    element,
-    Boolean(
-      options.existing
-    )
-  );
+  renderVerificationLoading(element, Boolean(options.existing));
 
   try {
-    const response =
-      await requestResponseVerification(
-        question,
-        responseText
-      );
+    const response = await requestResponseVerification(question, responseText);
 
-    if (
-      !response ||
-      !response.ok
-    ) {
-      throw new Error(
-        response?.error ||
-        "Knowledge graph request failed"
-      );
+    if (!response || !response.ok) {
+      throw new Error(response?.error || "Knowledge graph request failed");
     }
 
     const data = {
       ...response.data,
-      question:
-        response.data
-          ?.question ||
-        question,
-      response:
-        response.data
-          ?.response ||
-        responseText,
+      question: response.data?.question || question,
+      response: response.data?.response || responseText,
     };
 
-    assistantVerifiedText
-      .set(
-        element,
-        responseText
-      );
+    assistantVerifiedText.set(element, responseText);
 
-    assistantVerificationData
-      .set(
-        element,
-        data
-      );
+    assistantVerificationData.set(element, data);
 
     try {
-      await saveCachedVerification(
-        question,
-        responseText,
-        data
-      );
-    } catch {
-    }
+      await saveCachedVerification(question, responseText, data);
+    } catch {}
 
-    renderVerification(
-      element,
-      data
-    );
+    renderVerification(element, data);
 
     return {
-      status:
-        "verified",
+      status: "verified",
     };
   } catch (error) {
-    renderVerificationError(
-      element,
-      question,
-      responseText,
-      error
-    );
+    renderVerificationError(element, question, responseText, error);
 
     return {
-      status:
-        "error",
+      status: "error",
     };
   } finally {
-    assistantPendingText
-      .delete(
-        element
-      );
+    assistantPendingText.delete(element);
   }
 }
 
 function scheduleAssistantVerification(
   element,
   existing = false,
-  delay =
-    RESPONSE_SETTLE_MS
+  delay = RESPONSE_SETTLE_MS,
 ) {
-  if (
-    !element ||
-    !element.isConnected
-  ) {
+  if (!element || !element.isConnected) {
     return;
   }
 
-  adoptPendingHostForAssistant(
-    element
-  );
+  adoptPendingHostForAssistant(element);
 
-  const currentText =
-    extractAssistantMessageText(
-      element
-    );
+  const currentText = extractAssistantMessageText(element);
 
-  const question =
-    findQuestionForAssistant(
-      element
-    );
+  const question = findQuestionForAssistant(element);
 
-  if (
-    !currentText ||
-    !question
-  ) {
+  if (!currentText || !question) {
     return;
   }
 
-  if (
-    !responseSurfaceHasCovidContext(
-      element,
-      question,
-      currentText
-    )
-  ) {
-    removeVerificationHost(
-      element
-    );
+  if (!responseSurfaceHasCovidContext(element, question, currentText)) {
+    removeVerificationHost(element);
 
     return;
   }
 
-  if (
-    isHostNonAnswer(
-      currentText
-    )
-  ) {
-    renderNonAnswer(
-      element,
-      question
-    );
+  if (isHostNonAnswer(currentText)) {
+    renderNonAnswer(element, question);
 
     return;
   }
 
-  if (
-    assistantVerifiedText
-      .get(element) ===
-      currentText
-  ) {
-    const data =
-      assistantVerificationData
-        .get(element);
+  if (assistantVerifiedText.get(element) === currentText) {
+    const data = assistantVerificationData.get(element);
 
     if (
       data &&
-      (
-        !getVerificationHost(
-          element
-        ) ||
-        getVerificationHost(
-          element
-        )?.dataset
-          .kgState !==
-          "result"
-      )
+      (!getVerificationHost(element) ||
+        getVerificationHost(element)?.dataset.kgState !== "result")
     ) {
-      renderVerification(
-        element,
-        data
-      );
+      renderVerification(element, data);
     }
 
     return;
   }
 
-  if (
-    currentText &&
-    assistantPendingText
-      .get(element) ===
-      currentText
-  ) {
+  if (currentText && assistantPendingText.get(element) === currentText) {
     return;
   }
 
-  if (
-    assistantTimers.has(
-      element
-    )
-  ) {
+  if (assistantTimers.has(element)) {
     return;
   }
 
-  if (
-    assistantGenerationInProgress()
-  ) {
-    renderAssistantWaiting(
-      element
-    );
+  if (assistantGenerationInProgress()) {
+    renderAssistantWaiting(element);
 
-    const timer =
-      setTimeout(
-        () => {
-          assistantTimers
-            .delete(
-              element
-            );
+    const timer = setTimeout(() => {
+      assistantTimers.delete(element);
 
-          scheduleAssistantVerification(
-            element,
-            existing,
-            GENERATION_RECHECK_MS
-          );
-        },
-        GENERATION_RECHECK_MS
-      );
+      scheduleAssistantVerification(element, existing, GENERATION_RECHECK_MS);
+    }, GENERATION_RECHECK_MS);
 
-    assistantTimers.set(
-      element,
-      timer
-    );
+    assistantTimers.set(element, timer);
 
     return;
   }
 
-  renderPreparingVerification(
-    element
-  );
+  renderPreparingVerification(element);
 
-  const settledText =
-    currentText;
+  const settledText = currentText;
 
-  const timer =
-    setTimeout(
-      () => {
-        assistantTimers
-          .delete(
-            element
-          );
+  const timer = setTimeout(() => {
+    assistantTimers.delete(element);
 
-        if (
-          assistantGenerationInProgress()
-        ) {
-          scheduleAssistantVerification(
-            element,
-            existing,
-            GENERATION_RECHECK_MS
-          );
+    if (assistantGenerationInProgress()) {
+      scheduleAssistantVerification(element, existing, GENERATION_RECHECK_MS);
 
-          return;
-        }
+      return;
+    }
 
-        const latestText =
-          extractAssistantMessageText(
-            element
-          );
+    const latestText = extractAssistantMessageText(element);
 
-        if (!latestText) {
-          scheduleAssistantVerification(
-            element,
-            existing,
-            GENERATION_RECHECK_MS
-          );
+    if (!latestText) {
+      scheduleAssistantVerification(element, existing, GENERATION_RECHECK_MS);
 
-          return;
-        }
+      return;
+    }
 
-        if (
-          latestText !==
-          settledText
-        ) {
-          scheduleAssistantVerification(
-            element,
-            existing,
-            RESPONSE_SETTLE_MS
-          );
+    if (latestText !== settledText) {
+      scheduleAssistantVerification(element, existing, RESPONSE_SETTLE_MS);
 
-          return;
-        }
+      return;
+    }
 
-        verifyAssistantMessage(
-          element,
-          {
-            existing,
-          }
-        );
-      },
-      delay
-    );
+    verifyAssistantMessage(element, {
+      existing,
+    });
+  }, delay);
 
-  assistantTimers.set(
-    element,
-    timer
-  );
+  assistantTimers.set(element, timer);
 }
 
-function handleHostNonAnswerSurface(
-  element
-) {
-  const question =
-    findQuestionForElement(
-      element
-    );
+function handleHostNonAnswerSurface(element) {
+  const question = findQuestionForElement(element);
 
   if (!question) {
     return false;
   }
 
-  const responseText =
-    normalizeHostNonAnswerText(
-      element.textContent
-    );
+  const responseText = normalizeHostNonAnswerText(element.textContent);
 
-  if (
-    !responseSurfaceHasCovidContext(
-      element,
-      question,
-      responseText
-    )
-  ) {
+  if (!responseSurfaceHasCovidContext(element, question, responseText)) {
     return false;
   }
 
-  adoptPendingHostForNonAnswer(
-    element
-  );
+  adoptPendingHostForNonAnswer(element);
 
-  renderNonAnswer(
-    element,
-    question
-  );
+  renderNonAnswer(element, question);
 
   return true;
 }
 
-function clearStalePendingHosts(
-  keepHost = null
-) {
+function clearStalePendingHosts(keepHost = null) {
   document
-    .querySelectorAll(
-      '[data-covid-kg-verification][data-kg-pending="true"]'
-    )
-    .forEach(
-      (host) => {
-        if (
-          host !== keepHost
-        ) {
-          host.remove();
-        }
+    .querySelectorAll('[data-covid-kg-verification][data-kg-pending="true"]')
+    .forEach((host) => {
+      if (host !== keepHost) {
+        host.remove();
       }
-    );
+    });
 }
 
 function reconcileLatestUserTurn() {
-  const latestUser =
-    getLatestUserMessage();
+  const latestUser = getLatestUserMessage();
 
   if (!latestUser) {
     clearStalePendingHosts();
@@ -7158,409 +4075,219 @@ function reconcileLatestUserTurn() {
     return;
   }
 
-  if (
-    !userTurnHasCovidContext(
-      latestUser
-    )
-  ) {
+  if (!userTurnHasCovidContext(latestUser)) {
     clearStalePendingHosts();
 
     return;
   }
 
-  const assistant =
-    findAssistantForUserTurn(
-      latestUser
-    );
+  const assistant = findAssistantForUserTurn(latestUser);
 
   if (assistant) {
-    const pendingHost =
-      getVerificationHost(
-        latestUser
-      );
+    const pendingHost = getVerificationHost(latestUser);
 
-    if (
-      pendingHost &&
-      pendingHost.dataset
-        .kgPending ===
-        "true"
-    ) {
-      transferVerificationHost(
-        latestUser,
-        assistant
-      );
+    if (pendingHost && pendingHost.dataset.kgPending === "true") {
+      transferVerificationHost(latestUser, assistant);
     }
 
     clearStalePendingHosts();
 
-    scheduleAssistantVerification(
-      assistant,
-      false
-    );
+    scheduleAssistantVerification(assistant, false);
 
     return;
   }
 
-  const nonAnswer =
-    findNonAnswerForUserTurn(
-      latestUser
-    );
+  const nonAnswer = findNonAnswerForUserTurn(latestUser);
 
   if (nonAnswer) {
-    const pendingHost =
-      getVerificationHost(
-        latestUser
-      );
+    const pendingHost = getVerificationHost(latestUser);
 
-    if (
-      pendingHost &&
-      pendingHost.dataset
-        .kgPending ===
-        "true"
-    ) {
-      transferVerificationHost(
-        latestUser,
-        nonAnswer,
-        {
-          after:
-            true,
-        }
-      );
+    if (pendingHost && pendingHost.dataset.kgPending === "true") {
+      transferVerificationHost(latestUser, nonAnswer, {
+        after: true,
+      });
     }
 
     clearStalePendingHosts();
 
-    handleHostNonAnswerSurface(
-      nonAnswer
-    );
+    handleHostNonAnswerSurface(nonAnswer);
 
     return;
   }
 
-  renderPendingForUser(
-    latestUser
-  );
+  renderPendingForUser(latestUser);
 
-  clearStalePendingHosts(
-    getVerificationHost(
-      latestUser
-    )
-  );
+  clearStalePendingHosts(getVerificationHost(latestUser));
 }
 
-function scheduleLatestAssistantVerification(
-  existing = false
-) {
-  const latestUser =
-    getLatestUserMessage();
+function scheduleLatestAssistantVerification(existing = false) {
+  const latestUser = getLatestUserMessage();
 
   if (!latestUser) {
     return;
   }
 
-  const assistant =
-    findAssistantForUserTurn(
-      latestUser
-    );
+  const assistant = findAssistantForUserTurn(latestUser);
 
   if (assistant) {
-    scheduleAssistantVerification(
-      assistant,
-      existing
-    );
+    scheduleAssistantVerification(assistant, existing);
 
     return;
   }
 
-  if (
-    assistantGenerationInProgress()
-  ) {
+  if (assistantGenerationInProgress()) {
     return;
   }
 
-  const nonAnswer =
-    findNonAnswerForUserTurn(
-      latestUser
-    );
+  const nonAnswer = findNonAnswerForUserTurn(latestUser);
 
   if (nonAnswer) {
-    handleHostNonAnswerSurface(
-      nonAnswer
-    );
+    handleHostNonAnswerSurface(nonAnswer);
   }
 }
 
 function cancelAssistantTimers() {
-  for (
-    const timer
-    of assistantTimers
-      .values()
-  ) {
-    clearTimeout(
-      timer
-    );
+  for (const timer of assistantTimers.values()) {
+    clearTimeout(timer);
   }
 
   assistantTimers.clear();
 }
 
 async function restoreCachedVerifications() {
-  const startUrl =
-    location.href;
+  const startUrl = location.href;
 
   let cache;
 
   try {
-    cache =
-      await getVerificationCache();
+    cache = await getVerificationCache();
   } catch {
     return;
   }
 
-  if (
-    startUrl !==
-    location.href
-  ) {
+  if (startUrl !== location.href) {
     return;
   }
 
-  const assistants =
-    getAssistantMessages();
+  const assistants = getAssistantMessages();
 
-  for (
-    const element
-    of assistants
-  ) {
-    const question =
-      findQuestionForAssistant(
-        element
-      );
+  for (const element of assistants) {
+    const question = findQuestionForAssistant(element);
 
-    const responseText =
-      extractAssistantMessageText(
-        element
-      );
+    const responseText = extractAssistantMessageText(element);
 
-    if (
-      !question ||
-      !responseText
-    ) {
+    if (!question || !responseText) {
       continue;
     }
 
-    if (
-      !responseSurfaceHasCovidContext(
-        element,
-        question,
-        responseText
-      )
-    ) {
+    if (!responseSurfaceHasCovidContext(element, question, responseText)) {
       continue;
     }
 
-    if (
-      isHostNonAnswer(
-        responseText
-      )
-    ) {
-      renderNonAnswer(
-        element,
-        question
-      );
+    if (isHostNonAnswer(responseText)) {
+      renderNonAnswer(element, question);
 
       continue;
     }
 
-    const cached =
-      cache[
-        verificationCacheId(
-          question,
-          responseText
-        )
-      ];
+    const cached = cache[verificationCacheId(question, responseText)];
 
-    if (
-      !cached?.data
-    ) {
+    if (!cached?.data) {
       continue;
     }
 
-    assistantVerifiedText
-      .set(
-        element,
-        responseText
-      );
+    assistantVerifiedText.set(element, responseText);
 
-    assistantVerificationData
-      .set(
-        element,
-        cached.data
-      );
+    assistantVerificationData.set(element, cached.data);
 
-    renderVerification(
-      element,
-      cached.data
-    );
+    renderVerification(element, cached.data);
   }
 
-  for (
-    const element
-    of findHostNonAnswerSurfaces()
-  ) {
-    handleHostNonAnswerSurface(
-      element
-    );
+  for (const element of findHostNonAnswerSurfaces()) {
+    handleHostNonAnswerSurface(element);
   }
 }
 
 async function inspectLatestRetrieval() {
-  const text =
-    getLatestUserQuery();
+  const text = getLatestUserQuery();
 
   if (!text) {
-    throw new Error(
-      "No user query was found."
-    );
+    throw new Error("No user query was found.");
   }
 
-  const response =
-    await requestContext(
-      text
-    );
+  const response = await requestContext(text);
 
-  if (
-    !response ||
-    !response.ok
-  ) {
-    throw new Error(
-      response?.error ||
-      "Knowledge graph request failed"
-    );
+  if (!response || !response.ok) {
+    throw new Error(response?.error || "Knowledge graph request failed");
   }
 
   return response.data;
 }
 
 async function groundCurrentDraft() {
-  const composer =
-    findComposer();
+  const composer = findComposer();
 
   if (!composer) {
-    throw new Error(
-      "ChatGPT prompt editor was not found."
-    );
+    throw new Error("ChatGPT prompt editor was not found.");
   }
 
-  const currentText =
-    getComposerText(
-      composer
-    );
+  const currentText = getComposerText(composer);
 
   if (!currentText) {
-    throw new Error(
-      "Enter a draft before grounding it."
-    );
+    throw new Error("Enter a draft before grounding it.");
   }
 
-  if (
-    extractOriginalQuery(
-      currentText
-    )
-  ) {
-    throw new Error(
-      "The current draft is already grounded."
-    );
+  if (extractOriginalQuery(currentText)) {
+    throw new Error("The current draft is already grounded.");
   }
 
-  const response =
-    await requestAugmentation(
-      currentText
-    );
+  const response = await requestAugmentation(currentText);
 
-  if (
-    !response ||
-    !response.ok
-  ) {
-    throw new Error(
-      response?.error ||
-      "Knowledge graph request failed"
-    );
+  if (!response || !response.ok) {
+    throw new Error(response?.error || "Knowledge graph request failed");
   }
 
-  lastOriginalDraft =
-    currentText;
+  lastOriginalDraft = currentText;
 
-  setComposerText(
-    composer,
-    response.data
-      .augmentedPrompt
-  );
+  setComposerText(composer, response.data.augmentedPrompt);
 
   return {
-    evidenceCount:
-      (
-        response.data
-          .facts ||
-        []
-      ).length,
+    evidenceCount: (response.data.facts || []).length,
   };
 }
 
 function restoreOriginalDraft() {
-  const composer =
-    findComposer();
+  const composer = findComposer();
 
   if (!composer) {
-    throw new Error(
-      "ChatGPT prompt editor was not found."
-    );
+    throw new Error("ChatGPT prompt editor was not found.");
   }
 
-  const currentText =
-    getComposerText(
-      composer
-    );
+  const currentText = getComposerText(composer);
 
-  const embeddedOriginal =
-    extractOriginalQuery(
-      currentText
-    );
+  const embeddedOriginal = extractOriginalQuery(currentText);
 
-  const original =
-    lastOriginalDraft ||
-    embeddedOriginal;
+  const original = lastOriginalDraft || embeddedOriginal;
 
   if (!original) {
-    throw new Error(
-      "There is no grounded draft to restore."
-    );
+    throw new Error("There is no grounded draft to restore.");
   }
 
-  setComposerText(
-    composer,
-    original
-  );
+  setComposerText(composer, original);
 
-  lastOriginalDraft =
-    null;
+  lastOriginalDraft = null;
 
   return {
-    restored:
-      true,
+    restored: true,
   };
 }
 
 async function checkPreviousResponses() {
-  if (
-    assistantGenerationInProgress()
-  ) {
-    throw new Error(
-      "Wait for the current ChatGPT response to finish first."
-    );
+  if (assistantGenerationInProgress()) {
+    throw new Error("Wait for the current ChatGPT response to finish first.");
   }
 
-  const surfaces =
-    getResponseSurfaces();
+  const surfaces = getResponseSurfaces();
 
   let verified = 0;
   let restored = 0;
@@ -7568,94 +4295,62 @@ async function checkPreviousResponses() {
   let nonAnswers = 0;
   let errors = 0;
 
-  for (
-    const surface
-    of surfaces
-  ) {
-    const question =
-      surface.question ||
-      "";
+  for (const surface of surfaces) {
+    const question = surface.question || "";
 
-    const response =
-      surface.response ||
-      "";
+    const response = surface.response || "";
 
     if (
       !question ||
-      !responseSurfaceHasCovidContext(
-        surface.element,
-        question,
-        response
-      )
+      !responseSurfaceHasCovidContext(surface.element, question, response)
     ) {
-      skipped +=
-        1;
+      skipped += 1;
 
       continue;
     }
 
-    if (
-      surface.kind ===
-      "non_answer"
-    ) {
-      renderNonAnswer(
-        surface.element,
-        question
-      );
+    if (surface.kind === "non_answer") {
+      renderNonAnswer(surface.element, question);
 
-      nonAnswers +=
-        1;
+      nonAnswers += 1;
 
       continue;
     }
 
-    const result =
-      await verifyAssistantMessage(
-        surface.element,
-        {
-          existing:
-            true,
-        }
-      );
+    const result = await verifyAssistantMessage(surface.element, {
+      existing: true,
+    });
 
-    switch (
-      result.status
-    ) {
+    switch (result.status) {
       case "verified":
-        verified +=
-          1;
+        verified += 1;
 
         break;
 
       case "restored":
-        restored +=
-          1;
+        restored += 1;
 
         break;
 
       case "non_answer":
-        nonAnswers +=
-          1;
+        nonAnswers += 1;
 
         break;
 
       case "error":
-        errors +=
-          1;
+        errors += 1;
 
         break;
 
       default:
-        skipped +=
-          1;
+        skipped += 1;
 
         break;
     }
   }
 
   return {
-    total:
-      surfaces.length,
+    total: surfaces.length,
     verified,
     restored,
     skipped,
@@ -7665,105 +4360,53 @@ async function checkPreviousResponses() {
 }
 
 function currentPopupStatus() {
-  const surfaces =
-    getResponseSurfaces();
+  const surfaces = getResponseSurfaces();
 
-  const eligible =
-    surfaces.filter(
-      (surface) =>
-        (
-          surface.question &&
-          responseSurfaceHasCovidContext(
-            surface.element,
-            surface.question,
-            surface.response
-          )
-        )
+  const eligible = surfaces.filter(
+    (surface) =>
+      surface.question &&
+      responseSurfaceHasCovidContext(
+        surface.element,
+        surface.question,
+        surface.response,
+      ),
+  );
+
+  const handled = eligible.filter((surface) => {
+    const state = getVerificationHost(surface.element)?.dataset.kgState;
+
+    return (
+      state === "result" ||
+      state === "non-answer" ||
+      state === "evidence-explorer"
     );
+  }).length;
 
-  const handled =
-    eligible.filter(
-      (surface) => {
-        const state =
-          getVerificationHost(
-            surface.element
-          )?.dataset
-            .kgState;
+  const composer = findComposer();
 
-        return (
-          state ===
-            "result" ||
-          state ===
-            "non-answer" ||
-          state ===
-            "evidence-explorer"
-        );
-      }
-    ).length;
+  const composerText = composer ? getComposerText(composer) : "";
 
-  const composer =
-    findComposer();
+  const embeddedOriginal = composerText
+    ? extractOriginalQuery(composerText)
+    : null;
 
-  const composerText =
-    composer
-      ? getComposerText(
-          composer
-        )
-      : "";
-
-  const embeddedOriginal =
-    composerText
-      ? extractOriginalQuery(
-          composerText
-        )
-      : null;
-
-  const latestQuery =
-    getLatestUserQuery();
+  const latestQuery = getLatestUserQuery();
 
   return {
-    url:
-      location.href,
-    covidContext:
-      conversationHasCovidContext(),
+    url: location.href,
+    covidContext: conversationHasCovidContext(),
     latestQuery,
-    renderedChecks:
-      handled,
-    assistantResponses:
-      eligible.length,
-    groundedDraft:
-      Boolean(
-        lastOriginalDraft ||
-        embeddedOriginal
-      ),
-    composerAvailable:
-      Boolean(
-        composer
-      ),
-    composerHasDraft:
-      Boolean(
-        composerText
-      ),
-    canGroundDraft:
-      Boolean(
-        composer &&
-        composerText &&
-        !embeddedOriginal
-      ),
-    canRestoreDraft:
-      Boolean(
-        composer &&
-        (
-          lastOriginalDraft ||
-          embeddedOriginal
-        )
-      ),
-    canInspectLatest:
-      Boolean(
-        latestQuery
-      ),
-    generationInProgress:
-      assistantGenerationInProgress(),
+    renderedChecks: handled,
+    assistantResponses: eligible.length,
+    groundedDraft: Boolean(lastOriginalDraft || embeddedOriginal),
+    composerAvailable: Boolean(composer),
+    composerHasDraft: Boolean(composerText),
+    canGroundDraft: Boolean(composer && composerText && !embeddedOriginal),
+    canRestoreDraft: Boolean(
+      composer && (lastOriginalDraft || embeddedOriginal),
+    ),
+    canInspectLatest: Boolean(latestQuery),
+    generationInProgress: assistantGenerationInProgress(),
   };
 }
 
@@ -7772,42 +4415,27 @@ function handleConversationChange() {
 
   clearStalePendingHosts();
 
-  if (
-    conversationChangeTimer
-  ) {
-    clearTimeout(
-      conversationChangeTimer
-    );
+  if (conversationChangeTimer) {
+    clearTimeout(conversationChangeTimer);
   }
 
-  conversationChangeTimer =
-    setTimeout(
-      async () => {
-        conversationChangeTimer =
-          null;
+  conversationChangeTimer = setTimeout(async () => {
+    conversationChangeTimer = null;
 
-        await restoreCachedVerifications();
+    await restoreCachedVerifications();
 
-        reconcileLatestUserTurn();
+    reconcileLatestUserTurn();
 
-        scheduleLatestAssistantVerification(
-          true
-        );
-      },
-      CONVERSATION_SETTLE_MS
-    );
+    scheduleLatestAssistantVerification(true);
+  }, CONVERSATION_SETTLE_MS);
 }
 
 function detectConversationChange() {
-  if (
-    location.href ===
-    lastConversationUrl
-  ) {
+  if (location.href === lastConversationUrl) {
     return false;
   }
 
-  lastConversationUrl =
-    location.href;
+  lastConversationUrl = location.href;
 
   handleConversationChange();
 
@@ -7817,240 +4445,140 @@ function detectConversationChange() {
 function reconcilePage() {
   syncThemes();
 
-  if (
-    detectConversationChange()
-  ) {
+  if (detectConversationChange()) {
     return;
   }
 
   reconcileLatestUserTurn();
 
-  scheduleLatestAssistantVerification(
-    false
-  );
+  scheduleLatestAssistantVerification(false);
 }
 
 function schedulePageReconciliation() {
-  if (
-    mutationFrame !==
-    null
-  ) {
+  if (mutationFrame !== null) {
     return;
   }
 
-  mutationFrame =
-    requestAnimationFrame(
-      () => {
-        mutationFrame =
-          null;
+  mutationFrame = requestAnimationFrame(() => {
+    mutationFrame = null;
 
-        reconcilePage();
-      }
-    );
+    reconcilePage();
+  });
 }
 
-chrome.runtime.onMessage
-  .addListener(
-    (
-      message,
-      sender,
-      sendResponse
-    ) => {
-      if (
-        !message ||
-        !message.type
-      ) {
-        return false;
-      }
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!message || !message.type) {
+    return false;
+  }
 
-      if (
-        message.type ===
-        "KG_POPUP_STATUS"
-      ) {
+  if (message.type === "KG_POPUP_STATUS") {
+    sendResponse({
+      ok: true,
+      data: currentPopupStatus(),
+    });
+
+    return false;
+  }
+
+  if (message.type === "KG_POPUP_INSPECT_LATEST") {
+    inspectLatestRetrieval()
+      .then((data) => {
         sendResponse({
-          ok:
-            true,
-          data:
-            currentPopupStatus(),
+          ok: true,
+          data,
         });
+      })
+      .catch((error) => {
+        sendResponse({
+          ok: false,
+          error: error.message,
+        });
+      });
 
-        return false;
-      }
-
-      if (
-        message.type ===
-        "KG_POPUP_INSPECT_LATEST"
-      ) {
-        inspectLatestRetrieval()
-          .then(
-            (data) => {
-              sendResponse({
-                ok:
-                  true,
-                data,
-              });
-            }
-          )
-          .catch(
-            (error) => {
-              sendResponse({
-                ok:
-                  false,
-                error:
-                  error.message,
-              });
-            }
-          );
-
-        return true;
-      }
-
-      if (
-        message.type ===
-        "KG_POPUP_GROUND_DRAFT"
-      ) {
-        groundCurrentDraft()
-          .then(
-            (data) => {
-              sendResponse({
-                ok:
-                  true,
-                data,
-              });
-            }
-          )
-          .catch(
-            (error) => {
-              sendResponse({
-                ok:
-                  false,
-                error:
-                  error.message,
-              });
-            }
-          );
-
-        return true;
-      }
-
-      if (
-        message.type ===
-        "KG_POPUP_RESTORE_DRAFT"
-      ) {
-        try {
-          sendResponse({
-            ok:
-              true,
-            data:
-              restoreOriginalDraft(),
-          });
-        } catch (error) {
-          sendResponse({
-            ok:
-              false,
-            error:
-              error.message,
-          });
-        }
-
-        return false;
-      }
-
-      if (
-        message.type ===
-        "KG_POPUP_CHECK_PREVIOUS"
-      ) {
-        checkPreviousResponses()
-          .then(
-            (data) => {
-              sendResponse({
-                ok:
-                  true,
-                data,
-              });
-            }
-          )
-          .catch(
-            (error) => {
-              sendResponse({
-                ok:
-                  false,
-                error:
-                  error.message,
-              });
-            }
-          );
-
-        return true;
-      }
-
-      return false;
-    }
-  );
-
-const observer =
-  new MutationObserver(
-    schedulePageReconciliation
-  );
-
-observer.observe(
-  document.documentElement,
-  {
-    childList:
-      true,
-    subtree:
-      true,
-    characterData:
-      true,
+    return true;
   }
-);
 
-const themeObserver =
-  new MutationObserver(
-    syncThemes
-  );
+  if (message.type === "KG_POPUP_GROUND_DRAFT") {
+    groundCurrentDraft()
+      .then((data) => {
+        sendResponse({
+          ok: true,
+          data,
+        });
+      })
+      .catch((error) => {
+        sendResponse({
+          ok: false,
+          error: error.message,
+        });
+      });
 
-themeObserver.observe(
-  document.documentElement,
-  {
-    attributes:
-      true,
-    attributeFilter:
-      [
-        "class",
-        "data-theme",
-        "style",
-      ],
+    return true;
   }
-);
 
-if (
-  document.body
-) {
-  themeObserver.observe(
-    document.body,
-    {
-      attributes:
-        true,
-      attributeFilter:
-        [
-          "class",
-          "data-theme",
-          "style",
-        ],
+  if (message.type === "KG_POPUP_RESTORE_DRAFT") {
+    try {
+      sendResponse({
+        ok: true,
+        data: restoreOriginalDraft(),
+      });
+    } catch (error) {
+      sendResponse({
+        ok: false,
+        error: error.message,
+      });
     }
-  );
+
+    return false;
+  }
+
+  if (message.type === "KG_POPUP_CHECK_PREVIOUS") {
+    checkPreviousResponses()
+      .then((data) => {
+        sendResponse({
+          ok: true,
+          data,
+        });
+      })
+      .catch((error) => {
+        sendResponse({
+          ok: false,
+          error: error.message,
+        });
+      });
+
+    return true;
+  }
+
+  return false;
+});
+
+const observer = new MutationObserver(schedulePageReconciliation);
+
+observer.observe(document.documentElement, {
+  childList: true,
+  subtree: true,
+  characterData: true,
+});
+
+const themeObserver = new MutationObserver(syncThemes);
+
+themeObserver.observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ["class", "data-theme", "style"],
+});
+
+if (document.body) {
+  themeObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["class", "data-theme", "style"],
+  });
 }
 
-setTimeout(
-  async () => {
-    await restoreCachedVerifications();
+setTimeout(async () => {
+  await restoreCachedVerifications();
 
-    reconcileLatestUserTurn();
+  reconcileLatestUserTurn();
 
-    scheduleLatestAssistantVerification(
-      true
-    );
-  },
-  INITIAL_DELAY_MS
-);
+  scheduleLatestAssistantVerification(true);
+}, INITIAL_DELAY_MS);
